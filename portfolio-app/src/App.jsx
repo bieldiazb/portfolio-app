@@ -8,7 +8,7 @@ import AllocationChart from './components/AllocationChart'
 import { usePortfolioStore } from './hooks/usePortfolioStore'
 import { usePriceFetcher } from './hooks/usePriceFetcher'
 import styles from './App.module.css'
-
+ 
 const TABS = [
   { id: 'investments', label: 'Inversions' },
   { id: 'savings',     label: 'Estalvis'   },
