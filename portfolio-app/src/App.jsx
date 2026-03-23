@@ -9,16 +9,15 @@ import LoginScreen from './components/LoginScreen'
 import { useAuth } from './hooks/useAuth'
 import { useFirestorePortfolio } from './hooks/useFirestorePortfolio'
 import { usePriceFetcher } from './hooks/usePriceFetcher'
-import styles from './App.module.css'
 
 const TABS = [
   { id: 'investments', label: 'Inversions'  },
   { id: 'savings',     label: 'Estalvis'    },
-  { id: 'chart',       label: 'Distribució' },
+  { id: 'chart',       label: 'Gràfics'     },
 ]
 
 export default function App() {
-  const { user, login, logout, loading: authLoading } = useAuth()
+  const { user, login, logout, error: authError, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('investments')
 
   const {
@@ -29,7 +28,6 @@ export default function App() {
 
   const { loading: priceLoading, status, setStatus, refreshAll, fetchOne } = usePriceFetcher()
 
-  // Auto-refresh prices when investments load
   useEffect(() => {
     if (!dataLoading && investments.length > 0) {
       refreshAll(investments, updatePrice)
@@ -42,7 +40,6 @@ export default function App() {
       setStatus('obtenint preu per ' + inv.ticker + '...')
       const price = await fetchOne(inv.ticker)
       if (price !== null) {
-        // find the newly added doc — wait briefly for Firestore to sync
         setTimeout(async () => {
           const fresh = investments.find(i => i.ticker === inv.ticker && i.name === inv.name)
           if (fresh) await updatePrice(fresh.id, price)
@@ -52,26 +49,22 @@ export default function App() {
     }
   }
 
-  // Loading screen
   if (authLoading) {
     return (
-      <div className={styles.splash}>
-        <span className={styles.splashDot}>◈</span>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  // Login screen
-  if (!user) {
-    return <LoginScreen onLogin={login} />
-  }
+  if (!user) return <LoginScreen onLogin={login} error={authError} />
 
   return (
-    <div className={styles.app}>
+    <div className="min-h-screen bg-background">
       <Header user={user} onLogout={logout} />
       <MetricsBar investments={investments} savings={savings} />
       <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-      <main className={styles.main}>
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'investments' && (
           <InvestmentsTable
             investments={investments}
@@ -83,17 +76,10 @@ export default function App() {
           />
         )}
         {activeTab === 'savings' && (
-          <SavingsList
-            savings={savings}
-            onAdd={addSavings}
-            onRemove={removeSavings}
-          />
+          <SavingsList savings={savings} onAdd={addSavings} onRemove={removeSavings} />
         )}
         {activeTab === 'chart' && (
-          <AllocationChart
-            investments={investments}
-            savings={savings}
-          />
+          <AllocationChart investments={investments} savings={savings} />
         )}
       </main>
     </div>

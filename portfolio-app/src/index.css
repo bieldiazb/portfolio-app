@@ -1,55 +1,52 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 10%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 222 25% 20%;
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 220 15% 92%;
+    --accent-foreground: 222 25% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { @apply bg-secondary; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
 }
 
-:root {
-  --bg-base: #0d0f14;
-  --bg-surface: #10121a;
-  --bg-elevated: #161820;
-  --border: #2a2d35;
-  --border-hover: #3a3d45;
-  --text-primary: #e8e4d9;
-  --text-secondary: #8a8478;
-  --text-muted: #4a4d55;
-  --gold: #c9a96e;
-  --gold-dim: #8a6a30;
-  --green: #4caf82;
-  --green-dim: #1a3a28;
-  --red: #c0614a;
-  --red-dim: #3a1810;
-  --blue: #4a7fa5;
-  --blue-dim: #1e3a55;
-  --purple: #7a5a9a;
-  --purple-dim: #3a2055;
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-  --radius: 2px;
-}
-
-html, body, #root {
-  height: 100%;
-  background: var(--bg-base);
-  color: var(--text-primary);
-  font-family: var(--font-serif);
-}
-
-body {
-  min-height: 100vh;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* Recharts overrides */
-.recharts-tooltip-wrapper { outline: none; }
 .recharts-default-tooltip {
-  background: var(--bg-elevated) !important;
-  border: 0.5px solid var(--border) !important;
-  border-radius: 2px !important;
-  font-family: var(--font-mono) !important;
-  font-size: 12px !important;
+  @apply bg-card border border-border rounded-xl shadow-lg !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 13px !important;
 }
