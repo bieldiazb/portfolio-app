@@ -1,0 +1,55 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-base: #0d0f14;
+  --bg-surface: #10121a;
+  --bg-elevated: #161820;
+  --border: #2a2d35;
+  --border-hover: #3a3d45;
+  --text-primary: #e8e4d9;
+  --text-secondary: #8a8478;
+  --text-muted: #4a4d55;
+  --gold: #c9a96e;
+  --gold-dim: #8a6a30;
+  --green: #4caf82;
+  --green-dim: #1a3a28;
+  --red: #c0614a;
+  --red-dim: #3a1810;
+  --blue: #4a7fa5;
+  --blue-dim: #1e3a55;
+  --purple: #7a5a9a;
+  --purple-dim: #3a2055;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --radius: 2px;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Recharts overrides */
+.recharts-tooltip-wrapper { outline: none; }
+.recharts-default-tooltip {
+  background: var(--bg-elevated) !important;
+  border: 0.5px solid var(--border) !important;
+  border-radius: 2px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+}

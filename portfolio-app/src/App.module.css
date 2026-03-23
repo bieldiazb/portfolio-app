@@ -1,0 +1,10 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+}
+
+.main {
+  flex: 1;
+}
