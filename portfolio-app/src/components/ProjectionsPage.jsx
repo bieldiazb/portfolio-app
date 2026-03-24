@@ -1,6 +1,8 @@
 // ─── ProjectionsPage.v2.jsx ─────────────────────────────────────────────────
 
 import { useState, useMemo } from 'react'
+import { fmtEur, fmtPct, getEffectiveValue } from '../utils/format'
+import { SHARED_STYLES } from './design-tokens'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const DEFAULT_RETURNS = { etf: 8, stock: 9, robo: 6.5, estalvi: 1.5, efectiu: 1.8, crypto: 15 }

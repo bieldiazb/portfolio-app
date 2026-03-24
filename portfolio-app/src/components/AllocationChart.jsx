@@ -1,8 +1,10 @@
 // ─── AllocationChart.v2.jsx ─────────────────────────────────────────────────
-
+ 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { fmtEur, fmtPct, getEffectiveValue } from '../utils/format'
+import { SHARED_STYLES } from './design-tokens'
 import { CHART_COLORS } from './design-tokens'
-
+ 
 const TYPE_META_V2 = {
   efectiu: { label: 'Efectiu', color: 'rgba(255,255,255,0.42)', bg: 'rgba(255,255,255,0.04)' },
   estalvi: { label: 'Estalvi', color: 'rgba(80,210,110,0.72)',  bg: 'rgba(60,200,90,0.08)' },
@@ -11,7 +13,7 @@ const TYPE_META_V2 = {
   robo:    { label: 'Robo',    color: 'rgba(255,170,70,0.75)',  bg: 'rgba(255,150,50,0.08)' },
   crypto:  { label: 'Crypto',  color: 'rgba(255,170,70,0.75)',  bg: 'rgba(255,150,50,0.08)' },
 }
-
+ 
 const alStyles = `
   .al-v2 { font-family: 'Geist', sans-serif; display: flex; flex-direction: column; gap: 14px; }
   .al-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -42,7 +44,7 @@ const alStyles = `
   .al-cat-pct { font-size: 10px; color: rgba(255,255,255,0.24); margin-top: 2px; }
   .al-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); }
 `
-
+ 
 const AlTooltip = ({ active, payload, total }) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
@@ -55,33 +57,33 @@ const AlTooltip = ({ active, payload, total }) => {
     </div>
   )
 }
-
+ 
 export default function AllocationChart({ investments, savings, cryptos = [] }) {
   const data = [
     ...investments.map(inv => ({ name: inv.name, value: getEffectiveValue(inv), type: inv.type })),
     ...savings.map(s => ({ name: s.name, value: s.amount, type: 'estalvi' })),
     ...cryptos.map(c => ({ name: c.name, value: c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0, type: 'crypto' })),
   ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
-
+ 
   const total = data.reduce((s, d) => s + d.value, 0)
   const byType = data.reduce((acc, d) => { acc[d.type] = (acc[d.type] || 0) + d.value; return acc }, {})
-
+ 
   if (data.length === 0) return (
     <div className="al-v2">
       <style>{`${SHARED_STYLES}${alStyles}`}</style>
       <div className="al-empty">Afegeix inversions per veure la distribució</div>
     </div>
   )
-
+ 
   return (
     <div className="al-v2">
       <style>{`${SHARED_STYLES}${alStyles}`}</style>
-
+ 
       <div>
         <h2 className="sec-v2-title">Distribució</h2>
         <p className="sec-v2-sub" style={{ fontFamily: "'Geist Mono', monospace" }}>{fmtEur(total)}</p>
       </div>
-
+ 
       <div className="al-grid">
         <div className="al-panel">
           <p className="al-panel-title">Per actiu</p>
@@ -102,7 +104,7 @@ export default function AllocationChart({ investments, savings, cryptos = [] }) 
             </div>
           </div>
         </div>
-
+ 
         <div className="al-panel">
           <p className="al-panel-title">Detall</p>
           {data.map((d, i) => {
@@ -127,7 +129,7 @@ export default function AllocationChart({ investments, savings, cryptos = [] }) 
           })}
         </div>
       </div>
-
+ 
       <div className="al-panel">
         <p className="al-panel-title">Per categoria</p>
         <div className="al-cat-grid">
