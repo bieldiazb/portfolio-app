@@ -1,152 +1,118 @@
 import { useState } from 'react'
+import { SHARED_STYLES, TYPE_COLORS } from './design-tokens'
 
 const TYPE_OPTIONS = [
-  { value: 'etf',     label: 'ETF',          bg: 'hsl(214 55% 16%)', color: 'hsl(214 80% 66%)' },
-  { value: 'stock',   label: 'Acció',        bg: 'hsl(142 40% 12%)', color: 'hsl(142 60% 50%)' },
-  { value: 'robo',    label: 'Robo Advisor', bg: 'hsl(270 35% 16%)', color: 'hsl(270 60% 66%)' },
-  { value: 'efectiu', label: 'Efectiu',      bg: 'hsl(0 0% 11%)',    color: 'hsl(0 0% 50%)'    },
-  { value: 'estalvi', label: 'Estalvi',      bg: 'hsl(142 40% 12%)', color: 'hsl(142 55% 46%)' },
+  { value: 'etf',     label: 'ETF',    short: 'ETF' },
+  { value: 'stock',   label: 'Acció',  short: 'ACC' },
+  { value: 'robo',    label: 'Robo',   short: 'ROB' },
+  { value: 'efectiu', label: 'Efectiu',short: 'EFE' },
+  { value: 'estalvi', label: 'Estalvi',short: 'EST' },
 ]
 
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
-
-  .aim-overlay {
+const modalStyles = `
+  .aim2-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(5px);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 50;
+    background: rgba(0,0,0,0.82); backdrop-filter: blur(6px);
+    display: flex; align-items: flex-end; justify-content: center; z-index: 50;
   }
-  @media (min-width: 640px) {
-    .aim-overlay { align-items: center; padding: 1rem; }
-  }
+  @media (min-width: 640px) { .aim2-overlay { align-items: center; padding: 1rem; } }
 
-  .aim-modal {
-    font-family: 'DM Sans', sans-serif;
-    background: hsl(0 0% 8%);
-    border: 1px solid hsl(0 0% 14%);
-    border-radius: 20px 20px 0 0;
-    width: 100%; padding: 24px;
+  .aim2-modal {
+    font-family: 'Geist', sans-serif;
+    background: #0f0f0f;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px 12px 0 0;
+    width: 100%; padding: 22px;
     max-height: 92vh; overflow-y: auto;
   }
-  @media (min-width: 640px) {
-    .aim-modal { max-width: 420px; border-radius: 20px; }
-  }
+  @media (min-width: 640px) { .aim2-modal { max-width: 400px; border-radius: 10px; } }
 
-  .aim-hdr {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 22px;
-  }
-  .aim-title {
-    font-size: 16px; font-weight: 600;
-    color: hsl(0 0% 88%); letter-spacing: -0.3px;
-  }
-  .aim-close {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: hsl(0 0% 13%); border: 1px solid hsl(0 0% 18%);
-    color: hsl(0 0% 50%); font-size: 16px; font-weight: 600;
+  .aim2-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .aim2-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }
+  .aim2-close {
+    width: 24px; height: 24px; border-radius: 4px;
+    background: rgba(255,255,255,0.06); border: none;
+    color: rgba(255,255,255,0.38); font-size: 15px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 120ms; font-family: inherit;
-    line-height: 1;
+    cursor: pointer; font-family: inherit; line-height: 1;
   }
-  .aim-close:hover { color: hsl(0 0% 80%); background: hsl(0 0% 16%); }
+  .aim2-close:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.65); }
 
   /* Type selector */
-  .aim-type-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 6px; margin-bottom: 20px;
+  .aim2-tgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 18px; }
+  .aim2-tbtn {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 3px 7px; border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    cursor: pointer; gap: 4px; transition: all 100ms;
+    font-family: 'Geist', sans-serif;
   }
-  .aim-type-btn {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 9px 4px 7px;
-    border-radius: 10px; border: 1px solid hsl(0 0% 14%);
-    background: hsl(0 0% 10%); cursor: pointer;
-    transition: all 120ms; font-family: 'DM Sans', sans-serif;
-    gap: 4px;
-  }
-  .aim-type-btn:hover { border-color: hsl(0 0% 22%); background: hsl(0 0% 13%); }
-  .aim-type-btn.selected { border-width: 1.5px; }
-
-  .aim-type-av {
-    width: 28px; height: 28px; border-radius: 7px;
+  .aim2-tbtn:hover { border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); }
+  .aim2-tbtn.sel { border-width: 1px; }
+  .aim2-tav {
+    width: 26px; height: 26px; border-radius: 4px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 700; letter-spacing: 0.02em;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.02em;
   }
-  .aim-type-label {
-    font-size: 9.5px; font-weight: 600;
-    color: hsl(0 0% 40%); letter-spacing: 0.01em;
-    text-align: center; line-height: 1.2;
-  }
-  .aim-type-btn.selected .aim-type-label { color: hsl(0 0% 60%); }
+  .aim2-tlbl { font-size: 9px; font-weight: 400; color: rgba(255,255,255,0.30); text-align: center; line-height: 1.2; transition: color 100ms; }
+  .aim2-tbtn.sel .aim2-tlbl { color: rgba(255,255,255,0.55); }
 
   /* Fields */
-  .aim-space { display: flex; flex-direction: column; gap: 13px; }
-  .aim-field-label {
-    display: block; font-size: 10.5px; font-weight: 600;
-    color: hsl(0 0% 34%); text-transform: uppercase;
-    letter-spacing: 0.07em; margin-bottom: 6px;
-  }
-  .aim-input {
+  .aim2-space { display: flex; flex-direction: column; gap: 11px; }
+  .aim2-lbl { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .aim2-inp {
     width: 100%;
-    background: hsl(0 0% 11%); border: 1px solid hsl(0 0% 16%);
-    border-radius: 10px; padding: 10px 12px;
-    font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
-    color: hsl(0 0% 84%); outline: none;
-    transition: border-color 120ms;
-    -webkit-appearance: none;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px; padding: 9px 11px;
+    font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 400;
+    color: rgba(255,255,255,0.82); outline: none; transition: border-color 100ms;
   }
-  .aim-input:focus { border-color: hsl(142 60% 38%); }
-  .aim-input::placeholder { color: hsl(0 0% 26%); }
-
-  /* Ticker hint */
-  .aim-hint {
-    font-size: 11px; color: hsl(0 0% 28%); margin-top: 5px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .aim-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-  /* Error */
-  .aim-error {
-    font-size: 12.5px; font-weight: 500;
-    color: hsl(4 72% 60%); background: hsl(4 72% 56% / 0.10);
-    border: 1px solid hsl(4 72% 56% / 0.20);
-    border-radius: 9px; padding: 9px 12px;
-  }
+  .aim2-inp:focus { border-color: rgba(255,255,255,0.22); }
+  .aim2-inp::placeholder { color: rgba(255,255,255,0.18); }
+  .aim2-inp.mono { font-family: 'Geist Mono', monospace; text-align: right; letter-spacing: -0.1px; }
+  .aim2-inp.date { font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.55); cursor: pointer; }
+  .aim2-inp.date::-webkit-calendar-picker-indicator { filter: invert(0.4); cursor: pointer; }
+  .aim2-hint { font-size: 10px; color: rgba(255,255,255,0.20); margin-top: 4px; font-family: 'Geist Mono', monospace; }
+  .aim2-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .aim2-error { font-size: 11px; color: rgba(255,90,70,0.80); background: rgba(255,60,40,0.08); border: 1px solid rgba(255,60,40,0.14); border-radius: 5px; padding: 8px 11px; }
 
   /* Footer */
-  .aim-footer { display: flex; gap: 10px; margin-top: 22px; }
-  .aim-btn-cancel {
-    flex: 1; border: 1px solid hsl(0 0% 16%); background: transparent;
-    color: hsl(0 0% 42%); padding: 12px; border-radius: 12px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all 120ms;
+  .aim2-footer { display: flex; gap: 8px; margin-top: 18px; }
+  .aim2-cancel {
+    flex: 1; border: 1px solid rgba(255,255,255,0.07); background: transparent;
+    color: rgba(255,255,255,0.34); padding: 10px; border-radius: 5px;
+    font-family: 'Geist', sans-serif; font-size: 12px; cursor: pointer; transition: all 100ms;
   }
-  .aim-btn-cancel:hover { background: hsl(0 0% 11%); color: hsl(0 0% 66%); }
-  .aim-btn-submit {
-    flex: 1; background: hsl(142 60% 46%); border: none;
-    color: hsl(0 0% 5%); padding: 12px; border-radius: 12px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: background 120ms;
+  .aim2-cancel:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
+  .aim2-submit {
+    flex: 1; background: rgba(255,255,255,0.92); border: none;
+    color: #080808; padding: 10px; border-radius: 5px;
+    font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: background 100ms;
   }
-  .aim-btn-submit:hover { background: hsl(142 60% 40%); }
+  .aim2-submit:hover { background: #fff; }
 `
 
-function Field({ label, children }) {
+function Field({ label, hint, children }) {
   return (
     <div>
-      <label className="aim-field-label">{label}</label>
+      <label className="aim2-lbl">{label}</label>
       {children}
+      {hint && <p className="aim2-hint">{hint}</p>}
     </div>
   )
 }
 
 export default function AddInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ type: 'etf', name: '', ticker: '', qty: '', initialValue: '' })
+  const today = new Date().toISOString().split('T')[0]
+  const [form, setForm] = useState({
+    type: 'etf', name: '', ticker: '', qty: '', initialValue: '', purchaseDate: today,
+  })
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const hasQty = !['efectiu', 'estalvi', 'robo'].includes(form.type)
+  const tc = TYPE_COLORS[form.type] || TYPE_COLORS.etf
 
   const handleSubmit = () => {
     if (!form.name.trim()) return setError('El nom és obligatori')
@@ -161,102 +127,91 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
       initialValue: val,
       qty: hasQty ? parseFloat(form.qty) : null,
       currentPrice: null,
+      purchaseDate: form.purchaseDate || today,
+      // Moviment registrat automàticament
+      movements: [{
+        date: form.purchaseDate || today,
+        amount: val,
+        qty: hasQty ? parseFloat(form.qty) : null,
+        note: 'Posició inicial',
+      }],
     })
   }
 
-  const selectedType = TYPE_OPTIONS.find(t => t.value === form.type)
-
   return (
     <>
-      <style>{styles}</style>
-      <div className="aim-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-        <div className="aim-modal">
+      <style>{`${SHARED_STYLES}${modalStyles}`}</style>
+      <div className="aim2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="aim2-modal">
 
-          <div className="aim-hdr">
-            <h3 className="aim-title">Nova posició</h3>
-            <button className="aim-close" onClick={onClose}>×</button>
+          <div className="aim2-hdr">
+            <h3 className="aim2-title">Nova posició</h3>
+            <button className="aim2-close" onClick={onClose}>×</button>
           </div>
 
           {/* Type selector */}
-          <div className="aim-type-grid">
-            {TYPE_OPTIONS.map(t => (
-              <button
-                key={t.value}
-                className={`aim-type-btn${form.type === t.value ? ' selected' : ''}`}
-                style={form.type === t.value
-                  ? { background: t.bg, borderColor: t.color + '55' }
-                  : {}
-                }
-                onClick={() => set('type', t.value)}
-              >
-                <div className="aim-type-av" style={{
-                  background: form.type === t.value ? t.color + '22' : 'hsl(0 0% 14%)',
-                  color: form.type === t.value ? t.color : 'hsl(0 0% 40%)',
-                }}>
-                  {t.label.slice(0, 3).toUpperCase()}
-                </div>
-                <span className="aim-type-label">{t.label}</span>
-              </button>
-            ))}
+          <div className="aim2-tgrid">
+            {TYPE_OPTIONS.map(t => {
+              const isSelected = form.type === t.value
+              const color = TYPE_COLORS[t.value] || TYPE_COLORS.etf
+              return (
+                <button
+                  key={t.value}
+                  className={`aim2-tbtn${isSelected ? ' sel' : ''}`}
+                  style={isSelected ? { background: color.bg, borderColor: color.color.replace('0.85', '0.30') } : {}}
+                  onClick={() => set('type', t.value)}
+                >
+                  <div className="aim2-tav" style={{
+                    background: isSelected ? color.bg : 'rgba(255,255,255,0.06)',
+                    color: isSelected ? color.color : 'rgba(255,255,255,0.28)',
+                  }}>
+                    {t.short}
+                  </div>
+                  <span className="aim2-tlbl">{t.label}</span>
+                </button>
+              )
+            })}
           </div>
 
-          <div className="aim-space">
+          <div className="aim2-space">
             <Field label="Nom">
-              <input
-                className="aim-input"
-                value={form.name}
-                onChange={e => set('name', e.target.value)}
-                placeholder="ex: iShares MSCI World..."
-                autoFocus
-              />
+              <input className="aim2-inp" value={form.name} onChange={e => set('name', e.target.value)}
+                placeholder="ex: iShares MSCI World..." autoFocus />
             </Field>
 
             {hasQty && (
-              <Field label="Ticker Yahoo Finance">
-                <input
-                  className="aim-input"
-                  style={{ fontFamily: "'DM Mono', monospace", letterSpacing: '0.02em' }}
-                  value={form.ticker}
-                  onChange={e => set('ticker', e.target.value.toUpperCase())}
-                  placeholder="EUNL.DE, LMT, AAPL..."
-                />
-                <p className="aim-hint">Busca el ticker a finance.yahoo.com</p>
+              <Field label="Ticker Yahoo Finance" hint="→ finance.yahoo.com">
+                <input className="aim2-inp" style={{ fontFamily: "'Geist Mono', monospace", letterSpacing: '0.02em' }}
+                  value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())}
+                  placeholder="EUNL.DE, AAPL..." />
               </Field>
             )}
 
-            <div className={hasQty ? 'aim-grid2' : ''}>
+            <div className={hasQty ? 'aim2-g2' : ''}>
               {hasQty && (
                 <Field label="Quantitat">
-                  <input
-                    type="number" step="any"
-                    className="aim-input"
-                    style={{ fontFamily: "'DM Mono', monospace", textAlign: 'right' }}
-                    value={form.qty}
-                    onChange={e => set('qty', e.target.value)}
-                    placeholder="0.00"
-                  />
+                  <input type="number" step="any" className="aim2-inp mono"
+                    value={form.qty} onChange={e => set('qty', e.target.value)} placeholder="0.00" />
                 </Field>
               )}
               <Field label="Cost total (€)">
-                <input
-                  type="number" step="any"
-                  className="aim-input"
-                  style={{ fontFamily: "'DM Mono', monospace", textAlign: 'right' }}
-                  value={form.initialValue}
-                  onChange={e => set('initialValue', e.target.value)}
-                  placeholder="0.00"
-                />
+                <input type="number" step="any" className="aim2-inp mono"
+                  value={form.initialValue} onChange={e => set('initialValue', e.target.value)} placeholder="0.00" />
               </Field>
             </div>
 
-            {error && <p className="aim-error">{error}</p>}
+            <Field label="Data de compra">
+              <input type="date" className="aim2-inp date"
+                value={form.purchaseDate} onChange={e => set('purchaseDate', e.target.value)} />
+            </Field>
+
+            {error && <p className="aim2-error">{error}</p>}
           </div>
 
-          <div className="aim-footer">
-            <button className="aim-btn-cancel" onClick={onClose}>Cancel·lar</button>
-            <button className="aim-btn-submit" onClick={handleSubmit}>Afegir posició</button>
+          <div className="aim2-footer">
+            <button className="aim2-cancel" onClick={onClose}>Cancel·lar</button>
+            <button className="aim2-submit" onClick={handleSubmit}>Afegir posició</button>
           </div>
-
         </div>
       </div>
     </>

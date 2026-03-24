@@ -19,8 +19,8 @@ const mbStyles = `
   .mb-main { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
   .mb-total {
     font-size: clamp(32px, 4.5vw, 44px);
-    font-weight: 300; color: rgba(255,255,255,0.90);
-    letter-spacing: -2px; font-family: 'Geist', sans-serif; line-height: 1;
+    font-weight: 500; color: rgba(255,255,255,0.90);
+    letter-spacing: 1px; font-family: 'Geist', sans-serif; line-height: 1;
   }
   .mb-total-dec { font-size: 60%; opacity: 0.5; }
   .mb-badge {
