@@ -77,11 +77,19 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
       const n = y * 12
       let total = 0, cost = 0
       allAssets.forEach(a => {
-        const pv = getEffectiveValue(a) || a.initialValue || 0
-        const pmt = getContribution(a.id)
-        total += fv(pv, pmt, getRate(a), n)
-        cost  += pv + pmt * n
-      })
+    const pv = a.category === 'estalvi'
+    ? (a.amount || 0)
+    : (getEffectiveValue(a) || a.initialValue || 0)
+    const pmt = getContribution(a.id)
+
+    console.log('ASSET:', a.name)
+    console.log('PV:', pv)
+    console.log('PMT:', pmt)
+    console.log('TOTAL COST:', pv + pmt * n)
+
+    total += fv(pv, pmt, getRate(a), n)
+    cost  += pv + pmt * n
+    })
       points.push({ any: y === 0 ? 'Avui' : `${y}a`, 'Valor': Math.round(total), 'Capital': Math.round(cost) })
     }
     return points
