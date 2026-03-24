@@ -56,7 +56,7 @@ const PrTooltip = ({ active, payload, label }) => {
   )
 }
 
-export function ProjectionsPage({ investments, savings, cryptos = [] }) {
+export default function ProjectionsPage({ investments, savings, cryptos = [] }) {
   const [years, setYears] = useState(10)
   const [contributions, setContributions] = useState({})
 
