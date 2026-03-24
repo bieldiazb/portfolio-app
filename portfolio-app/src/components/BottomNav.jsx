@@ -32,7 +32,7 @@ const bnStyles = `
     display: flex;
     align-items: stretch;
     justify-content: space-around;
-    height: 58px;
+    height: 90px;
   }
 
   .bn-item {
@@ -41,7 +41,7 @@ const bnStyles = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 6px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -67,6 +67,7 @@ const bnStyles = `
 
   .bn-item.active .bn-icon {
     background: hsl(142 60% 45% / 0.13);
+    height: 32px;
   }
 
   .bn-item.active .bn-icon::after {
