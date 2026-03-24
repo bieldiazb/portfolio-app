@@ -56,7 +56,7 @@ const AlTooltip = ({ active, payload, total }) => {
   )
 }
 
-export function AllocationChart({ investments, savings, cryptos = [] }) {
+export default function AllocationChart({ investments, savings, cryptos = [] }) {
   const data = [
     ...investments.map(inv => ({ name: inv.name, value: getEffectiveValue(inv), type: inv.type })),
     ...savings.map(s => ({ name: s.name, value: s.amount, type: 'estalvi' })),
