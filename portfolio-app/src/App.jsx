@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
 import MetricsBar from './components/MetricsBar'
 import InvestmentsTable from './components/InvestmentsTable'
@@ -14,6 +14,8 @@ import AlertsPage from './components/AlertsSystem'
 import MonthlyReport from './components/MonthlyReport'
 import LoginScreen from './components/LoginScreen'
 import { useAuth } from './hooks/useAuth'
+import { useInvestments } from './hooks/useInvestments'
+import { useSavings } from './hooks/useSavings'
 import { useFirestorePortfolio } from './hooks/useFirestorePortfolio'
 import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
@@ -34,20 +36,11 @@ export const PAGES = {
   report:      'Informe PDF',
 }
 
-// Pàgines que NO mostren el MetricsBar a dalt
 const NO_METRICS = new Set(['movements', 'timeline', 'benchmark', 'rebalancing', 'alerts', 'report'])
 
 const appStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
-
-  .mob-hdr {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    background: #080808;
-    position: sticky; top: 0; z-index: 10;
-    font-family: 'Geist', sans-serif; flex-shrink: 0;
-  }
+  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #080808; position: sticky; top: 0; z-index: 10; font-family: 'Geist', sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
@@ -57,84 +50,127 @@ const appStyles = `
   .mob-av { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; overflow: hidden; cursor: pointer; transition: background 100ms; }
   .mob-av:hover { background: rgba(255,255,255,0.10); }
   .mob-av img { width: 100%; height: 100%; object-fit: cover; }
-
   .app-spinner { min-height: 100vh; background: #080808; display: flex; align-items: center; justify-content: center; }
   .app-spinner-ring { width: 18px; height: 18px; border: 1px solid rgba(255,255,255,0.15); border-top-color: rgba(255,255,255,0.6); border-radius: 50%; animation: appSpin 0.6s linear infinite; }
   @keyframes appSpin { to { transform: rotate(360deg); } }
-
   .swipe-hint { position: fixed; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 0 2px 2px 0; z-index: 5; }
   @media (min-width: 1024px) { .swipe-hint { display: none; } }
 `
+
+const invVal  = inv => inv.currentPrice != null && inv.totalQty > 0 ? inv.totalQty * inv.currentPrice : inv.totalCost || 0
+const cryVal  = c   => c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0
 
 export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab]     = useState('investments')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // ── Inversions (nou sistema) ─────────────────────────────────────────────────
   const {
-    investments, savings, cryptos, loading: dataLoading,
-    addInvestment, removeInvestment, updatePrice, updateInvestment,
-    addSavings, removeSavings,
+    investments,
+    addInvestment, removeInvestment,
+    addTransaction:    addInvTx,
+    removeTransaction: removeInvTx,
+    updateCurrentPrice,
+  } = useInvestments(user?.uid)
+
+  // ── Estalvis (comptes + moviments) ───────────────────────────────────────────
+  const {
+    accounts,
+    addAccount, removeAccount,
+    addTransaction:    addSavTx,
+    removeTransaction: removeSavTx,
+  } = useSavings(user?.uid)
+
+  // ── Crypto (useFirestorePortfolio — sense investments ni savings) ────────────
+  const {
+    cryptos, loading: cryptoLoading,
     addCrypto, removeCrypto, updateCrypto, updateCryptoPrice,
   } = useFirestorePortfolio(user?.uid)
 
-  const { loading: priceLoading, status, setStatus, refreshAll, fetchOne } = usePriceFetcher()
+  // ── Price fetcher ────────────────────────────────────────────────────────────
+  const { loading: priceLoading, status, setStatus, fetchOne } = usePriceFetcher()
+
+  // ── Altres ───────────────────────────────────────────────────────────────────
   const { snapshots, saveSnapshot } = useNetWorthSnapshots(user?.uid)
   const { goals, saveGoals }        = useRebalancingGoals(user?.uid)
   const { alerts, addAlert, removeAlert, checkAlerts } = useAlerts(user?.uid)
 
-  // Calcula distribució actual per checkAlerts
+  // ── Compat arrays per components que esperen format antic ────────────────────
+  const investmentsCompat = investments.map(inv => ({
+    ...inv,
+    qty:          inv.totalQty  || 0,
+    initialValue: inv.totalCost || 0,
+  }))
+
+  const savingsCompat = accounts.map(a => ({
+    id: a.id, name: a.name, amount: a.balance, rate: a.rate || 0,
+  }))
+
+  // ── Totals ───────────────────────────────────────────────────────────────────
+  const totalInv  = investments.reduce((s, inv) => s + invVal(inv), 0)
+  const totalSav  = accounts.reduce((s, a) => s + a.balance, 0)
+  const totalCry  = cryptos.reduce((s, c) => s + cryVal(c), 0)
+  const totalAll  = totalInv + totalSav + totalCry
+  const totalCost = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
+                  + cryptos.reduce((s, c) => s + (c.initialValue || 0), 0)
+
+  // ── currentPcts per rebalanceig ──────────────────────────────────────────────
   const currentPcts = (() => {
     const vals = { etf: 0, estalvi: 0, crypto: 0, robo: 0 }
-    investments.forEach(i => {
-      const v = i.qty && i.currentPrice ? i.qty * i.currentPrice : i.initialValue || 0
-      if (['etf','stock'].includes(i.type)) vals.etf += v
-      else if (i.type === 'robo')           vals.robo += v
-      else if (['estalvi','efectiu'].includes(i.type)) vals.estalvi += v
+    investments.forEach(inv => {
+      const v = invVal(inv)
+      if (['etf', 'stock'].includes(inv.type))           vals.etf     += v
+      else if (inv.type === 'robo')                       vals.robo    += v
+      else if (['estalvi', 'efectiu'].includes(inv.type)) vals.estalvi += v
     })
-    savings.forEach(s => { vals.estalvi += s.amount })
-    cryptos.forEach(c => { vals.crypto += c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0 })
+    vals.estalvi += totalSav
+    cryptos.forEach(c => { vals.crypto += cryVal(c) })
     const total = Object.values(vals).reduce((a, b) => a + b, 0)
-    const pcts = {}
+    const pcts  = {}
     Object.entries(vals).forEach(([k, v]) => { pcts[k] = total > 0 ? (v / total) * 100 : 0 })
     return pcts
   })()
 
-  useEffect(() => {
-    if (!dataLoading && investments.length > 0) refreshAll(investments, updatePrice)
-  }, [dataLoading])
+  // ── Effects ───────────────────────────────────────────────────────────────────
 
+  // Preus inversions en carregar
   useEffect(() => {
-    if (!dataLoading && cryptos.length > 0) refreshCryptoPrices()
-  }, [dataLoading])
+    if (!investments.length) return
+    investments.forEach(async inv => {
+      if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) return
+      try {
+        const price = await fetchOne(inv.ticker)
+        if (price != null) updateCurrentPrice(inv.id, price)
+      } catch {}
+    })
+  }, [investments.length]) // eslint-disable-line
 
-  // Snapshot diari
+  // Preus crypto en carregar
   useEffect(() => {
-    if (!dataLoading && user) {
-      const invVal = investments.reduce((s, i) => s + (i.qty && i.currentPrice ? i.qty * i.currentPrice : i.initialValue || 0), 0)
-      const savVal = savings.reduce((s, sv) => s + sv.amount, 0)
-      const cryVal = cryptos.reduce((s, c) => s + (c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0), 0)
-      const total  = invVal + savVal + cryVal
-      if (total > 0) {
-        saveSnapshot(total, invVal, savVal, cryVal)
-        // Comprova alertes cada vegada que s'actualitzen les dades
-        checkAlerts(investments, cryptos, total, goals, currentPcts)
-      }
+    if (!cryptoLoading && cryptos.length) refreshCryptoPrices()
+  }, [cryptoLoading]) // eslint-disable-line
+
+  // Snapshot + alertes quan canvia el total
+  useEffect(() => {
+    if (totalAll > 0 && user) {
+      saveSnapshot(totalAll, totalInv, totalSav, totalCry)
+      checkAlerts(investmentsCompat, cryptos, totalAll, goals, currentPcts)
     }
-  }, [dataLoading, user])
+  }, [totalAll]) // eslint-disable-line
 
-  // Tanca el sidebar en resize a desktop
   useEffect(() => {
     const fn = () => { if (window.innerWidth >= 1024) setSidebarOpen(false) }
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
 
-  // Prevé scroll del body quan drawer obert
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [sidebarOpen])
+
+  // ── Handlers ──────────────────────────────────────────────────────────────────
 
   const refreshCryptoPrices = async () => {
     for (const c of cryptos) {
@@ -147,43 +183,39 @@ export default function App() {
     }
   }
 
-  const handleAddInvestment = async (inv) => {
-    const withDate = { ...inv, purchaseDate: inv.purchaseDate || new Date().toISOString().split('T')[0] }
-    await addInvestment(withDate)
-    if (inv.ticker && !['efectiu', 'estalvi', 'robo'].includes(inv.type)) {
-      setStatus('obtenint preu per ' + inv.ticker + '...')
-      const price = await fetchOne(inv.ticker)
-      if (price !== null) {
-        setTimeout(async () => {
-          const fresh = investments.find(i => i.ticker === inv.ticker && i.name === inv.name)
-          if (fresh) await updatePrice(fresh.id, price)
-        }, 1500)
-      }
+  const handleAddInvestment = useCallback(async ({ name, ticker, type }) => {
+    await addInvestment({ name, ticker, type })
+    if (ticker && !['efectiu', 'estalvi', 'robo'].includes(type)) {
+      setStatus('obtenint preu per ' + ticker + '...')
+      try {
+        const price = await fetchOne(ticker)
+        if (price != null) {
+          setTimeout(() => {
+            const fresh = investments.find(i => i.ticker === ticker && i.name === name)
+            if (fresh) updateCurrentPrice(fresh.id, price)
+          }, 1500)
+        }
+      } catch {}
       setStatus('llest')
     }
-  }
+  }, [addInvestment, fetchOne, setStatus, updateCurrentPrice, investments])
 
-  const handleAddSavings = async (s) => {
-    await addSavings({ ...s, createdAt: new Date().toISOString() })
-  }
-
-  const handleAddCrypto = async (c) => {
-    await addCrypto({ ...c, purchaseDate: new Date().toISOString().split('T')[0] })
-  }
-
-  const invValue   = investments.reduce((s, i) => s + (i.qty && i.currentPrice ? i.qty * i.currentPrice : i.initialValue || 0), 0)
-  const savValue   = savings.reduce((s, sv) => s + sv.amount, 0)
-  const cryValue   = cryptos.reduce((s, c) => s + (c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0), 0)
-  const totalValue = invValue + savValue + cryValue
-  const totalCost  = investments.reduce((s, i) => s + (i.initialValue || 0), 0)
-               + cryptos.reduce((s, c) => s + (c.initialValue || 0), 0)
+  const handleRefreshPrices = useCallback(async () => {
+    for (const inv of investments) {
+      if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) continue
+      try {
+        const price = await fetchOne(inv.ticker)
+        if (price != null) updateCurrentPrice(inv.id, price)
+      } catch {}
+    }
+  }, [investments, fetchOne, updateCurrentPrice])
 
   const activeAlertsCount = alerts.filter(a => !a.triggered).length
-
   const initials = user?.displayName
     ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   if (authLoading) return (
     <div className="app-spinner">
       <style>{appStyles}</style>
@@ -199,7 +231,7 @@ export default function App() {
 
       <Sidebar
         active={activeTab}
-        onChange={(id) => { setActiveTab(id); setSidebarOpen(false) }}
+        onChange={id => { setActiveTab(id); setSidebarOpen(false) }}
         user={user}
         onLogout={logout}
         isOpen={sidebarOpen}
@@ -213,7 +245,6 @@ export default function App() {
       >
         <div className="swipe-hint" />
 
-        {/* Header mòbil */}
         <div className="mob-hdr">
           <div className="mob-hdr-left">
             <button className="mob-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="Obrir menú">
@@ -234,11 +265,14 @@ export default function App() {
           </div>
         </div>
 
-        {/* Scroll container */}
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {!NO_METRICS.has(activeTab) && (
-            <MetricsBar investments={investments} savings={savings} cryptos={cryptos} />
+            <MetricsBar
+              investments={investmentsCompat}
+              savings={savingsCompat}
+              cryptos={cryptos}
+            />
           )}
 
           <main style={{ flex: 1, padding: '22px 18px' }} className="lg:px-8 lg:py-7">
@@ -246,23 +280,30 @@ export default function App() {
             {activeTab === 'investments' && (
               <InvestmentsTable
                 investments={investments}
-                onAdd={handleAddInvestment}
-                onRemove={removeInvestment}
-                onUpdate={updateInvestment}
-                onRefresh={() => refreshAll(investments, updatePrice)}
+                onAddInvestment={handleAddInvestment}
+                onRemoveInvestment={removeInvestment}
+                onAddTransaction={addInvTx}
+                onRemoveTransaction={removeInvTx}
                 loading={priceLoading}
-                status={dataLoading ? 'carregant...' : status}
+                status={status}
+                onRefresh={handleRefreshPrices}
               />
             )}
 
             {activeTab === 'savings' && (
-              <SavingsList savings={savings} onAdd={handleAddSavings} onRemove={removeSavings} />
+              <SavingsList
+                accounts={accounts}
+                onAddAccount={addAccount}
+                onRemoveAccount={removeAccount}
+                onAddTransaction={addSavTx}
+                onRemoveTransaction={removeSavTx}
+              />
             )}
 
             {activeTab === 'crypto' && (
               <CryptoPage
                 cryptos={cryptos}
-                onAdd={handleAddCrypto}
+                onAdd={c => addCrypto({ ...c, purchaseDate: new Date().toISOString().split('T')[0] })}
                 onRemove={removeCrypto}
                 onUpdate={updateCrypto}
                 onRefresh={refreshCryptoPrices}
@@ -270,23 +311,35 @@ export default function App() {
             )}
 
             {activeTab === 'movements' && (
-              <MovementsPage investments={investments} savings={savings} cryptos={cryptos} />
+              <MovementsPage
+                investments={investmentsCompat}
+                savings={savingsCompat}
+                cryptos={cryptos}
+              />
             )}
 
             {activeTab === 'timeline' && (
               <NetWorthTimeline
                 snapshots={snapshots}
-                currentTotal={totalValue}
+                currentTotal={totalAll}
                 totalCost={totalCost}
               />
             )}
 
             {activeTab === 'projections' && (
-              <ProjectionsPage investments={investments} savings={savings} cryptos={cryptos} />
+              <ProjectionsPage
+                investments={investmentsCompat}
+                savings={savingsCompat}
+                cryptos={cryptos}
+              />
             )}
 
             {activeTab === 'chart' && (
-              <AllocationChart investments={investments} savings={savings} cryptos={cryptos} />
+              <AllocationChart
+                investments={investmentsCompat}
+                savings={savingsCompat}
+                cryptos={cryptos}
+              />
             )}
 
             {activeTab === 'benchmark' && (
@@ -295,8 +348,8 @@ export default function App() {
 
             {activeTab === 'rebalancing' && (
               <RebalancingPage
-                investments={investments}
-                savings={savings}
+                investments={investmentsCompat}
+                savings={savingsCompat}
                 cryptos={cryptos}
                 goals={goals}
                 onSaveGoals={saveGoals}
@@ -305,7 +358,7 @@ export default function App() {
 
             {activeTab === 'alerts' && (
               <AlertsPage
-                investments={investments}
+                investments={investmentsCompat}
                 cryptos={cryptos}
                 alerts={alerts}
                 onAdd={addAlert}
@@ -315,8 +368,8 @@ export default function App() {
 
             {activeTab === 'report' && (
               <MonthlyReport
-                investments={investments}
-                savings={savings}
+                investments={investmentsCompat}
+                savings={savingsCompat}
                 cryptos={cryptos}
                 snapshots={snapshots}
               />

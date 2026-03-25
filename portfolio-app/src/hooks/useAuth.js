@@ -2,22 +2,28 @@ import { useState, useEffect } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth, provider } from '../firebase'
 
-const ALLOWED_EMAIL = 'bieldiazbasullas@gmail.com'
+// ── Afegeix aquí tots els correus autoritzats ──────────────────────────────────
+const ALLOWED_EMAILS = new Set([
+  'bieldiazbasullas@gmail.com',
+  'info.liamoore@gmail.com',
+  'bielsalashurdless@gmail.com',
+])
+
+const isAllowed = (email) => ALLOWED_EMAILS.has(email)
 
 export function useAuth() {
-  const [user, setUser] = useState(undefined)
+  const [user, setUser]   = useState(undefined)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u && u.email !== ALLOWED_EMAIL) {
-        // Usuari no autoritzat — tanquem sessió immediatament
+      if (u && !isAllowed(u.email)) {
         await signOut(auth)
         setError('Accés no autoritzat.')
         setUser(null)
       } else {
         setError(null)
-        setUser(u)
+        setUser(u ?? null)
       }
     })
     return unsub
@@ -27,7 +33,7 @@ export function useAuth() {
     try {
       setError(null)
       const result = await signInWithPopup(auth, provider)
-      if (result.user.email !== ALLOWED_EMAIL) {
+      if (!isAllowed(result.user.email)) {
         await signOut(auth)
         setError('Accés no autoritzat.')
       }
@@ -38,9 +44,7 @@ export function useAuth() {
     }
   }
 
-  const logout = async () => {
-    await signOut(auth)
-  }
+  const logout = () => signOut(auth)
 
   return { user, login, logout, error, loading: user === undefined }
 }

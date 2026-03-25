@@ -11,17 +11,6 @@ App web per gestionar inversions i estalvis, amb actualització automàtica de p
 - **Yahoo Finance API** — preus en temps real d'ETFs i accions
 - **GitHub Pages** — hosting gratuït via GitHub Actions
 
-## Posicions incloses (del teu Excel)
-
-| Actiu | Tipus | Ticker |
-|-------|-------|--------|
-| Flexible Cash Funds | Efectiu | — |
-| Instant Access Savings | Estalvi | — |
-| iShares Core MSCI World ETF | ETF | IWDA.AS |
-| Vanguard S&P 500 ETF | ETF | VUSA.AS |
-| iShares Emerging Markets ETF | ETF | EIMI.AS |
-| Lockheed Martin | Acció | LMT |
-| Revolut Robo Advisor | Robo | — |
 
 ## Instal·lació local
 
