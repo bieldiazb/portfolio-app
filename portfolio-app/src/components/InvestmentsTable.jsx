@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
+import AddInvestmentModal from './AddInvestmentModal.jsx'
 
 const TYPE_COLORS = {
   etf:     { bg: 'rgba(60,130,255,0.10)',  color: 'rgba(100,160,255,0.85)' },
@@ -261,7 +262,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
         />
       ))}
 
-      {showNew && <NewInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
+      {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
   )
@@ -425,38 +426,38 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
 }
 
 // ── NewInvestmentModal ────────────────────────────────────────────────────────
-function NewInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
-  const [error, setError] = useState('')
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
-  const submit = () => {
-    if (!form.name.trim()) return setError('El nom és obligatori')
-    setError('')
-    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
-  }
-  return (
-    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="inv2-modal">
-        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
-        <div className="inv2-fgroup">
-          <div>
-            <label className="inv2-lbl">Tipus</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-              {TYPES.map(t => (
-                <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
-              ))}
-            </div>
-          </div>
-          <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
-          <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
-          {error && <p className="inv2-error">{error}</p>}
-        </div>
-        <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
-      </div>
-    </div>
-  )
-}
+// function NewInvestmentModal({ onAdd, onClose }) {
+//   const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
+//   const [error, setError] = useState('')
+//   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+//   const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
+//   const submit = () => {
+//     if (!form.name.trim()) return setError('El nom és obligatori')
+//     setError('')
+//     onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
+//   }
+//   return (
+//     <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+//       <div className="inv2-modal">
+//         <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
+//         <div className="inv2-fgroup">
+//           <div>
+//             <label className="inv2-lbl">Tipus</label>
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+//               {TYPES.map(t => (
+//                 <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
+//               ))}
+//             </div>
+//           </div>
+//           <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
+//           <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
+//           {error && <p className="inv2-error">{error}</p>}
+//         </div>
+//         <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
+//       </div>
+//     </div>
+//   )
+// }
 
 // ── TransactionModal ──────────────────────────────────────────────────────────
 function TransactionModal({ invName, defaultType, onAdd, onClose }) {
