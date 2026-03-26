@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
+import AddInvestmentModal from './AddInvestmentModal'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
-import AddInvestmentModal from './AddInvestmentModal.jsx'
 
 const TYPE_COLORS = {
   etf:     { bg: 'rgba(60,130,255,0.10)',  color: 'rgba(100,160,255,0.85)' },
@@ -257,13 +257,13 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           expanded={!!expanded[inv.id]}
           onToggle={() => toggle(inv.id)}
           onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
-          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type })}
+          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || 'EUR' })}
           onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
         />
       ))}
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
-      {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
+      {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
   )
 }
@@ -409,7 +409,9 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
                       {tx.type === 'capital'
                         ? `+${fmtEur(tx.totalCost)}`
                         : tx.pricePerUnit > 0
-                          ? `${fmtEur(tx.pricePerUnit)}/u. · ${fmtEur(tx.totalCost)}`
+                          ? tx.currency && tx.currency !== 'EUR' && tx.pricePerUnitOrig
+                            ? `${CURR_SYM[tx.currency] || tx.currency}${tx.pricePerUnitOrig}/u. · ${CURR_SYM[tx.currency] || tx.currency}${tx.totalCostOrig} (${fmtEur(tx.totalCost)})`
+                            : `${fmtEur(tx.pricePerUnit)}/u. · ${fmtEur(tx.totalCost)}`
                           : fmtEur(tx.totalCost)
                       }
                     </p>
@@ -426,71 +428,116 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
 }
 
 // ── NewInvestmentModal ────────────────────────────────────────────────────────
-// function NewInvestmentModal({ onAdd, onClose }) {
-//   const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
-//   const [error, setError] = useState('')
-//   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-//   const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
-//   const submit = () => {
-//     if (!form.name.trim()) return setError('El nom és obligatori')
-//     setError('')
-//     onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
-//   }
-//   return (
-//     <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-//       <div className="inv2-modal">
-//         <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
-//         <div className="inv2-fgroup">
-//           <div>
-//             <label className="inv2-lbl">Tipus</label>
-//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-//               {TYPES.map(t => (
-//                 <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
-//               ))}
-//             </div>
-//           </div>
-//           <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
-//           <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
-//           {error && <p className="inv2-error">{error}</p>}
-//         </div>
-//         <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
-//       </div>
-//     </div>
-//   )
-// }
+function NewInvestmentModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
+  const [error, setError] = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
+  const submit = () => {
+    if (!form.name.trim()) return setError('El nom és obligatori')
+    setError('')
+    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
+  }
+  return (
+    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="inv2-modal">
+        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
+        <div className="inv2-fgroup">
+          <div>
+            <label className="inv2-lbl">Tipus</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+              {TYPES.map(t => (
+                <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+          <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
+          <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
+          {error && <p className="inv2-error">{error}</p>}
+        </div>
+        <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
+      </div>
+    </div>
+  )
+}
 
 // ── TransactionModal ──────────────────────────────────────────────────────────
-function TransactionModal({ invName, defaultType, onAdd, onClose }) {
-  const [type, setType]   = useState(defaultType || 'buy')
-  const [qty, setQty]     = useState('')
-  const [price, setPrice] = useState('')
-  const [total, setTotal] = useState('')
-  const [note, setNote]   = useState('')
-  const [date, setDate]   = useState(new Date().toISOString().split('T')[0])
-  const [error, setError] = useState('')
-  const isBuySell = type === 'buy' || type === 'sell'
+const CURR_SYM = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr' }
 
-  const handleQty   = v => { setQty(v);   if (v && price) setTotal((parseFloat(v) * parseFloat(price)).toFixed(2)) }
-  const handlePrice = v => { setPrice(v); if (v && qty)   setTotal((parseFloat(qty) * parseFloat(v)).toFixed(2))   }
+function TransactionModal({ invName, defaultType, currency = 'EUR', onAdd, onClose }) {
+  const [type, setType]       = useState(defaultType || 'buy')
+  const [qty, setQty]         = useState('')
+  const [price, setPrice]     = useState('')
+  const [total, setTotal]     = useState('')
+  const [totalEur, setTotalEur] = useState('') // conversió EUR si cal
+  const [rate, setRate]       = useState(null)  // taxa de canvi en temps real
+  const [note, setNote]       = useState('')
+  const [date, setDate]       = useState(new Date().toISOString().split('T')[0])
+  const [error, setError]     = useState('')
+  const isBuySell = type === 'buy' || type === 'sell'
+  const isNonEur  = currency !== 'EUR'
+  const sym       = CURR_SYM[currency] || currency
+
+  // Obté taxa de canvi en carregar si cal
+  useState(() => {
+    if (!isNonEur) return
+    fetch(`/yahoo/v8/finance/chart/${currency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(5000) })
+      .then(r => r.json())
+      .then(d => {
+        const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+        if (r) setRate(r)
+        else setRate(currency === 'USD' ? 0.92 : 1.17)
+      })
+      .catch(() => setRate(currency === 'USD' ? 0.92 : 1.17))
+  })
+
+  const calcTotal = (q, p) => {
+    const t = (parseFloat(q) * parseFloat(p))
+    if (!isNaN(t)) {
+      setTotal(t.toFixed(2))
+      if (isNonEur && rate) setTotalEur((t * rate).toFixed(2))
+    }
+  }
+
+  const handleQty   = v => { setQty(v);   if (v && price) calcTotal(v, price) }
+  const handlePrice = v => { setPrice(v); if (v && qty)   calcTotal(qty, v)   }
+  const handleTotal = v => {
+    setTotal(v)
+    if (isNonEur && rate && v) setTotalEur((parseFloat(v) * rate).toFixed(2))
+  }
 
   const submit = () => {
-    const t = parseFloat(total)
+    const t    = parseFloat(total)
+    const tEur = isNonEur && rate ? +(t * rate).toFixed(2) : t
     if (!t || t <= 0) return setError("L'import és obligatori")
     if (isBuySell) {
       const q = parseFloat(qty)
       if (!q || q <= 0) return setError('La quantitat és obligatòria')
+      const ppu    = parseFloat(price) || (t / q)
+      const ppuEur = isNonEur && rate ? +(ppu * rate).toFixed(4) : ppu
       setError('')
-      onAdd({ qty: q, pricePerUnit: parseFloat(price) || (t / q), totalCost: t, type, note, date })
+      onAdd({
+        qty: q,
+        pricePerUnit:     ppuEur,       // preu/u en EUR (per càlculs)
+        pricePerUnitOrig: ppu,          // preu/u en moneda original
+        totalCost:        tEur,         // total en EUR
+        totalCostOrig:    t,            // total en moneda original
+        currency,
+        type, note, date,
+      })
     } else {
       setError('')
-      onAdd({ qty: 0, pricePerUnit: 0, totalCost: t, type, note, date })
+      onAdd({ qty: 0, pricePerUnit: 0, totalCost: tEur, totalCostOrig: t, currency, type, note, date })
     }
   }
 
   return (
     <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="inv2-modal">
-        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">{invName}</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
+        <div className="inv2-modal-hdr">
+          <h3 className="inv2-modal-title">{invName}</h3>
+          <button className="inv2-modal-x" onClick={onClose}>×</button>
+        </div>
         <div className="inv2-type-row">
           <button className={`inv2-type-tab${type === 'buy' ? ' grn' : ''}`} onClick={() => setType('buy')}>↑ Compra</button>
           <button className={`inv2-type-tab${type === 'sell' ? ' org' : ''}`} onClick={() => setType('sell')}>↓ Venda</button>
@@ -499,11 +546,38 @@ function TransactionModal({ invName, defaultType, onAdd, onClose }) {
         <div className="inv2-fgroup">
           {isBuySell && (
             <div className="inv2-grid2">
-              <div><label className="inv2-lbl">Accions / participacions</label><input type="number" step="any" className="inv2-inp mono" autoFocus value={qty} onChange={e => handleQty(e.target.value)} placeholder="0" /></div>
-              <div><label className="inv2-lbl">Preu per unitat (€)</label><input type="number" step="any" className="inv2-inp mono" value={price} onChange={e => handlePrice(e.target.value)} placeholder="0.00" /></div>
+              <div>
+                <label className="inv2-lbl">Accions / participacions</label>
+                <input type="number" inputMode="decimal" step="any" className="inv2-inp mono"
+                  autoFocus value={qty} onChange={e => handleQty(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <label className="inv2-lbl">Preu/u ({sym})</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
+                  <input type="number" inputMode="decimal" step="any"
+                    className="inv2-inp mono" style={{ paddingLeft: currency === 'EUR' ? 11 : 22 }}
+                    value={price} onChange={e => handlePrice(e.target.value)} placeholder="0.00" />
+                </div>
+              </div>
             </div>
           )}
-          <div><label className="inv2-lbl">{isBuySell ? 'Total operació (€)' : 'Import (€)'}</label><input type="number" step="any" className={`inv2-inp mono${!isBuySell ? ' big' : ''}`} autoFocus={!isBuySell} value={total} onChange={e => setTotal(e.target.value)} placeholder="0.00" /></div>
+          <div>
+            <label className="inv2-lbl">{isBuySell ? `Total operació (${sym})` : `Import (${sym})`}</label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
+              <input type="number" inputMode="decimal" step="any"
+                className={`inv2-inp mono${!isBuySell ? ' big' : ''}`}
+                style={{ paddingLeft: currency === 'EUR' ? 11 : 22 }}
+                autoFocus={!isBuySell} value={total} onChange={e => handleTotal(e.target.value)} placeholder="0.00" />
+            </div>
+            {isNonEur && total && rate && (
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 4, textAlign: 'right' }}>
+                = <span style={{ color: 'rgba(255,255,255,0.48)' }}>€{totalEur || (parseFloat(total) * rate).toFixed(2)}</span> EUR
+                <span style={{ opacity: 0.5, marginLeft: 6 }}>· 1{sym}=€{rate.toFixed(4)}</span>
+              </p>
+            )}
+          </div>
           <div className="inv2-grid2">
             <div><label className="inv2-lbl">Data</label><input type="date" className="inv2-inp" value={date} onChange={e => setDate(e.target.value)} /></div>
             <div><label className="inv2-lbl">Nota</label><input className="inv2-inp" value={note} onChange={e => setNote(e.target.value)} placeholder="opcional" /></div>
