@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import AddInvestmentModal from './AddInvestmentModal'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
@@ -257,13 +257,13 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           expanded={!!expanded[inv.id]}
           onToggle={() => toggle(inv.id)}
           onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
-          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || 'EUR' })}
+          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || 'EUR', ticker: inv.ticker })}
           onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
         />
       ))}
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
-      {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
+      {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} ticker={txModal.ticker} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
   )
 }
@@ -464,70 +464,100 @@ function NewInvestmentModal({ onAdd, onClose }) {
 // ── TransactionModal ──────────────────────────────────────────────────────────
 const CURR_SYM = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr' }
 
-function TransactionModal({ invName, defaultType, currency = 'EUR', onAdd, onClose }) {
-  const [type, setType]       = useState(defaultType || 'buy')
-  const [qty, setQty]         = useState('')
-  const [price, setPrice]     = useState('')
-  const [total, setTotal]     = useState('')
-  const [totalEur, setTotalEur] = useState('') // conversió EUR si cal
-  const [rate, setRate]       = useState(null)  // taxa de canvi en temps real
-  const [note, setNote]       = useState('')
-  const [date, setDate]       = useState(new Date().toISOString().split('T')[0])
-  const [error, setError]     = useState('')
+function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAdd, onClose }) {
+  const [type, setType]         = useState(defaultType || 'buy')
+  const [qty, setQty]           = useState('')
+  const [price, setPrice]       = useState('')
+  const [total, setTotal]       = useState('')
+  const [note, setNote]         = useState('')
+  const [date, setDate]         = useState(new Date().toISOString().split('T')[0])
+  const [error, setError]       = useState('')
+  const [rate, setRate]         = useState(null)   // taxa CURR→EUR en temps real
+  const [livePrice, setLivePrice] = useState(null) // preu live en moneda original
+  const [fetchingPrice, setFetchingPrice] = useState(false)
+
   const isBuySell = type === 'buy' || type === 'sell'
   const isNonEur  = currency !== 'EUR'
   const sym       = CURR_SYM[currency] || currency
 
-  // Obté taxa de canvi en carregar si cal
-  useState(() => {
-    if (!isNonEur) return
-    fetch(`/yahoo/v8/finance/chart/${currency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(5000) })
-      .then(r => r.json())
-      .then(d => {
-        const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
-        if (r) setRate(r)
-        else setRate(currency === 'USD' ? 0.92 : 1.17)
-      })
-      .catch(() => setRate(currency === 'USD' ? 0.92 : 1.17))
-  })
-
-  const calcTotal = (q, p) => {
-    const t = (parseFloat(q) * parseFloat(p))
-    if (!isNaN(t)) {
-      setTotal(t.toFixed(2))
-      if (isNonEur && rate) setTotalEur((t * rate).toFixed(2))
+  // ── Carrega la taxa de canvi i el preu live en obrir el modal ────────────────
+  useEffect(() => {
+    // 1. Taxa de canvi CURR → EUR
+    if (isNonEur) {
+      fetch(`/yahoo/v8/finance/chart/${currency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+        .then(r => r.json())
+        .then(d => {
+          const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+          setRate(r && r > 0 ? r : null) // null = no disponible, no hardcoded
+        })
+        .catch(() => setRate(null))
+    } else {
+      setRate(1)
     }
+
+    // 2. Preu live de l'actiu en la seva moneda original
+    if (ticker) {
+      setFetchingPrice(true)
+      fetch(`/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+        .then(r => r.json())
+        .then(d => {
+          const result = d?.chart?.result?.[0]
+          let p = result?.meta?.regularMarketPrice
+          const curr = result?.meta?.currency
+          // Si el preu de Yahoo és en GBp (pence), converteix a GBP
+          if (curr === 'GBp' && p) p = p * 0.01
+          if (p && p > 0) setLivePrice(+p.toFixed(4))
+        })
+        .catch(() => {})
+        .finally(() => setFetchingPrice(false))
+    }
+  }, []) // eslint-disable-line
+
+  // ── Recalcula el total quan canvia qty o price ───────────────────────────────
+  const recalcTotal = useCallback((q, p) => {
+    const t = parseFloat(q) * parseFloat(p)
+    if (!isNaN(t) && t > 0) setTotal(t.toFixed(2))
+  }, [])
+
+  const handleQty   = v => { setQty(v);   if (v && price) recalcTotal(v, price) }
+  const handlePrice = v => { setPrice(v); if (v && qty)   recalcTotal(qty, v) }
+
+  // Botó "Preu actual" — omple el camp price amb el live price
+  const fillLivePrice = () => {
+    if (!livePrice) return
+    setPrice(livePrice.toString())
+    if (qty) recalcTotal(qty, livePrice)
   }
 
-  const handleQty   = v => { setQty(v);   if (v && price) calcTotal(v, price) }
-  const handlePrice = v => { setPrice(v); if (v && qty)   calcTotal(qty, v)   }
-  const handleTotal = v => {
-    setTotal(v)
-    if (isNonEur && rate && v) setTotalEur((parseFloat(v) * rate).toFixed(2))
-  }
+  // ── Conversió a EUR per mostrar i guardar ─────────────────────────────────────
+  const totalOrig = parseFloat(total) || 0
+  const totalEur  = isNonEur && rate ? +(totalOrig * rate).toFixed(2) : totalOrig
+  const priceOrig = parseFloat(price) || 0
+  const priceEur  = isNonEur && rate ? +(priceOrig * rate).toFixed(4) : priceOrig
 
+  const rateOk = !isNonEur || (rate && rate > 0)
+
+  // ── Submit ────────────────────────────────────────────────────────────────────
   const submit = () => {
-    const t    = parseFloat(total)
-    const tEur = isNonEur && rate ? +(t * rate).toFixed(2) : t
-    if (!t || t <= 0) return setError("L'import és obligatori")
+    if (!rateOk) return setError('No s\'ha pogut obtenir la taxa de canvi. Torna-ho a intentar.')
     if (isBuySell) {
       const q = parseFloat(qty)
       if (!q || q <= 0) return setError('La quantitat és obligatòria')
-      const ppu    = parseFloat(price) || (t / q)
-      const ppuEur = isNonEur && rate ? +(ppu * rate).toFixed(4) : ppu
+      if (!totalOrig || totalOrig <= 0) return setError("L'import és obligatori")
       setError('')
       onAdd({
-        qty: q,
-        pricePerUnit:     ppuEur,       // preu/u en EUR (per càlculs)
-        pricePerUnitOrig: ppu,          // preu/u en moneda original
-        totalCost:        tEur,         // total en EUR
-        totalCostOrig:    t,            // total en moneda original
+        qty:              q,
+        pricePerUnit:     priceEur,     // EUR (per càlculs de P&G)
+        pricePerUnitOrig: priceOrig,    // moneda original (per mostrar)
+        totalCost:        totalEur,     // EUR
+        totalCostOrig:    totalOrig,    // moneda original
         currency,
         type, note, date,
       })
     } else {
+      if (!totalOrig || totalOrig <= 0) return setError("L'import és obligatori")
       setError('')
-      onAdd({ qty: 0, pricePerUnit: 0, totalCost: tEur, totalCostOrig: t, currency, type, note, date })
+      onAdd({ qty: 0, pricePerUnit: 0, totalCost: totalEur, totalCostOrig: totalOrig, currency, type, note, date })
     }
   }
 
@@ -538,52 +568,84 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', onAdd, onClo
           <h3 className="inv2-modal-title">{invName}</h3>
           <button className="inv2-modal-x" onClick={onClose}>×</button>
         </div>
+
         <div className="inv2-type-row">
           <button className={`inv2-type-tab${type === 'buy' ? ' grn' : ''}`} onClick={() => setType('buy')}>↑ Compra</button>
           <button className={`inv2-type-tab${type === 'sell' ? ' org' : ''}`} onClick={() => setType('sell')}>↓ Venda</button>
           <button className={`inv2-type-tab${type === 'capital' ? ' blu' : ''}`} onClick={() => setType('capital')}>+ Aportació</button>
         </div>
+
         <div className="inv2-fgroup">
           {isBuySell && (
             <div className="inv2-grid2">
+              {/* Quantitat */}
               <div>
-                <label className="inv2-lbl">Accions / participacions</label>
+                <label className="inv2-lbl">Accions</label>
                 <input type="number" inputMode="decimal" step="any" className="inv2-inp mono"
                   autoFocus value={qty} onChange={e => handleQty(e.target.value)} placeholder="0" />
               </div>
+
+              {/* Preu per unitat + botó preu actual */}
               <div>
-                <label className="inv2-lbl">Preu/u ({sym})</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <label className="inv2-lbl" style={{ margin: 0 }}>Preu/u ({sym})</label>
+                  {ticker && (
+                    <button onClick={fillLivePrice} disabled={fetchingPrice || !livePrice} style={{
+                      fontSize: 9, fontWeight: 500, padding: '2px 7px', borderRadius: 3, cursor: livePrice ? 'pointer' : 'default',
+                      border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)',
+                      color: livePrice ? 'rgba(80,210,110,0.80)' : 'rgba(255,255,255,0.22)',
+                      fontFamily: "'Geist Mono',monospace", transition: 'all 100ms',
+                    }}>
+                      {fetchingPrice ? '...' : livePrice ? `↓ ${sym}${livePrice}` : '—'}
+                    </button>
+                  )}
+                </div>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
                   <input type="number" inputMode="decimal" step="any"
-                    className="inv2-inp mono" style={{ paddingLeft: currency === 'EUR' ? 11 : 22 }}
+                    className="inv2-inp mono" style={{ paddingLeft: currency === 'EUR' ? 11 : 20 }}
                     value={price} onChange={e => handlePrice(e.target.value)} placeholder="0.00" />
                 </div>
+                {isNonEur && priceOrig > 0 && rate && (
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.24)', fontFamily: "'Geist Mono',monospace", marginTop: 3, textAlign: 'right' }}>
+                    = €{priceEur.toFixed(4)}
+                  </p>
+                )}
               </div>
             </div>
           )}
+
+          {/* Total */}
           <div>
-            <label className="inv2-lbl">{isBuySell ? `Total operació (${sym})` : `Import (${sym})`}</label>
+            <label className="inv2-lbl">{isBuySell ? `Total (${sym})` : `Import (${sym})`}</label>
             <div style={{ position: 'relative' }}>
               <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
               <input type="number" inputMode="decimal" step="any"
                 className={`inv2-inp mono${!isBuySell ? ' big' : ''}`}
-                style={{ paddingLeft: currency === 'EUR' ? 11 : 22 }}
-                autoFocus={!isBuySell} value={total} onChange={e => handleTotal(e.target.value)} placeholder="0.00" />
+                style={{ paddingLeft: currency === 'EUR' ? 11 : 20 }}
+                autoFocus={!isBuySell} value={total}
+                onChange={e => setTotal(e.target.value)} placeholder="0.00" />
             </div>
-            {isNonEur && total && rate && (
+            {/* Conversió EUR */}
+            {isNonEur && totalOrig > 0 && (
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 4, textAlign: 'right' }}>
-                = <span style={{ color: 'rgba(255,255,255,0.48)' }}>€{totalEur || (parseFloat(total) * rate).toFixed(2)}</span> EUR
-                <span style={{ opacity: 0.5, marginLeft: 6 }}>· 1{sym}=€{rate.toFixed(4)}</span>
+                {rate
+                  ? <>= <span style={{ color: 'rgba(255,255,255,0.55)' }}>€{totalEur.toFixed(2)}</span> EUR <span style={{ opacity: 0.45 }}>· 1{sym}=€{rate.toFixed(4)}</span></>
+                  : <span style={{ color: 'rgba(255,90,70,0.65)' }}>Taxa de canvi no disponible</span>
+                }
               </p>
             )}
           </div>
+
+          {/* Data + Nota */}
           <div className="inv2-grid2">
             <div><label className="inv2-lbl">Data</label><input type="date" className="inv2-inp" value={date} onChange={e => setDate(e.target.value)} /></div>
             <div><label className="inv2-lbl">Nota</label><input className="inv2-inp" value={note} onChange={e => setNote(e.target.value)} placeholder="opcional" /></div>
           </div>
+
           {error && <p className="inv2-error">{error}</p>}
         </div>
+
         <div className="inv2-mfooter">
           <button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button>
           <button className={`inv2-btn-ok ${type === 'buy' ? 'grn' : type === 'sell' ? 'org' : 'blu'}`} onClick={submit}>
