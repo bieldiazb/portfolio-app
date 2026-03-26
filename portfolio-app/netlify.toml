@@ -7,4 +7,9 @@
   to = "https://query1.finance.yahoo.com/:splat"
   status = 200
   force = true
-  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/yahoo-search/*"
+  to = "https://query2.finance.yahoo.com/:splat"
+  status = 200
+  force = true
