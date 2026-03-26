@@ -1,6 +1,70 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fmtEur } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
+import { db } from '../firebase'
+import {
+  collection, addDoc, deleteDoc, doc, onSnapshot,
+  query, orderBy, serverTimestamp, getDocs,
+} from 'firebase/firestore'
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+// Firestore:
+//   users/{uid}/savings/{id}           → { name, rate, notes, createdAt }
+//   users/{uid}/savings/{id}/txs/{id}  → { amount, type, note, createdAt }
+// El balance = suma de txs (positiu = ingrés, negatiu = retirada)
+
+export function useSavings(uid) {
+  const [accounts, setAccounts] = useState([])
+
+  useEffect(() => {
+    if (!uid) return
+    const q = query(collection(db, 'users', uid, 'savings'), orderBy('createdAt', 'desc'))
+    const unsub = onSnapshot(q, async snap => {
+      const accs = await Promise.all(snap.docs.map(async d => {
+        const txSnap = await getDocs(
+          query(collection(db, 'users', uid, 'savings', d.id, 'txs'), orderBy('createdAt', 'asc'))
+        )
+        const txs = txSnap.docs.map(t => ({ id: t.id, ...t.data() }))
+        const balance = txs.reduce((s, t) => s + (t.amount || 0), 0)
+        return { id: d.id, ...d.data(), txs, balance }
+      }))
+      setAccounts(accs)
+    })
+    return unsub
+  }, [uid])
+
+  const addAccount = async ({ name, rate, notes, initialBalance }) => {
+    if (!uid) return
+    const ref = await addDoc(collection(db, 'users', uid, 'savings'), {
+      name, rate: rate || 0, notes: notes || '', createdAt: serverTimestamp(),
+    })
+    if (initialBalance > 0) {
+      await addDoc(collection(db, 'users', uid, 'savings', ref.id, 'txs'), {
+        amount: initialBalance, type: 'deposit', note: 'Saldo inicial', createdAt: serverTimestamp(),
+      })
+    }
+  }
+
+  const removeAccount = async (id) => {
+    if (!uid) return
+    await deleteDoc(doc(db, 'users', uid, 'savings', id))
+  }
+
+  const addTransaction = async (accountId, { amount, type, note }) => {
+    if (!uid) return
+    const signed = type === 'withdraw' ? -Math.abs(amount) : Math.abs(amount)
+    await addDoc(collection(db, 'users', uid, 'savings', accountId, 'txs'), {
+      amount: signed, type, note: note || '', createdAt: serverTimestamp(),
+    })
+  }
+
+  const removeTransaction = async (accountId, txId) => {
+    if (!uid) return
+    await deleteDoc(doc(db, 'users', uid, 'savings', accountId, 'txs', txId))
+  }
+
+  return { accounts, addAccount, removeAccount, addTransaction, removeTransaction }
+}
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = `
@@ -70,6 +134,12 @@ const styles = `
   .sv-tx-del:active { transform: scale(0.88); }
 
   .sv-empty-txs { padding: 18px 14px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.20); }
+
+  .sv-sort-btn { display: flex; align-items: center; gap: 3px; padding: 0 7px; height: 24px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 4px; font-family: 'Geist', sans-serif; font-size: 10px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .sv-sort-btn:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
+  .sv-sort-btn.on { border-color: rgba(255,255,255,0.16); color: rgba(255,255,255,0.62); }
+  .sv-sort-arrow { display: inline-block; transition: transform 150ms; font-style: normal; }
+  .sv-sort-arrow.asc { transform: rotate(180deg); }
   .sv-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); }
   .sv-empty-sub { font-size: 10px; color: rgba(255,255,255,0.14); margin-top: 4px; }
 
@@ -113,12 +183,14 @@ const TrashIcon = ({ size = 12 }) => (
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, onAddTransaction, onRemoveTransaction }) {
   const [showNew, setShowNew]     = useState(false)
+  const [sortDir, setSortDir]       = useState('desc')
   const [txModal, setTxModal]     = useState(null) // { accountId, name, type }
   const [expanded, setExpanded]   = useState({})
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   const totalBalance  = accounts.reduce((s, a) => s + a.balance, 0)
   const totalInterest = accounts.reduce((s, a) => s + (a.rate && a.balance > 0 ? a.balance * a.rate / 100 : 0), 0)
+  const sorted        = [...accounts].sort((a, b) => sortDir === 'desc' ? b.balance - a.balance : a.balance - b.balance)
 
   const toggle = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
 
@@ -144,6 +216,10 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
             )}
           </p>
         </div>
+        <button className={`sv-sort-btn${accounts.length > 1 ? ' on' : ''}`} onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar per saldo">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+          <i className={`sv-sort-arrow${sortDir === 'asc' ? ' asc' : ''}`}>↓</i>
+        </button>
         <button className="sv-btn-add" onClick={() => setShowNew(true)}>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -157,7 +233,7 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
           <p>Cap compte registrat</p>
           <p className="sv-empty-sub">Crea el teu primer compte d'estalvi</p>
         </div>
-      ) : accounts.map(acc => (
+      ) : sorted.map(acc => (
         <div key={acc.id} className="sv-card">
           {/* Header */}
           <div className="sv-card-hdr" onClick={() => toggle(acc.id)}>
@@ -250,6 +326,55 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
   )
 }
 
+// ─── NewAccountModal ──────────────────────────────────────────────────────────
+function NewAccountModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ name: '', rate: '', notes: '', initialBalance: '' })
+  const [error, setError] = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const submit = () => {
+    if (!form.name.trim()) return setError('El nom és obligatori')
+    setError('')
+    onAdd({ name: form.name.trim(), rate: parseFloat(form.rate) || 0, notes: form.notes.trim(), initialBalance: parseFloat(form.initialBalance) || 0 })
+  }
+
+  return (
+    <div className="sv-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="sv-modal">
+        <div className="sv-modal-hdr">
+          <h3 className="sv-modal-title">Nou compte d'estalvi</h3>
+          <button className="sv-modal-x" onClick={onClose}>×</button>
+        </div>
+        <div className="sv-fgroup">
+          <div>
+            <label className="sv-lbl">Nom del compte</label>
+            <input className="sv-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: N26, BBVA Estalvi..." />
+          </div>
+          <div className="sv-grid2">
+            <div>
+              <label className="sv-lbl">Saldo inicial (€)</label>
+              <input type="number" step="any" className="sv-inp mono" value={form.initialBalance} onChange={e => set('initialBalance', e.target.value)} placeholder="0.00" />
+            </div>
+            <div>
+              <label className="sv-lbl">TAE (%)</label>
+              <input type="number" step="any" className="sv-inp mono" value={form.rate} onChange={e => set('rate', e.target.value)} placeholder="0.00" />
+            </div>
+          </div>
+          <div>
+            <label className="sv-lbl">Notes</label>
+            <input className="sv-inp" value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="opcional" />
+          </div>
+          {error && <p className="sv-error">{error}</p>}
+        </div>
+        <div className="sv-mfooter">
+          <button className="sv-btn-cancel" onClick={onClose}>Cancel·lar</button>
+          <button className="sv-btn-ok def" onClick={submit}>Crear compte</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── TransactionModal ─────────────────────────────────────────────────────────
 function TransactionModal({ accountName, defaultType, onAdd, onClose }) {
   const [type, setType]     = useState(defaultType || 'deposit')
@@ -294,55 +419,6 @@ function TransactionModal({ accountName, defaultType, onAdd, onClose }) {
           <button className={`sv-btn-ok ${isDeposit ? 'grn' : 'org'}`} onClick={submit}>
             {isDeposit ? '+ Afegir ingrés' : '− Registrar retirada'}
           </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── NewAccountModal ──────────────────────────────────────────────────────────
-function NewAccountModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ name: '', rate: '', notes: '', initialBalance: '' })
-  const [error, setError] = useState('')
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const submit = () => {
-    if (!form.name.trim()) return setError('El nom és obligatori')
-    setError('')
-    onAdd({ name: form.name.trim(), rate: parseFloat(form.rate) || 0, notes: form.notes.trim(), initialBalance: parseFloat(form.initialBalance) || 0 })
-  }
-
-  return (
-    <div className="sv-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="sv-modal">
-        <div className="sv-modal-hdr">
-          <h3 className="sv-modal-title">Nou compte d'estalvi</h3>
-          <button className="sv-modal-x" onClick={onClose}>×</button>
-        </div>
-        <div className="sv-fgroup">
-          <div>
-            <label className="sv-lbl">Nom del compte</label>
-            <input className="sv-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: N26, BBVA Estalvi..." />
-          </div>
-          <div className="sv-grid2">
-            <div>
-              <label className="sv-lbl">Saldo inicial (€)</label>
-              <input type="number" step="any" className="sv-inp mono" value={form.initialBalance} onChange={e => set('initialBalance', e.target.value)} placeholder="0.00" />
-            </div>
-            <div>
-              <label className="sv-lbl">TAE (%)</label>
-              <input type="number" step="any" className="sv-inp mono" value={form.rate} onChange={e => set('rate', e.target.value)} placeholder="0.00" />
-            </div>
-          </div>
-          <div>
-            <label className="sv-lbl">Notes</label>
-            <input className="sv-inp" value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="opcional" />
-          </div>
-          {error && <p className="sv-error">{error}</p>}
-        </div>
-        <div className="sv-mfooter">
-          <button className="sv-btn-cancel" onClick={onClose}>Cancel·lar</button>
-          <button className="sv-btn-ok def" onClick={submit}>Crear compte</button>
         </div>
       </div>
     </div>

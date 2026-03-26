@@ -67,6 +67,14 @@ const EditIcon = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </svg>
 )
+
+const sortCss = `
+  .cr-sort-btn { display: flex; align-items: center; gap: 3px; padding: 0 7px; height: 24px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 4px; font-family: 'Geist', sans-serif; font-size: 10px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .cr-sort-btn:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
+  .cr-sort-btn.on { border-color: rgba(255,255,255,0.16); color: rgba(255,255,255,0.62); }
+  .cr-sort-arrow { display: inline-block; transition: transform 150ms; font-style: normal; }
+  .cr-sort-arrow.asc { transform: rotate(180deg); }
+`
 const TrashIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"/>
@@ -78,6 +86,7 @@ const TrashIcon = () => (
 export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefresh }) {
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing]     = useState(null)
+  const [sortDir, setSortDir]     = useState('desc')
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   const totalValue = cryptos.reduce((s, c) => s + (c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0), 0)
@@ -88,7 +97,7 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
 
   return (
     <div style={{ fontFamily: "'Geist', sans-serif" }}>
-      <style>{SHARED_STYLES + mobileActsCss}</style>
+      <style>{SHARED_STYLES + mobileActsCss + sortCss}</style>
 
       {/* ConfirmDialog com a component normal */}
       <ConfirmDialog state={confirmState} onClose={closeConfirm} />
@@ -112,6 +121,10 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
           </button>
+          <button className={`cr-sort-btn${cryptos.length > 1 ? ' on' : ''}`} onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar per valor">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            <i className={`cr-sort-arrow${sortDir === 'asc' ? ' asc' : ''}`}>↓</i>
+          </button>
           <button className="btn-v2-primary" onClick={() => setShowModal(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -123,7 +136,11 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
 
       {cryptos.length === 0 ? (
         <div className="v2-empty">Cap criptomoneda registrada</div>
-      ) : cryptos.map(c => {
+      ) : [...cryptos].sort((a, b) => {
+        const va = a.qty && a.currentPrice ? a.qty * a.currentPrice : a.initialValue || 0
+        const vb = b.qty && b.currentPrice ? b.qty * b.currentPrice : b.initialValue || 0
+        return sortDir === 'desc' ? vb - va : va - vb
+      }).map(c => {
         const val   = c.qty && c.currentPrice ? +(c.qty * c.currentPrice).toFixed(2) : c.initialValue || 0
         const pg    = val - (c.initialValue || 0)
         const pgPct = c.initialValue > 0 ? (pg / c.initialValue) * 100 : 0

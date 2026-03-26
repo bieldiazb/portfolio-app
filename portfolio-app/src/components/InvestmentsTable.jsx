@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
+import AddInvestmentModal from './AddInvestmentModal'
 
 const TYPE_COLORS = {
   etf:     { bg: 'rgba(60,130,255,0.10)',  color: 'rgba(100,160,255,0.85)' },
@@ -91,6 +92,12 @@ const styles = `
   .inv2-empty-txs { padding: 16px 14px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.20); }
   .inv2-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); }
   .inv2-empty-sub { font-size: 10px; color: rgba(255,255,255,0.14); margin-top: 4px; }
+  .inv2-sort-btn { display: flex; align-items: center; gap: 3px; padding: 0 7px; height: 24px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 4px; font-family: 'Geist', sans-serif; font-size: 10px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .inv2-sort-btn:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
+  .inv2-sort-btn.on { border-color: rgba(255,255,255,0.16); color: rgba(255,255,255,0.62); }
+  .inv2-sort-arrow { display: inline-block; transition: transform 150ms; font-style: normal; }
+  .inv2-sort-arrow.asc { transform: rotate(180deg); }
+
 
   .inv2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
   .inv2-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px 14px 0 0; width: 100%; max-width: 440px; padding: 22px 20px 30px; font-family: 'Geist', sans-serif; max-height: 90vh; overflow-y: auto; }
@@ -152,11 +159,17 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
   const [showNew, setShowNew]   = useState(false)
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
+  const [sortDir, setSortDir]   = useState('desc')
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   const totalValue = investments.reduce((s, inv) => s + currentValue(inv), 0)
   const totalCost  = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
   const totalGain  = totalValue - totalCost
+
+  const sorted = [...investments].sort((a, b) => {
+    const va = currentValue(a), vb = currentValue(b)
+    return sortDir === 'desc' ? vb - va : va - vb
+  })
 
   const toggle = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
 
@@ -186,6 +199,10 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
               </svg>
             </button>
           )}
+          <button className={`inv2-sort-btn${sorted.length > 1 ? ' on' : ''}`} onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar per valor">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            <i className={`inv2-sort-arrow${sortDir === 'asc' ? ' asc' : ''}`}>↓</i>
+          </button>
           <button className="inv2-btn-add" onClick={() => setShowNew(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -200,7 +217,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           <p>Cap inversió registrada</p>
           <p className="inv2-empty-sub">Crea la teva primera posició</p>
         </div>
-      ) : investments.map(inv => (
+      ) : sorted.map(inv => (
         <InvestmentCard key={inv.id} inv={inv}
           expanded={!!expanded[inv.id]}
           onToggle={() => toggle(inv.id)}
@@ -210,7 +227,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
         />
       ))}
 
-      {showNew && <NewInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
+      {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
   )
@@ -343,39 +360,39 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
   )
 }
 
-// ── NewInvestmentModal ────────────────────────────────────────────────────────
-function NewInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
-  const [error, setError] = useState('')
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
-  const submit = () => {
-    if (!form.name.trim()) return setError('El nom és obligatori')
-    setError('')
-    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
-  }
-  return (
-    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="inv2-modal">
-        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
-        <div className="inv2-fgroup">
-          <div>
-            <label className="inv2-lbl">Tipus</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-              {TYPES.map(t => (
-                <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
-              ))}
-            </div>
-          </div>
-          <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
-          <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
-          {error && <p className="inv2-error">{error}</p>}
-        </div>
-        <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
-      </div>
-    </div>
-  )
-}
+// // ── NewInvestmentModal ────────────────────────────────────────────────────────
+// function NewInvestmentModal({ onAdd, onClose }) {
+//   const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
+//   const [error, setError] = useState('')
+//   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+//   const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
+//   const submit = () => {
+//     if (!form.name.trim()) return setError('El nom és obligatori')
+//     setError('')
+//     onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
+//   }
+//   return (
+//     <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+//       <div className="inv2-modal">
+//         <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
+//         <div className="inv2-fgroup">
+//           <div>
+//             <label className="inv2-lbl">Tipus</label>
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+//               {TYPES.map(t => (
+//                 <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
+//               ))}
+//             </div>
+//           </div>
+//           <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
+//           <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
+//           {error && <p className="inv2-error">{error}</p>}
+//         </div>
+//         <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
+//       </div>
+//     </div>
+//   )
+// }
 
 // ── TransactionModal ──────────────────────────────────────────────────────────
 function TransactionModal({ invName, defaultType, onAdd, onClose }) {
