@@ -229,13 +229,15 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
     if (hasQty && !form.qty) return setError('La quantitat és obligatòria')
     setError('')
     onAdd({
-      name:         form.name.trim(),
-      ticker:       form.ticker.trim().toUpperCase(),
-      type:         form.type,
-      initialValue: costInEur,           // sempre en EUR a Firestore
-      qty:          hasQty ? parseFloat(form.qty) : null,
-      currentPrice: null,
-      purchaseDate: form.purchaseDate || today,
+      name:                form.name.trim(),
+      ticker:              form.ticker.trim().toUpperCase(),
+      type:                form.type,
+      initialValue:        costInEur,             // cost en EUR (per càlculs)
+      initialValueOrig:    costInOriginal,         // cost en moneda original
+      currency:            inputCurrency,           // moneda de l'actiu
+      qty:                 hasQty ? parseFloat(form.qty) : null,
+      currentPrice:        null,
+      purchaseDate:        form.purchaseDate || today,
     })
   }
 

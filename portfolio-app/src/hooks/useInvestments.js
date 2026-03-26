@@ -104,12 +104,16 @@ export function useInvestments(uid) {
 
   // ── Accions ─────────────────────────────────────────────────────────────────
 
-  const addInvestment = useCallback(async ({ name, ticker, type, notes }) => {
+  const addInvestment = useCallback(async ({ name, ticker, type, notes, currency, initialValueOrig, qty }) => {
     if (!uid) return
     await addDoc(collection(db, 'users', uid, 'investments'), {
       name, ticker: ticker || '', type: type || 'etf',
-      notes: notes || '', currentPrice: null,
-      currency: null, originalPrice: null, originalCurrency: null,
+      notes: notes || '',
+      currency:         currency || 'EUR',
+      initialValueOrig: initialValueOrig || null,
+      currentPrice:     null,
+      originalPrice:    null,
+      originalCurrency: currency || 'EUR',
       createdAt: serverTimestamp(),
     })
   }, [uid])

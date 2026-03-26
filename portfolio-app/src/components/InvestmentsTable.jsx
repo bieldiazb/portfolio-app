@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
-import AddInvestmentModal from './AddInvestmentModal.jsx'
 
 const TYPE_COLORS = {
   etf:     { bg: 'rgba(60,130,255,0.10)',  color: 'rgba(100,160,255,0.85)' },
@@ -91,6 +90,10 @@ const styles = `
 
   .inv2-empty-txs { padding: 16px 14px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.20); }
   .inv2-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); }
+  .inv2-curr-badge { font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+  .inv2-curr-badge.usd { background: rgba(255,170,50,0.12); color: rgba(255,170,60,0.80); }
+  .inv2-curr-badge.gbp { background: rgba(100,200,100,0.12); color: rgba(100,210,100,0.80); }
+  .inv2-val-orig { font-size: 10px; color: rgba(255,255,255,0.32); font-family: 'Geist Mono', monospace; margin-top: 2px; letter-spacing: -0.2px; }
   .inv2-empty-sub { font-size: 10px; color: rgba(255,255,255,0.14); margin-top: 4px; }
   .inv2-sort-btn { display: flex; align-items: center; gap: 3px; padding: 0 7px; height: 24px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 4px; font-family: 'Geist', sans-serif; font-size: 10px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
   .inv2-sort-btn:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
@@ -147,6 +150,27 @@ const PriceTip = ({ active, payload }) => {
 function fmtQty(n) {
   if (!n) return '0'
   return parseFloat(n.toFixed(6)).toString()
+}
+
+const CURR_SYMBOLS = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr', JPY: '¥' }
+
+// Formata un import en la seva moneda original
+function fmtOrig(amount, currency = 'EUR') {
+  if (amount == null) return null
+  const sym = CURR_SYMBOLS[currency] || currency
+  if (currency === 'EUR') return null // no cal mostrar si ja és EUR
+  const decimals = amount < 10 ? 4 : amount < 100 ? 3 : 2
+  return `${sym}${amount.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: decimals })}`
+}
+
+// Calcula el valor en moneda original a partir del preu original i la qty
+function currentValueOrig(inv) {
+  if (!inv.originalCurrency || inv.originalCurrency === 'EUR') return null
+  if (inv.originalPrice != null && inv.totalQty > 0) {
+    return inv.totalQty * inv.originalPrice
+  }
+  // Fallback: usa initialValueOrig si existeix
+  return inv.initialValueOrig || null
 }
 
 const CURRENCY_SYMBOLS = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr', JPY: '¥' }
@@ -237,7 +261,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
         />
       ))}
 
-      {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
+      {showNew && <NewInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
   )
@@ -278,11 +302,16 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
         <div className="inv2-right" onClick={e => e.stopPropagation()}>
           <div className="inv2-val">
             <p className="inv2-val-v">
-            {fmtEur(curVal)}
-            {inv.originalCurrency && inv.originalCurrency !== 'EUR' && (
-              <span style={{ fontSize: 9, fontWeight: 400, opacity: 0.45, marginLeft: 5, fontFamily: 'Geist Mono, monospace' }}>{inv.originalCurrency}</span>
-            )}
-          </p>
+              {fmtEur(curVal)}
+              {inv.originalCurrency && inv.originalCurrency !== 'EUR' && (
+                <span className={`inv2-curr-badge ${inv.originalCurrency.toLowerCase()}`}>{inv.originalCurrency}</span>
+              )}
+            </p>
+            {(() => {
+              const origVal = currentValueOrig(inv)
+              const origFmt = fmtOrig(origVal, inv.originalCurrency)
+              return origFmt ? <p className="inv2-val-orig">{origFmt}</p> : null
+            })()}
             <p className={`inv2-val-pg ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)} {fmtPct(gPct)}</p>
           </div>
           <button className="inv2-del" onClick={onRemove}><TrashIcon size={12} /></button>
@@ -330,7 +359,15 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
               </p>
             </div>
             <div className="inv2-stat"><p className="inv2-stat-l">Accions</p><p className="inv2-stat-v">{fmtQty(inv.totalQty || 0)} u.</p></div>
-            <div className="inv2-stat"><p className="inv2-stat-l">Invertit</p><p className="inv2-stat-v">{fmtEur(inv.totalCost || 0)}</p></div>
+            <div className="inv2-stat">
+              <p className="inv2-stat-l">Invertit</p>
+              <p className="inv2-stat-v">{fmtEur(inv.totalCost || 0)}</p>
+              {inv.initialValueOrig && inv.currency && inv.currency !== 'EUR' && (
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 2 }}>
+                  {CURR_SYMBOLS[inv.currency] || inv.currency}{inv.initialValueOrig.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              )}
+            </div>
             <div className="inv2-stat"><p className="inv2-stat-l">P&G</p><p className={`inv2-stat-v ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)}</p></div>
           </div>
 
@@ -383,6 +420,40 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── NewInvestmentModal ────────────────────────────────────────────────────────
+function NewInvestmentModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
+  const [error, setError] = useState('')
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
+  const submit = () => {
+    if (!form.name.trim()) return setError('El nom és obligatori')
+    setError('')
+    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
+  }
+  return (
+    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="inv2-modal">
+        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
+        <div className="inv2-fgroup">
+          <div>
+            <label className="inv2-lbl">Tipus</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+              {TYPES.map(t => (
+                <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+          <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
+          <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
+          {error && <p className="inv2-error">{error}</p>}
+        </div>
+        <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
+      </div>
     </div>
   )
 }
