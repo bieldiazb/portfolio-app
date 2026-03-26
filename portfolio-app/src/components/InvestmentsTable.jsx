@@ -257,7 +257,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           expanded={!!expanded[inv.id]}
           onToggle={() => toggle(inv.id)}
           onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
-          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || 'EUR', ticker: inv.ticker })}
+          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
           onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
         />
       ))}
@@ -472,46 +472,53 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAd
   const [note, setNote]         = useState('')
   const [date, setDate]         = useState(new Date().toISOString().split('T')[0])
   const [error, setError]       = useState('')
-  const [rate, setRate]         = useState(null)   // taxa CURR→EUR en temps real
-  const [livePrice, setLivePrice] = useState(null) // preu live en moneda original
+  const [rate, setRate]             = useState(null)
+  const [livePrice, setLivePrice]   = useState(null)
   const [fetchingPrice, setFetchingPrice] = useState(false)
+  // Moneda real detectada des de Yahoo (pot diferir de la prop si no estava guardada)
+  const [resolvedCurrency, setResolvedCurrency] = useState(currency || 'EUR')
 
   const isBuySell = type === 'buy' || type === 'sell'
-  const isNonEur  = currency !== 'EUR'
-  const sym       = CURR_SYM[currency] || currency
+  const isNonEur  = resolvedCurrency !== 'EUR'
+  const sym       = CURR_SYM[resolvedCurrency] || resolvedCurrency
 
   // ── Carrega la taxa de canvi i el preu live en obrir el modal ────────────────
   useEffect(() => {
-    // 1. Taxa de canvi CURR → EUR
-    if (isNonEur) {
-      fetch(`/yahoo/v8/finance/chart/${currency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-        .then(r => r.json())
-        .then(d => {
-          const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
-          setRate(r && r > 0 ? r : null) // null = no disponible, no hardcoded
-        })
-        .catch(() => setRate(null))
-    } else {
-      setRate(1)
-    }
-
-    // 2. Preu live de l'actiu en la seva moneda original
+    // 1. Obté preu live + moneda real de Yahoo (font de veritat)
     if (ticker) {
       setFetchingPrice(true)
       fetch(`/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
         .then(r => r.json())
         .then(d => {
-          const result = d?.chart?.result?.[0]
-          let p = result?.meta?.regularMarketPrice
-          const curr = result?.meta?.currency
-          // Si el preu de Yahoo és en GBp (pence), converteix a GBP
-          if (curr === 'GBp' && p) p = p * 0.01
+          const result   = d?.chart?.result?.[0]
+          let p          = result?.meta?.regularMarketPrice
+          const yahooCurr = result?.meta?.currency
+          // Normalitza GBp (pence) → GBP
+          const realCurr = yahooCurr === 'GBp' ? 'GBP' : (yahooCurr || currency || 'EUR')
+          if (p && yahooCurr === 'GBp') p = p * 0.01
           if (p && p > 0) setLivePrice(+p.toFixed(4))
+          // Actualitza la moneda detectada si no l'havíem rebut
+          if (realCurr && realCurr !== resolvedCurrency) setResolvedCurrency(realCurr)
         })
         .catch(() => {})
         .finally(() => setFetchingPrice(false))
     }
-  }, []) // eslint-disable-line
+  }, [ticker]) // eslint-disable-line
+
+  // 2. Quan tenim la moneda resolta, obté la taxa de canvi
+  useEffect(() => {
+    if (!resolvedCurrency || resolvedCurrency === 'EUR') {
+      setRate(1)
+      return
+    }
+    fetch(`/yahoo/v8/finance/chart/${resolvedCurrency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+      .then(r => r.json())
+      .then(d => {
+        const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+        setRate(r && r > 0 ? r : null)
+      })
+      .catch(() => setRate(null))
+  }, [resolvedCurrency]) // eslint-disable-line
 
   // ── Recalcula el total quan canvia qty o price ───────────────────────────────
   const recalcTotal = useCallback((q, p) => {
@@ -547,17 +554,17 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAd
       setError('')
       onAdd({
         qty:              q,
-        pricePerUnit:     priceEur,     // EUR (per càlculs de P&G)
-        pricePerUnitOrig: priceOrig,    // moneda original (per mostrar)
-        totalCost:        totalEur,     // EUR
-        totalCostOrig:    totalOrig,    // moneda original
-        currency,
+        pricePerUnit:     priceEur,
+        pricePerUnitOrig: priceOrig,
+        totalCost:        totalEur,
+        totalCostOrig:    totalOrig,
+        currency:         resolvedCurrency,
         type, note, date,
       })
     } else {
       if (!totalOrig || totalOrig <= 0) return setError("L'import és obligatori")
       setError('')
-      onAdd({ qty: 0, pricePerUnit: 0, totalCost: totalEur, totalCostOrig: totalOrig, currency, type, note, date })
+      onAdd({ qty: 0, pricePerUnit: 0, totalCost: totalEur, totalCostOrig: totalOrig, currency: resolvedCurrency, type, note, date })
     }
   }
 
@@ -603,7 +610,7 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAd
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
                   <input type="number" inputMode="decimal" step="any"
-                    className="inv2-inp mono" style={{ paddingLeft: currency === 'EUR' ? 11 : 20 }}
+                    className="inv2-inp mono" style={{ paddingLeft: resolvedCurrency === 'EUR' ? 11 : 20 }}
                     value={price} onChange={e => handlePrice(e.target.value)} placeholder="0.00" />
                 </div>
                 {isNonEur && priceOrig > 0 && rate && (
@@ -622,7 +629,7 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAd
               <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
               <input type="number" inputMode="decimal" step="any"
                 className={`inv2-inp mono${!isBuySell ? ' big' : ''}`}
-                style={{ paddingLeft: currency === 'EUR' ? 11 : 20 }}
+                style={{ paddingLeft: resolvedCurrency === 'EUR' ? 11 : 20 }}
                 autoFocus={!isBuySell} value={total}
                 onChange={e => setTotal(e.target.value)} placeholder="0.00" />
             </div>
@@ -630,7 +637,7 @@ function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAd
             {isNonEur && totalOrig > 0 && (
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 4, textAlign: 'right' }}>
                 {rate
-                  ? <>= <span style={{ color: 'rgba(255,255,255,0.55)' }}>€{totalEur.toFixed(2)}</span> EUR <span style={{ opacity: 0.45 }}>· 1{sym}=€{rate.toFixed(4)}</span></>
+                  ? <>= <span style={{ color: 'rgba(255,255,255,0.55)' }}>€{totalEur.toFixed(2)}</span> EUR <span style={{ opacity: 0.45 }}>· 1 {sym} = €{rate.toFixed(4)}</span></>
                   : <span style={{ color: 'rgba(255,90,70,0.65)' }}>Taxa de canvi no disponible</span>
                 }
               </p>
