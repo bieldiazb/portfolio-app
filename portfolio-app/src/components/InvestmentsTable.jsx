@@ -195,7 +195,25 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
   const [sortDir, setSortDir]   = useState('desc')
+  const [fxRates, setFxRates]   = useState({}) // { USD: 0.87, GBP: 1.17, ... }
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
+
+  // Carrega taxes de canvi en temps real (una sola vegada per renderitzar)
+  useEffect(() => {
+    const pairs = [...new Set(investments
+      .map(i => i.originalCurrency || i.currency)
+      .filter(c => c && c !== 'EUR')
+    )]
+    pairs.forEach(curr => {
+      fetch(`/yahoo/v8/finance/chart/${curr}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+        .then(r => r.json())
+        .then(d => {
+          const rate = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+          if (rate && rate > 0) setFxRates(prev => ({ ...prev, [curr]: rate }))
+        })
+        .catch(() => {})
+    })
+  }, [investments.length]) // eslint-disable-line
 
   const totalValue = investments.reduce((s, inv) => s + currentValue(inv), 0)
   const totalCost  = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
@@ -259,6 +277,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
           onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
           onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
+          fxRates={fxRates}
         />
       ))}
 
@@ -269,12 +288,23 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx }) {
-  const tc     = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
-  const curVal = currentValue(inv)
-  const gain   = curVal - (inv.totalCost || 0)
-  const gPct   = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
-  const isPos  = gain >= 0
+function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, fxRates = {} }) {
+  const tc       = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+  const hasOrig  = origCurr !== 'EUR' && inv.originalPrice != null && inv.totalQty > 0
+
+  // Valor en moneda original (USD, GBP...)
+  const origVal  = hasOrig ? inv.totalQty * inv.originalPrice : null
+
+  // Valor en EUR: si tenim taxa live → usa-la; sinó usa currentPrice guardat
+  const liveRate = fxRates[origCurr]
+  const curVal   = hasOrig && liveRate
+    ? +(origVal * liveRate).toFixed(2)
+    : currentValue(inv)
+
+  const gain     = curVal - (inv.totalCost || 0)
+  const gPct     = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
+  const isPos    = gain >= 0
 
   const chartData = useMemo(() => {
     const pts = (inv.txs || [])
@@ -304,15 +334,16 @@ function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveT
           <div className="inv2-val">
             <p className="inv2-val-v">
               {fmtEur(curVal)}
-              {inv.originalCurrency && inv.originalCurrency !== 'EUR' && (
-                <span className={`inv2-curr-badge ${inv.originalCurrency.toLowerCase()}`}>{inv.originalCurrency}</span>
+              {origCurr !== 'EUR' && (
+                <span className={`inv2-curr-badge ${origCurr.toLowerCase()}`}>{origCurr}</span>
               )}
             </p>
-            {(() => {
-              const origVal = currentValueOrig(inv)
-              const origFmt = fmtOrig(origVal, inv.originalCurrency)
-              return origFmt ? <p className="inv2-val-orig">{origFmt}</p> : null
-            })()}
+            {origVal != null && (
+              <p className="inv2-val-orig">
+                {CURR_SYM[origCurr] || origCurr}{origVal.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {liveRate && <span style={{ opacity: 0.45, fontSize: 9, marginLeft: 4 }}>@{liveRate.toFixed(4)}</span>}
+              </p>
+            )}
             <p className={`inv2-val-pg ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)} {fmtPct(gPct)}</p>
           </div>
           <button className="inv2-del" onClick={onRemove}><TrashIcon size={12} /></button>
