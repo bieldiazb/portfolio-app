@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { SHARED_STYLES, TYPE_COLORS } from './design-tokens'
 
 const TYPE_OPTIONS = [
@@ -7,6 +7,8 @@ const TYPE_OPTIONS = [
   { value: 'robo',    label: 'Robo',    short: 'ROB' },
   { value: 'efectiu', label: 'Efectiu', short: 'EFE' },
 ]
+
+const CURRENCY_SYMBOLS = { EUR: '€', USD: '$', GBP: '£' }
 
 const modalStyles = `
   .aim2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(6px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
@@ -40,7 +42,10 @@ const modalStyles = `
   .aim2-result-info { flex: 1; min-width: 0; }
   .aim2-result-name { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .aim2-result-meta { font-size: 10px; color: rgba(255,255,255,0.30); margin-top: 1px; font-family: 'Geist Mono', monospace; }
-  .aim2-result-tick { color: rgba(80,210,110,0.80); flex-shrink: 0; }
+  .aim2-result-curr { font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+  .aim2-result-curr.usd { background: rgba(255,170,50,0.12); color: rgba(255,170,60,0.80); }
+  .aim2-result-curr.gbp { background: rgba(100,200,100,0.12); color: rgba(100,210,100,0.80); }
+  .aim2-result-curr.eur { background: rgba(100,155,255,0.12); color: rgba(100,160,255,0.75); }
   .aim2-no-results { padding: 16px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.24); }
 
   .aim2-chip { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(80,210,110,0.06); border: 1px solid rgba(80,210,110,0.18); border-radius: 7px; margin-bottom: 14px; }
@@ -53,14 +58,28 @@ const modalStyles = `
 
   .aim2-space { display: flex; flex-direction: column; gap: 11px; }
   .aim2-lbl { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+
+  /* Input amb prefix de moneda */
+  .aim2-inp-wrap { position: relative; }
+  .aim2-inp-prefix { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-family: 'Geist Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.35); pointer-events: none; }
   .aim2-inp { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 9px 11px; font-family: 'Geist', sans-serif; font-size: 16px; color: rgba(255,255,255,0.82); outline: none; transition: border-color 100ms; box-sizing: border-box; touch-action: manipulation; }
   .aim2-inp:focus { border-color: rgba(255,255,255,0.22); }
   .aim2-inp::placeholder { color: rgba(255,255,255,0.18); }
   .aim2-inp.mono { font-family: 'Geist Mono', monospace; text-align: right; }
+  .aim2-inp.with-prefix { padding-left: 26px; }
   .aim2-inp.date { font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.55); }
   .aim2-inp.date::-webkit-calendar-picker-indicator { filter: invert(0.4); }
   .aim2-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .aim2-error { font-size: 11px; color: rgba(255,90,70,0.80); background: rgba(255,60,40,0.08); border: 1px solid rgba(255,60,40,0.14); border-radius: 5px; padding: 8px 11px; }
+
+  /* Conversió EUR */
+  .aim2-conv { font-size: 10px; color: rgba(255,255,255,0.28); font-family: 'Geist Mono', monospace; margin-top: 4px; text-align: right; }
+  .aim2-conv span { color: rgba(255,255,255,0.48); }
+
+  /* Rate badge */
+  .aim2-rate { display: flex; align-items: center; gap: 6px; font-size: 10px; color: rgba(255,255,255,0.28); padding: 6px 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 5px; }
+  .aim2-rate-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(80,210,110,0.70); flex-shrink: 0; }
+  .aim2-rate-val { font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.45); }
 
   .aim2-footer { display: flex; gap: 8px; margin-top: 18px; }
   .aim2-cancel { flex: 1; border: 1px solid rgba(255,255,255,0.07); background: transparent; color: rgba(255,255,255,0.34); padding: 11px; border-radius: 5px; font-family: 'Geist', sans-serif; font-size: 13px; cursor: pointer; }
@@ -68,23 +87,71 @@ const modalStyles = `
   .aim2-submit:hover { background: #fff; }
 `
 
-// ── Cerca via /yahoo-search proxy ─────────────────────────────────────────────
-// En dev: proxy Vite (vite.config.js)
-// En prod: redirect Netlify (netlify.toml)
+// ── Yahoo Finance via proxy ────────────────────────────────────────────────────
+// Cerca d'actius via múltiples APIs públiques sense autenticació
 async function searchYahoo(q) {
-  const path = `/yahoo-search/v1/finance/search?q=${encodeURIComponent(q)}&lang=en&region=US&quotesCount=8&newsCount=0&enableFuzzyQuery=false&quotesQueryId=tss_match_phrase_query`
-  const res  = await fetch(path, { signal: AbortSignal.timeout(6000) })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  return (data.quotes || [])
-    .filter(q => q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND')
-    .slice(0, 6)
-    .map(q => ({
-      ticker:   q.symbol,
-      name:     q.longname || q.shortname || q.symbol,
-      exchange: q.exchDisp || q.exchange || '',
-      type:     q.quoteType === 'ETF' ? 'etf' : 'stock',
-    }))
+  // 1. Open Figi / Financial Modeling Prep — gratuït, sense API key, sense CORS
+  try {
+    const res = await fetch(
+      `https://financialmodelingprep.com/api/v3/search?query=${encodeURIComponent(q)}&limit=8&exchange=NASDAQ,NYSE,EURONEXT,LSE,XETRA`,
+      { signal: AbortSignal.timeout(6000) }
+    )
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data) && data.length > 0) {
+        return data.slice(0, 6).map(r => ({
+          ticker:   r.symbol,
+          name:     r.name || r.symbol,
+          exchange: r.stockExchange || r.exchangeShortName || '',
+          type:     r.symbol?.endsWith('.L') || r.exchangeShortName === 'ETF' ? 'etf' : 'stock',
+          currency: r.currency || null,
+        }))
+      }
+    }
+  } catch {}
+
+  // 2. Yahoo Finance via proxy Vite/Netlify (pot fallar per restriccions de Yahoo)
+  try {
+    const res = await fetch(
+      `/yahoo-search/v1/finance/search?q=${encodeURIComponent(q)}&lang=en&region=US&quotesCount=8&newsCount=0`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+    if (res.ok) {
+      const data = await res.json()
+      if (data.quotes?.length) {
+        return data.quotes
+          .filter(q => ['EQUITY', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
+          .slice(0, 6)
+          .map(q => ({
+            ticker:   q.symbol,
+            name:     q.longname || q.shortname || q.symbol,
+            exchange: q.exchDisp || q.exchange || '',
+            type:     q.quoteType === 'ETF' ? 'etf' : 'stock',
+            currency: q.currency || null,
+          }))
+      }
+    }
+  } catch {}
+
+  return []
+}
+
+async function fetchExchangeRate(from, to) {
+  try {
+    const res  = await fetch(`/yahoo/v8/finance/chart/${from}${to}=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.chart?.result?.[0]?.meta?.regularMarketPrice || null
+  } catch { return null }
+}
+
+// Detecta moneda a partir del ticker (heurística)
+function guessCurrency(ticker) {
+  if (!ticker) return 'EUR'
+  const t = ticker.toUpperCase()
+  if (t.endsWith('.L') || t.endsWith('.LON')) return 'GBP'
+  if (!t.includes('.')) return 'USD'  // sense extensió = NYSE/NASDAQ → USD
+  return 'EUR'
 }
 
 export default function AddInvestmentModal({ onAdd, onClose }) {
@@ -93,6 +160,10 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const [form, setForm] = useState({
     type: 'etf', name: '', ticker: '', qty: '', initialValue: '', purchaseDate: today,
   })
+  const [inputCurrency, setInputCurrency] = useState('EUR') // moneda en la que l'usuari introdueix el cost
+  const [exchangeRate, setExchangeRate]   = useState(null)  // taxa de canvi a EUR
+  const [loadingRate, setLoadingRate]     = useState(false)
+
   const [searchQuery, setSearchQuery]       = useState('')
   const [searchResults, setSearchResults]   = useState([])
   const [searching, setSearching]           = useState(false)
@@ -103,6 +174,20 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
 
   const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const hasQty = !['efectiu', 'robo'].includes(form.type)
+
+  // Quan canvia la moneda d'entrada, obté la taxa de canvi
+  useEffect(() => {
+    if (inputCurrency === 'EUR') { setExchangeRate(1); return }
+    setLoadingRate(true)
+    fetchExchangeRate(inputCurrency, 'EUR').then(rate => {
+      setExchangeRate(rate || (inputCurrency === 'USD' ? 0.92 : 1.17))
+      setLoadingRate(false)
+    })
+  }, [inputCurrency])
+
+  // Calcula el cost en EUR
+  const costInOriginal = parseFloat(form.initialValue) || 0
+  const costInEur = inputCurrency === 'EUR' ? costInOriginal : +(costInOriginal * (exchangeRate || 1)).toFixed(2)
 
   const handleSearch = useCallback((val) => {
     setSearchQuery(val)
@@ -124,31 +209,37 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const selectResult = (r) => {
     setSelectedResult(r)
     setForm(f => ({ ...f, name: r.name, ticker: r.ticker, type: r.type }))
+    // Auto-detecta moneda a partir del ticker o del camp currency de Yahoo
+    const curr = r.currency || guessCurrency(r.ticker)
+    setInputCurrency(['USD', 'GBP'].includes(curr) ? curr : 'EUR')
     setSearchQuery('')
     setSearchResults([])
   }
 
   const clearSelection = () => {
     setSelectedResult(null)
+    setInputCurrency('EUR')
     setForm(f => ({ ...f, name: '', ticker: '' }))
   }
 
   const handleSubmit = () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
     const val = parseFloat(form.initialValue)
-    if (isNaN(val) || val < 0) return setError('El cost total ha de ser positiu')
+    if (isNaN(val) || val <= 0) return setError('El cost total ha de ser positiu')
     if (hasQty && !form.qty) return setError('La quantitat és obligatòria')
     setError('')
     onAdd({
       name:         form.name.trim(),
       ticker:       form.ticker.trim().toUpperCase(),
       type:         form.type,
-      initialValue: val,
+      initialValue: costInEur,           // sempre en EUR a Firestore
       qty:          hasQty ? parseFloat(form.qty) : null,
       currentPrice: null,
       purchaseDate: form.purchaseDate || today,
     })
   }
+
+  const sym = CURRENCY_SYMBOLS[inputCurrency] || inputCurrency
 
   return (
     <>
@@ -190,7 +281,12 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(80,210,110,0.75)" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   <div className="aim2-chip-info">
                     <p className="aim2-chip-name">{selectedResult.name}</p>
-                    <p className="aim2-chip-ticker">{selectedResult.ticker} · {selectedResult.exchange}</p>
+                    <p className="aim2-chip-ticker">
+                      {selectedResult.ticker} · {selectedResult.exchange}
+                      {inputCurrency !== 'EUR' && (
+                        <span style={{ marginLeft: 6, color: 'rgba(255,170,60,0.75)' }}>· cotitza en {inputCurrency}</span>
+                      )}
+                    </p>
                   </div>
                   <button className="aim2-chip-clear" onClick={clearSelection}>×</button>
                 </div>
@@ -206,26 +302,27 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                       onChange={e => handleSearch(e.target.value)}
                       placeholder="Busca per nom o ticker… (AAPL, MSCI…)"
                       autoFocus
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck={false}
+                      autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
                     />
                     {searching && <div className="aim2-search-spin" />}
                   </div>
 
                   {searchResults.length > 0 && (
                     <div className="aim2-results">
-                      {searchResults.map(r => (
-                        <div key={r.ticker} className="aim2-result" onClick={() => selectResult(r)}>
-                          <div className="aim2-result-av">{r.ticker.slice(0, 3)}</div>
-                          <div className="aim2-result-info">
-                            <p className="aim2-result-name">{r.name}</p>
-                            <p className="aim2-result-meta">{r.ticker} · {r.exchange}</p>
+                      {searchResults.map(r => {
+                        const curr = r.currency || guessCurrency(r.ticker)
+                        const currClass = curr === 'USD' ? 'usd' : curr === 'GBP' ? 'gbp' : 'eur'
+                        return (
+                          <div key={r.ticker} className="aim2-result" onClick={() => selectResult(r)}>
+                            <div className="aim2-result-av">{r.ticker.slice(0, 3)}</div>
+                            <div className="aim2-result-info">
+                              <p className="aim2-result-name">{r.name}</p>
+                              <p className="aim2-result-meta">{r.ticker} · {r.exchange}</p>
+                            </div>
+                            <span className={`aim2-result-curr ${currClass}`}>{curr}</span>
                           </div>
-                          <svg className="aim2-result-tick" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
 
@@ -236,7 +333,6 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                   )}
                 </>
               )}
-
               <p className="aim2-manual-toggle" onClick={() => setManualMode(true)}>
                 Introduir manualment sense cercador
               </p>
@@ -256,7 +352,11 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                 <div>
                   <label className="aim2-lbl">Ticker Yahoo Finance</label>
                   <input className="aim2-inp mono" value={form.ticker}
-                    onChange={e => set('ticker', e.target.value.toUpperCase())}
+                    onChange={e => {
+                      const t = e.target.value.toUpperCase()
+                      set('ticker', t)
+                      setInputCurrency(guessCurrency(t))
+                    }}
                     placeholder="EUNL.DE, AAPL..." />
                 </div>
               )}
@@ -279,11 +379,47 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                 </div>
               )}
               <div>
-                <label className="aim2-lbl">Cost total (€)</label>
-                <input type="number" inputMode="decimal" step="any" className="aim2-inp mono"
-                  value={form.initialValue} onChange={e => set('initialValue', e.target.value)} placeholder="0.00" />
+                {/* Selector de moneda + camp de cost */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <label className="aim2-lbl" style={{ margin: 0 }}>Cost total</label>
+                  {/* Selector moneda */}
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    {['EUR', 'USD', 'GBP'].map(c => (
+                      <button key={c} onClick={() => setInputCurrency(c)} style={{
+                        padding: '2px 7px', borderRadius: 3, fontSize: 9, fontWeight: 600, cursor: 'pointer',
+                        fontFamily: "'Geist Mono', monospace", border: '1px solid',
+                        background: inputCurrency === c ? 'rgba(255,255,255,0.10)' : 'transparent',
+                        borderColor: inputCurrency === c ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.07)',
+                        color: inputCurrency === c ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.28)',
+                        transition: 'all 100ms',
+                      }}>{c}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="aim2-inp-wrap">
+                  <span className="aim2-inp-prefix">{sym}</span>
+                  <input type="number" inputMode="decimal" step="any"
+                    className="aim2-inp mono with-prefix"
+                    value={form.initialValue} onChange={e => set('initialValue', e.target.value)}
+                    placeholder="0.00" />
+                </div>
+                {/* Conversió a EUR si cal */}
+                {inputCurrency !== 'EUR' && costInOriginal > 0 && (
+                  <p className="aim2-conv">
+                    {loadingRate ? 'obtenint taxa...' : <>= <span>€{costInEur.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> EUR</>}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Taxa de canvi actual */}
+            {inputCurrency !== 'EUR' && exchangeRate && (
+              <div className="aim2-rate">
+                <div className="aim2-rate-dot" />
+                <span>Taxa de canvi en temps real:</span>
+                <span className="aim2-rate-val">1 {inputCurrency} = €{exchangeRate.toFixed(4)}</span>
+              </div>
+            )}
 
             <div>
               <label className="aim2-lbl">Data de compra</label>
@@ -296,7 +432,9 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
 
           <div className="aim2-footer">
             <button className="aim2-cancel" onClick={onClose}>Cancel·lar</button>
-            <button className="aim2-submit" onClick={handleSubmit}>Afegir posició</button>
+            <button className="aim2-submit" onClick={handleSubmit}>
+              Afegir posició{inputCurrency !== 'EUR' && costInOriginal > 0 ? ` · €${costInEur.toLocaleString('ca-ES', { minimumFractionDigits: 2 })}` : ''}
+            </button>
           </div>
         </div>
       </div>

@@ -10,6 +10,12 @@
 
 [[redirects]]
   from = "/yahoo-search/*"
-  to = "https://query2.finance.yahoo.com/:splat"
+  to = "https://query1.finance.yahoo.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/yahoo-ac"
+  to = "https://autoc.finance.yahoo.com/autoc:splat"
   status = 200
   force = true
