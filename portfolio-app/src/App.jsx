@@ -89,7 +89,7 @@ export default function App() {
   } = useFirestorePortfolio(user?.uid)
 
   // ── Price fetcher ────────────────────────────────────────────────────────────
-  const { loading: priceLoading, status, setStatus, fetchOne } = usePriceFetcher()
+  const { loading: priceLoading, status, setStatus, fetchOne, fetchWithCurrency } = usePriceFetcher()
 
   // ── Altres ───────────────────────────────────────────────────────────────────
   const { snapshots, saveSnapshot } = useNetWorthSnapshots(user?.uid)
@@ -140,8 +140,9 @@ export default function App() {
     investments.forEach(async inv => {
       if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) return
       try {
-        const price = await fetchOne(inv.ticker)
-        if (price != null) updateCurrentPrice(inv.id, price)
+        const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
+        const price = orig ? (orig.currency === 'USD' ? +(orig.price * 0.92).toFixed(2) : orig.currency === 'GBP' ? +(orig.price * 1.17).toFixed(2) : orig.price) : await fetchOne(inv.ticker)
+        if (price != null) updateCurrentPrice(inv.id, price, orig ? { originalPrice: orig.price, originalCurrency: orig.currency } : {})
       } catch {}
     })
   }, [investments.length]) // eslint-disable-line
@@ -204,8 +205,9 @@ export default function App() {
     for (const inv of investments) {
       if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) continue
       try {
-        const price = await fetchOne(inv.ticker)
-        if (price != null) updateCurrentPrice(inv.id, price)
+        const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
+        const price = orig ? (orig.currency === 'USD' ? +(orig.price * 0.92).toFixed(2) : orig.currency === 'GBP' ? +(orig.price * 1.17).toFixed(2) : orig.price) : await fetchOne(inv.ticker)
+        if (price != null) updateCurrentPrice(inv.id, price, orig ? { originalPrice: orig.price, originalCurrency: orig.currency } : {})
       } catch {}
     }
   }, [investments, fetchOne, updateCurrentPrice])

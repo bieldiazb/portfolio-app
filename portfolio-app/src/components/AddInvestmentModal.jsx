@@ -24,27 +24,18 @@ const modalStyles = `
   .aim2-tlbl { font-size: 9px; color: rgba(255,255,255,0.30); text-align: center; }
   .aim2-tbtn.sel .aim2-tlbl { color: rgba(255,255,255,0.55); }
 
-  /* Search */
   .aim2-search-wrap { position: relative; margin-bottom: 14px; }
-  .aim2-search-inp {
-    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 7px; padding: 10px 36px 10px 38px;
-    font-family: 'Geist', sans-serif; font-size: 16px; color: rgba(255,255,255,0.82);
-    outline: none; transition: border-color 100ms; box-sizing: border-box;
-    touch-action: manipulation;
-  }
+  .aim2-search-inp { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 7px; padding: 10px 36px 10px 38px; font-family: 'Geist', sans-serif; font-size: 16px; color: rgba(255,255,255,0.82); outline: none; transition: border-color 100ms; box-sizing: border-box; touch-action: manipulation; }
   .aim2-search-inp:focus { border-color: rgba(255,255,255,0.24); }
   .aim2-search-inp::placeholder { color: rgba(255,255,255,0.22); }
   .aim2-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.28); pointer-events: none; }
   .aim2-search-spin { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; border: 1.5px solid rgba(255,255,255,0.12); border-top-color: rgba(255,255,255,0.55); border-radius: 50%; animation: aim2spin .7s linear infinite; }
   @keyframes aim2spin { to { transform: translateY(-50%) rotate(360deg); } }
 
-  /* Results */
   .aim2-results { border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; overflow: hidden; margin-bottom: 14px; }
   .aim2-result { display: flex; align-items: center; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 80ms; gap: 10px; -webkit-tap-highlight-color: transparent; }
   .aim2-result:last-child { border-bottom: none; }
   .aim2-result:hover, .aim2-result:active { background: rgba(255,255,255,0.05); }
-  .aim2-result.selected { background: rgba(255,255,255,0.07); }
   .aim2-result-av { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; flex-shrink: 0; background: rgba(60,130,255,0.12); color: rgba(100,160,255,0.85); }
   .aim2-result-info { flex: 1; min-width: 0; }
   .aim2-result-name { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -52,17 +43,14 @@ const modalStyles = `
   .aim2-result-tick { color: rgba(80,210,110,0.80); flex-shrink: 0; }
   .aim2-no-results { padding: 16px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.24); }
 
-  /* Selected chip */
   .aim2-chip { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(80,210,110,0.06); border: 1px solid rgba(80,210,110,0.18); border-radius: 7px; margin-bottom: 14px; }
   .aim2-chip-info { flex: 1; min-width: 0; }
   .aim2-chip-name { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .aim2-chip-ticker { font-size: 10px; color: rgba(80,210,110,0.70); font-family: 'Geist Mono', monospace; margin-top: 1px; }
   .aim2-chip-clear { width: 22px; height: 22px; border-radius: 4px; background: rgba(255,255,255,0.06); border: none; color: rgba(255,255,255,0.36); font-size: 13px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-family: inherit; }
 
-  /* Manual entry toggle */
   .aim2-manual-toggle { font-size: 11px; color: rgba(255,255,255,0.28); text-align: center; margin-bottom: 12px; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.14); -webkit-tap-highlight-color: transparent; }
 
-  /* Fields */
   .aim2-space { display: flex; flex-direction: column; gap: 11px; }
   .aim2-lbl { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
   .aim2-inp { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 9px 11px; font-family: 'Geist', sans-serif; font-size: 16px; color: rgba(255,255,255,0.82); outline: none; transition: border-color 100ms; box-sizing: border-box; touch-action: manipulation; }
@@ -80,11 +68,13 @@ const modalStyles = `
   .aim2-submit:hover { background: #fff; }
 `
 
-// Cerca a Yahoo Finance via proxy per evitar CORS
-async function searchYahoo(query) {
-  const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&lang=en&region=US&quotesCount=8&newsCount=0&enableFuzzyQuery=false&quotesQueryId=tss_match_phrase_query`
-  const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`
-  const res  = await fetch(proxy, { signal: AbortSignal.timeout(6000) })
+// ── Cerca via /yahoo-search proxy ─────────────────────────────────────────────
+// En dev: proxy Vite (vite.config.js)
+// En prod: redirect Netlify (netlify.toml)
+async function searchYahoo(q) {
+  const path = `/yahoo-search/v1/finance/search?q=${encodeURIComponent(q)}&lang=en&region=US&quotesCount=8&newsCount=0&enableFuzzyQuery=false&quotesQueryId=tss_match_phrase_query`
+  const res  = await fetch(path, { signal: AbortSignal.timeout(6000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const data = await res.json()
   return (data.quotes || [])
     .filter(q => q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND')
@@ -103,18 +93,17 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const [form, setForm] = useState({
     type: 'etf', name: '', ticker: '', qty: '', initialValue: '', purchaseDate: today,
   })
-  const [searchQuery, setSearchQuery]   = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [searching, setSearching]       = useState(false)
+  const [searchQuery, setSearchQuery]       = useState('')
+  const [searchResults, setSearchResults]   = useState([])
+  const [searching, setSearching]           = useState(false)
   const [selectedResult, setSelectedResult] = useState(null)
-  const [manualMode, setManualMode]     = useState(false)
-  const [error, setError] = useState('')
+  const [manualMode, setManualMode]         = useState(false)
+  const [error, setError]                   = useState('')
   const debounceRef = useRef(null)
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const hasQty = !['efectiu', 'robo'].includes(form.type)
 
-  // Cerca amb debounce de 400ms
   const handleSearch = useCallback((val) => {
     setSearchQuery(val)
     setSelectedResult(null)
@@ -161,8 +150,6 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
     })
   }
 
-  const tc = TYPE_COLORS[form.type] || TYPE_COLORS.etf
-
   return (
     <>
       <style>{`${SHARED_STYLES}${modalStyles}`}</style>
@@ -195,11 +182,10 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             })}
           </div>
 
-          {/* Cercador — ocult per Efectiu i Robo */}
+          {/* Cercador */}
           {hasQty && !manualMode && (
             <>
               {selectedResult ? (
-                /* Chip de selecció */
                 <div className="aim2-chip">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(80,210,110,0.75)" strokeWidth="2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                   <div className="aim2-chip-info">
@@ -209,7 +195,6 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                   <button className="aim2-chip-clear" onClick={clearSelection}>×</button>
                 </div>
               ) : (
-                /* Camp de cerca */
                 <>
                   <div className="aim2-search-wrap">
                     <svg className="aim2-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -229,7 +214,6 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                     {searching && <div className="aim2-search-spin" />}
                   </div>
 
-                  {/* Resultats */}
                   {searchResults.length > 0 && (
                     <div className="aim2-results">
                       {searchResults.map(r => (
@@ -259,7 +243,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             </>
           )}
 
-          {/* Camps manuals (sempre per Efectiu/Robo, opcionals per la resta) */}
+          {/* Camps manuals */}
           {(manualMode || !hasQty) && (
             <div className="aim2-space" style={{ marginBottom: 14 }}>
               <div>

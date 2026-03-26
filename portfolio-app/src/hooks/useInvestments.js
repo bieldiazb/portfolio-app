@@ -109,6 +109,7 @@ export function useInvestments(uid) {
     await addDoc(collection(db, 'users', uid, 'investments'), {
       name, ticker: ticker || '', type: type || 'etf',
       notes: notes || '', currentPrice: null,
+      currency: null, originalPrice: null, originalCurrency: null,
       createdAt: serverTimestamp(),
     })
   }, [uid])
@@ -142,11 +143,17 @@ export function useInvestments(uid) {
     await deleteDoc(doc(db, 'users', uid, 'investments', invId, 'txs', txId))
   }, [uid])
 
-  const updateCurrentPrice = useCallback(async (invId, price) => {
+  const updateCurrentPrice = useCallback(async (invId, priceEur, meta = {}) => {
     if (!uid || !invId) return
-    await updateDoc(doc(db, 'users', uid, 'investments', invId), { currentPrice: price })
+    const update = {
+      currentPrice:     priceEur,
+      originalPrice:    meta.originalPrice    ?? priceEur,
+      originalCurrency: meta.originalCurrency ?? 'EUR',
+      lastUpdated:      new Date().toISOString(),
+    }
+    await updateDoc(doc(db, 'users', uid, 'investments', invId), update)
     if (invRef.current[invId]) {
-      invRef.current[invId].currentPrice = price
+      Object.assign(invRef.current[invId], update)
       publish()
     }
   }, [uid, publish])
