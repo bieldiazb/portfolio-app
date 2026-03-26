@@ -3,9 +3,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { SHARED_STYLES } from './design-tokens'
 
 const BENCHMARKS = [
-  { id: 'IWDA.AS', label: 'MSCI World',    color: 'rgba(100,155,255,0.75)' },
-  { id: 'GSPC=X', label: 'S&P 500',        color: 'rgba(255,170,70,0.75)'  }, // sense ^ per evitar encoding
-  { id: 'VWCE.DE', label: 'FTSE All-World', color: 'rgba(180,130,255,0.65)' },
+  { id: 'IWDA.AS', label: 'MSCI World',     color: 'rgba(100,155,255,0.75)' },
+  { id: 'GSPC=X',  label: 'S&P 500',        color: 'rgba(255,170,70,0.75)'  },
+  { id: 'VWCE.DE', label: 'FTSE All-World',  color: 'rgba(180,130,255,0.65)' },
 ]
 
 const PERIODS = [
@@ -15,43 +15,23 @@ const PERIODS = [
   { id: 'ALL', label: 'Tot', months: 999, range: '5y',  interval: '1mo' },
 ]
 
-// En dev usa el proxy de Vite (/yahoo → query1.finance.yahoo.com)
-// En producció usa corsproxy.io
+// Usa sempre /yahoo — funciona en dev (proxy Vite) i en prod (proxy Netlify via netlify.toml)
 const fetchYahoo = async (ticker, range, interval) => {
-  const path = `/v8/finance/chart/${ticker}?range=${range}&interval=${interval}&includePrePost=false`
-
-  // Primer intent: proxy Vite (dev) o ruta relativa (prod amb rewrite)
-  const urls = [
-    `/yahoo${path}`,
-    `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com${path}`)}`,
-  ]
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
-      if (!res.ok) continue
-
-      // corsproxy retorna JSON directament
-      // proxy Vite retorna JSON directament
-      const data = await res.json()
-      const result = data?.chart?.result?.[0]
-      if (!result) continue
-
-      const timestamps = result.timestamp || []
-      const closes     = result.indicators?.quote?.[0]?.close || []
-      const prices     = timestamps
-        .map((t, i) => ({
-          date:  new Date(t * 1000).toISOString().split('T')[0],
-          price: closes[i],
-        }))
-        .filter(p => p.price != null)
-
-      if (prices.length > 0) return prices
-    } catch {
-      // Prova el següent
-    }
+  const path = `/yahoo/v8/finance/chart/${ticker}?range=${range}&interval=${interval}&includePrePost=false`
+  try {
+    const res = await fetch(path, { signal: AbortSignal.timeout(10000) })
+    if (!res.ok) return []
+    const data   = await res.json()
+    const result = data?.chart?.result?.[0]
+    if (!result) return []
+    const timestamps = result.timestamp || []
+    const closes     = result.indicators?.quote?.[0]?.close || []
+    return timestamps
+      .map((t, i) => ({ date: new Date(t * 1000).toISOString().split('T')[0], price: closes[i] }))
+      .filter(p => p.price != null)
+  } catch {
+    return []
   }
-  return []
 }
 
 const bmStyles = `
@@ -71,7 +51,7 @@ const bmStyles = `
   .bm-error { padding: 32px 0; text-align: center; }
   .bm-error-main { font-size: 12px; color: rgba(255,255,255,0.28); }
   .bm-error-sub { font-size: 10px; color: rgba(255,255,255,0.16); margin-top: 4px; }
-  .bm-retry { margin-top: 12px; padding: 7px 14px; border: 1px solid rgba(255,255,255,0.10); background: transparent; border-radius: 5px; font-family: 'Geist', sans-serif; font-size: 12px; color: rgba(255,255,255,0.42); cursor: pointer; transition: all 100ms; }
+  .bm-retry { margin-top: 12px; padding: 7px 14px; border: 1px solid rgba(255,255,255,0.10); background: transparent; border-radius: 5px; font-family: 'Geist', sans-serif; font-size: 12px; color: rgba(255,255,255,0.42); cursor: pointer; }
   .bm-retry:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.65); }
   .bm-table { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); }
   .bm-tr { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
@@ -107,24 +87,19 @@ const BmTooltip = ({ active, payload, label }) => {
 }
 
 export default function BenchmarkPage({ snapshots = [] }) {
-  const [period, setPeriod]       = useState('1Y')
-  const [benchData, setBenchData] = useState({})
-  const [loading, setLoading]     = useState(false)
+  const [period, setPeriod]         = useState('1Y')
+  const [benchData, setBenchData]   = useState({})
+  const [loading, setLoading]       = useState(false)
   const [fetchError, setFetchError] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     const p = PERIODS.find(x => x.id === period)
     if (!p) return
-
     setLoading(true)
     setFetchError(false)
-
     Promise.all(
-      BENCHMARKS.map(async bm => {
-        const prices = await fetchYahoo(bm.id, p.range, p.interval)
-        return { id: bm.id, prices }
-      })
+      BENCHMARKS.map(async bm => ({ id: bm.id, prices: await fetchYahoo(bm.id, p.range, p.interval) }))
     ).then(results => {
       const map = {}
       results.forEach(r => { map[r.id] = r.prices })
@@ -147,16 +122,14 @@ export default function BenchmarkPage({ snapshots = [] }) {
 
   const chartData = useMemo(() => {
     const snapSorted = [...snapshots].sort((a, b) => new Date(a.date) - new Date(b.date))
-    const allDates = new Set()
+    const allDates   = new Set()
     snapSorted.forEach(s => allDates.add(s.date))
     BENCHMARKS.forEach(bm => (benchData[bm.id] || []).forEach(p => allDates.add(p.date)))
     const sorted = [...allDates].sort()
     if (sorted.length < 2) return []
-
     const basePortfolio = snapSorted[0]?.total
     const baseBench = {}
     BENCHMARKS.forEach(bm => { baseBench[bm.id] = (benchData[bm.id] || [])[0]?.price })
-
     return sorted.map(date => {
       const row  = { date: date.slice(5) }
       const snap = [...snapSorted].reverse().find(s => s.date <= date)
@@ -195,7 +168,7 @@ export default function BenchmarkPage({ snapshots = [] }) {
 
       <div>
         <h2 className="sec-v2-title">Benchmark vs mercat</h2>
-        <p className="sec-v2-sub">Rendiment del portfoli vs índexs de referència</p>
+        <p className="sec-v2-sub">Compara el teu portfoli amb els principals índexs borsaris</p>
       </div>
 
       <div className="bm-panel">
@@ -263,7 +236,7 @@ export default function BenchmarkPage({ snapshots = [] }) {
         {!loading && !fetchError && portfolioReturn !== null && (
           <div className={`bm-summary ${outperforms ? 'out' : 'und'}`}>
             {outperforms
-              ? <><strong style={{ color: 'rgba(80,210,110,0.85)' }}>La cartera supera tots els índexs</strong> en el període.</>
+              ? <><strong style={{ color: 'rgba(80,210,110,0.85)' }}>La cartera supera tots els índexs</strong> en el període seleccionat.</>
               : <>La cartera queda per sota d'alguns índexs. Revisa la distribució al <strong>Rebalanceig</strong>.</>
             }
           </div>

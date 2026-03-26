@@ -82,10 +82,10 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
     : (getEffectiveValue(a) || a.initialValue || 0)
     const pmt = getContribution(a.id)
 
-    console.log('ASSET:', a.name)
-    console.log('PV:', pv)
-    console.log('PMT:', pmt)
-    console.log('TOTAL COST:', pv + pmt * n)
+    // console.log('ASSET:', a.name)
+    // console.log('PV:', pv)
+    // console.log('PMT:', pmt)
+    // console.log('TOTAL COST:', pv + pmt * n)
 
     total += fv(pv, pmt, getRate(a), n)
     cost  += pv + pmt * n
