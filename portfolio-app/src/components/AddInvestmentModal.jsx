@@ -224,20 +224,12 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
 
   const handleSubmit = () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
-    const val = parseFloat(form.initialValue)
-    if (isNaN(val) || val <= 0) return setError('El cost total ha de ser positiu')
-    if (hasQty && !form.qty) return setError('La quantitat és obligatòria')
     setError('')
     onAdd({
-      name:                form.name.trim(),
-      ticker:              form.ticker.trim().toUpperCase(),
-      type:                form.type,
-      initialValue:        costInEur,             // cost en EUR (per càlculs)
-      initialValueOrig:    costInOriginal,         // cost en moneda original
-      currency:            inputCurrency,           // moneda de l'actiu
-      qty:                 hasQty ? parseFloat(form.qty) : null,
-      currentPrice:        null,
-      purchaseDate:        form.purchaseDate || today,
+      name:     form.name.trim(),
+      ticker:   form.ticker.trim().toUpperCase(),
+      type:     form.type,
+      currency: inputCurrency,
     })
   }
 
@@ -370,73 +362,21 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             </div>
           )}
 
-          {/* Quantitat, cost i data */}
-          <div className="aim2-space">
-            <div className={hasQty ? 'aim2-g2' : ''}>
-              {hasQty && (
-                <div>
-                  <label className="aim2-lbl">Quantitat</label>
-                  <input type="number" inputMode="decimal" step="any" className="aim2-inp mono"
-                    value={form.qty} onChange={e => set('qty', e.target.value)} placeholder="0.00" />
-                </div>
-              )}
-              <div>
-                {/* Selector de moneda + camp de cost */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <label className="aim2-lbl" style={{ margin: 0 }}>Cost total</label>
-                  {/* Selector moneda */}
-                  <div style={{ display: 'flex', gap: 3 }}>
-                    {['EUR', 'USD', 'GBP'].map(c => (
-                      <button key={c} onClick={() => setInputCurrency(c)} style={{
-                        padding: '2px 7px', borderRadius: 3, fontSize: 9, fontWeight: 600, cursor: 'pointer',
-                        fontFamily: "'Geist Mono', monospace", border: '1px solid',
-                        background: inputCurrency === c ? 'rgba(255,255,255,0.10)' : 'transparent',
-                        borderColor: inputCurrency === c ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.07)',
-                        color: inputCurrency === c ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.28)',
-                        transition: 'all 100ms',
-                      }}>{c}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="aim2-inp-wrap">
-                  <span className="aim2-inp-prefix">{sym}</span>
-                  <input type="number" inputMode="decimal" step="any"
-                    className="aim2-inp mono with-prefix"
-                    value={form.initialValue} onChange={e => set('initialValue', e.target.value)}
-                    placeholder="0.00" />
-                </div>
-                {/* Conversió a EUR si cal */}
-                {inputCurrency !== 'EUR' && costInOriginal > 0 && (
-                  <p className="aim2-conv">
-                    {loadingRate ? 'obtenint taxa...' : <>= <span>€{costInEur.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> EUR</>}
-                  </p>
-                )}
-              </div>
+          {/* Info extra: hint que cal afegir compra després */}
+          {hasQty && selectedResult && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 12px', background: 'rgba(100,155,255,0.06)', border: '1px solid rgba(100,155,255,0.14)', borderRadius: 6 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(100,155,255,0.70)" strokeWidth="1.8" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', lineHeight: 1.5 }}>
+                Un cop creada la posició, afegeix les teves compres amb el botó <strong style={{ color: 'rgba(80,210,110,0.70)' }}>Comprar</strong> per registrar quantitat, preu i data exactes.
+              </span>
             </div>
+          )}
 
-            {/* Taxa de canvi actual */}
-            {inputCurrency !== 'EUR' && exchangeRate && (
-              <div className="aim2-rate">
-                <div className="aim2-rate-dot" />
-                <span>Taxa de canvi en temps real:</span>
-                <span className="aim2-rate-val">1 {inputCurrency} = €{exchangeRate.toFixed(4)}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="aim2-lbl">Data de compra</label>
-              <input type="date" className="aim2-inp date"
-                value={form.purchaseDate} onChange={e => set('purchaseDate', e.target.value)} />
-            </div>
-
-            {error && <p className="aim2-error">{error}</p>}
-          </div>
+          {error && <p className="aim2-error">{error}</p>}
 
           <div className="aim2-footer">
             <button className="aim2-cancel" onClick={onClose}>Cancel·lar</button>
-            <button className="aim2-submit" onClick={handleSubmit}>
-              Afegir posició{inputCurrency !== 'EUR' && costInOriginal > 0 ? ` · €${costInEur.toLocaleString('ca-ES', { minimumFractionDigits: 2 })}` : ''}
-            </button>
+            <button className="aim2-submit" onClick={handleSubmit}>Crear posició</button>
           </div>
         </div>
       </div>
