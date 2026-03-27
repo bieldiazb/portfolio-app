@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
-import MetricsBar from './components/MetricsBar'
+import { MetricsBar } from './components/MetricsBar'
 import InvestmentsTable from './components/InvestmentsTable'
 import SavingsList from './components/SavingsList'
 import AllocationChart from './components/AllocationChart'
@@ -58,8 +58,22 @@ const appStyles = `
   @media (min-width: 1024px) { .swipe-hint { display: none; } }
 `
 
-const invVal  = inv => inv.currentPrice != null && inv.totalQty > 0 ? inv.totalQty * inv.currentPrice : inv.totalCost || 0
-const cryVal  = c   => c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0
+const invVal = (inv, fxRates = {}) => {
+  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+  const qty      = inv.totalQty || 0
+  // Si tenim preu original + taxa live → conversió correcta
+  if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr]) {
+    return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
+  }
+  // Fallback: preu en EUR guardat (pot ser inexacte si la taxa era incorrecta)
+  if (inv.currentPrice != null && qty > 0) return +(qty * inv.currentPrice).toFixed(2)
+  return inv.totalCost || 0
+}
+const cryVal  = c => {
+  const qty = c.totalQty ?? c.qty ?? 0
+  if (qty > 0 && c.currentPrice != null) return +(qty * c.currentPrice).toFixed(2)
+  return c.totalCost || c.initialValue || 0
+}
 
 export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
@@ -91,6 +105,24 @@ export default function App() {
   } = useCryptos(user?.uid)
   const cryptoLoading = false
 
+  // ── FX rates (per conversió USD/GBP→EUR en temps real) ──────────────────────
+  const [fxRates, setFxRates] = useState({})
+  useEffect(() => {
+    const pairs = [...new Set(investments
+      .map(i => i.originalCurrency || i.currency)
+      .filter(c => c && c !== 'EUR')
+    )]
+    pairs.forEach(curr => {
+      fetch(`/yahoo/v8/finance/chart/${curr}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+        .then(r => r.json())
+        .then(d => {
+          const rate = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+          if (rate && rate > 0) setFxRates(prev => ({ ...prev, [curr]: rate }))
+        })
+        .catch(() => {})
+    })
+  }, [investments.length]) // eslint-disable-line
+
   // ── Price fetcher ────────────────────────────────────────────────────────────
   const { loading: priceLoading, status, setStatus, fetchOne, fetchWithCurrency } = usePriceFetcher()
 
@@ -111,18 +143,25 @@ export default function App() {
   }))
 
   // ── Totals ───────────────────────────────────────────────────────────────────
-  const totalInv  = investments.reduce((s, inv) => s + invVal(inv), 0)
+  const totalInv  = investments.reduce((s, inv) => s + invVal(inv, fxRates), 0)
   const totalSav  = accounts.reduce((s, a) => s + a.balance, 0)
   const totalCry  = cryptos.reduce((s, c) => s + cryVal(c), 0)
+  // totalInvCost = cost de les inversions (per MetricsBar i pg)
+  const totalInvCost = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
+                     + cryptos.reduce((s, c) => s + (c.totalCost || c.initialValue || 0), 0)
+
   const totalAll  = totalInv + totalSav + totalCry
-  const totalCost = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
-                  + cryptos.reduce((s, c) => s + (c.initialValue || 0), 0)
+  const pg        = (totalInv + totalCry) - totalInvCost
+  const pgPct     = totalInvCost > 0 ? (pg / totalInvCost) * 100 : 0
+
+  // totalCost = tot el capital aportat (inversions + estalvis + crypto) per NetWorthTimeline
+  const totalCost = totalInvCost + totalSav
 
   // ── currentPcts per rebalanceig ──────────────────────────────────────────────
   const currentPcts = (() => {
     const vals = { etf: 0, estalvi: 0, crypto: 0, robo: 0 }
     investments.forEach(inv => {
-      const v = invVal(inv)
+      const v = invVal(inv, fxRates)
       if (['etf', 'stock'].includes(inv.type))           vals.etf     += v
       else if (inv.type === 'robo')                       vals.robo    += v
       else if (['estalvi', 'efectiu'].includes(inv.type)) vals.estalvi += v
@@ -274,9 +313,13 @@ export default function App() {
 
           {!NO_METRICS.has(activeTab) && (
             <MetricsBar
-              investments={investmentsCompat}
-              savings={savingsCompat}
-              cryptos={cryptos}
+              total={totalAll}
+              totalInvCost={totalInvCost}
+              totalSav={totalSav}
+              numPositions={investments.length + cryptos.length}
+              numAccounts={accounts.length}
+              pg={pg}
+              pgPct={pgPct}
             />
           )}
 

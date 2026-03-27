@@ -1,6 +1,6 @@
 // ─── MetricsBar.v2.jsx ──────────────────────────────────────────────────────
 
-import { fmtEur, fmtPct, getEffectiveValue } from '../utils/format'
+import { fmtEur, fmtPct } from '../utils/format'
 import { SHARED_STYLES } from './design-tokens'
 
 const mbStyles = `
@@ -42,18 +42,9 @@ const mbStyles = `
   .mb-stat-v { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.68); font-family: 'Geist Mono', monospace; letter-spacing: -0.3px; white-space: nowrap; }
 `
 
-export function MetricsBar({ investments, savings, cryptos = [] }) {
-  const invValue   = investments.reduce((s, i) => s + getEffectiveValue(i), 0)
-  const invCost    = investments.reduce((s, i) => s + i.initialValue, 0)
-  const savValue   = savings.reduce((s, sv) => s + sv.amount, 0)
-  const cryptoVal  = cryptos.reduce((s, c) => s + (c.qty && c.currentPrice ? c.qty * c.currentPrice : c.initialValue || 0), 0)
-  const cryptoCost = cryptos.reduce((s, c) => s + (c.initialValue || 0), 0)
-  const total      = invValue + savValue + cryptoVal
-  const totalCost  = invCost + cryptoCost
-  const pg         = (invValue + cryptoVal) - (invCost + cryptoCost)
-  const pgPct      = totalCost > 0 ? (pg / totalCost) * 100 : 0
-  const isPos      = pg >= 0
-
+export function MetricsBar({ total, totalInvCost, totalSav, numPositions, numAccounts, pg, pgPct }) {
+  // Rep tots els valors ja calculats de l'App per garantir consistència
+  const isPos = pg >= 0
   const [intPart, decPart] = fmtEur(total).split(',')
 
   return (
@@ -69,15 +60,13 @@ export function MetricsBar({ investments, savings, cryptos = [] }) {
         </span>
       </div>
       <div className="mb-stats">
-        <div className="mb-stat"><p className="mb-stat-l">Cost total</p><p className="mb-stat-v">{fmtEur(totalCost)}</p></div>
-        <div className="mb-stat"><p className="mb-stat-l">Estalvis</p><p className="mb-stat-v">{fmtEur(savValue)}</p></div>
-        <div className="mb-stat"><p className="mb-stat-l">Posicions</p><p className="mb-stat-v">{investments.length + cryptos.length}</p></div>
-        <div className="mb-stat"><p className="mb-stat-l">Comptes</p><p className="mb-stat-v">{savings.length}</p></div>
+        <div className="mb-stat"><p className="mb-stat-l">Cost total</p><p className="mb-stat-v">{fmtEur(totalInvCost)}</p></div>
+        <div className="mb-stat"><p className="mb-stat-l">Estalvis</p><p className="mb-stat-v">{fmtEur(totalSav)}</p></div>
+        <div className="mb-stat"><p className="mb-stat-l">Posicions</p><p className="mb-stat-v">{numPositions}</p></div>
+        <div className="mb-stat"><p className="mb-stat-l">Comptes</p><p className="mb-stat-v">{numAccounts}</p></div>
       </div>
     </div>
   )
 }
 
 export default MetricsBar
-
-

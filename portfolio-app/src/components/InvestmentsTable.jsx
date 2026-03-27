@@ -215,12 +215,22 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
     })
   }, [investments.length]) // eslint-disable-line
 
-  const totalValue = investments.reduce((s, inv) => s + currentValue(inv), 0)
+  // Mateixa lògica que App/MetricsBar: usa originalPrice×liveRate per USD/GBP
+  const calcVal = (inv) => {
+    const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+    const qty      = inv.totalQty || 0
+    if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr]) {
+      return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
+    }
+    return currentValue(inv)
+  }
+
+  const totalValue = investments.reduce((s, inv) => s + calcVal(inv), 0)
   const totalCost  = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
   const totalGain  = totalValue - totalCost
 
   const sorted = [...investments].sort((a, b) => {
-    const va = currentValue(a), vb = currentValue(b)
+    const va = calcVal(a), vb = calcVal(b)
     return sortDir === 'desc' ? vb - va : va - vb
   })
 
