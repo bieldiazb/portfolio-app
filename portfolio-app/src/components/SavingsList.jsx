@@ -144,8 +144,8 @@ const styles = `
   .sv-empty-sub { font-size: 10px; color: rgba(255,255,255,0.14); margin-top: 4px; }
 
   /* Modals */
-  .sv-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
-  .sv-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px 14px 0 0; width: 100%; max-width: 440px; padding: 22px 20px 30px; font-family: 'Geist', sans-serif; }
+  .sv-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .sv-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; width: 100%; max-width: 440px; padding: 22px 20px 26px; font-family: 'Geist', sans-serif; }
   .sv-modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .sv-modal-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }
   .sv-modal-x { width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,0.06); border: none; color: rgba(255,255,255,0.40); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; }

@@ -142,19 +142,18 @@ export const SHARED_STYLES = `
   .v2-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
-    display: flex; align-items: flex-end; justify-content: center; z-index: 50;
+    display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
   }
-  @media (min-width: 640px) { .v2-overlay { align-items: center; padding: 1rem; } }
 
   .v2-modal {
     background: #0f0f0f;
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px 12px 0 0;
+    border-radius: 12px;
     width: 100%; padding: 22px;
     max-height: 92vh; overflow-y: auto;
     font-family: 'Geist', sans-serif;
   }
-  @media (min-width: 640px) { .v2-modal { max-width: 420px; border-radius: 10px; } }
+  @media (min-width: 640px) { .v2-modal { max-width: 420px; } }
 
   .v2-modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
   .v2-modal-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }

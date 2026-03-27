@@ -47,6 +47,8 @@ const modalStyles = `
   .aim2-result-curr.gbp { background: rgba(100,200,100,0.12); color: rgba(100,210,100,0.80); }
   .aim2-result-curr.eur { background: rgba(100,155,255,0.12); color: rgba(100,160,255,0.75); }
   .aim2-no-results { padding: 16px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.24); }
+  .aim2-result-price { font-size: 11px; font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.55); text-align: right; flex-shrink: 0; min-width: 52px; letter-spacing: -0.3px; }
+  .aim2-result-price.loading { color: rgba(255,255,255,0.16); letter-spacing: 2px; }
 
   .aim2-chip { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(80,210,110,0.06); border: 1px solid rgba(80,210,110,0.18); border-radius: 7px; margin-bottom: 14px; }
   .aim2-chip-info { flex: 1; min-width: 0; }
@@ -189,9 +191,12 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const costInOriginal = parseFloat(form.initialValue) || 0
   const costInEur = inputCurrency === 'EUR' ? costInOriginal : +(costInOriginal * (exchangeRate || 1)).toFixed(2)
 
+  const [resultPrices, setResultPrices] = useState({}) // { ticker: { price, currency } }
+
   const handleSearch = useCallback((val) => {
     setSearchQuery(val)
     setSelectedResult(null)
+    setResultPrices({})
     clearTimeout(debounceRef.current)
     if (!val.trim() || val.length < 2) { setSearchResults([]); return }
     setSearching(true)
@@ -199,6 +204,24 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
       try {
         const results = await searchYahoo(val)
         setSearchResults(results)
+        // Obté preus en paral·lel per tots els resultats
+        results.forEach(async r => {
+          try {
+            const res = await fetch(
+              `/yahoo/v8/finance/chart/${r.ticker}?interval=1d&range=1d`,
+              { signal: AbortSignal.timeout(5000) }
+            )
+            if (!res.ok) return
+            const d = await res.json()
+            const meta = d?.chart?.result?.[0]?.meta
+            let price = meta?.regularMarketPrice
+            const curr = meta?.currency === 'GBp' ? 'GBP' : (meta?.currency || r.currency || 'EUR')
+            if (curr === 'GBp' && price) price = price * 0.01
+            if (price && price > 0) {
+              setResultPrices(prev => ({ ...prev, [r.ticker]: { price: +price.toFixed(4), currency: curr } }))
+            }
+          } catch {}
+        })
       } catch {
         setSearchResults([])
       }
@@ -313,6 +336,13 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                               <p className="aim2-result-name">{r.name}</p>
                               <p className="aim2-result-meta">{r.ticker} · {r.exchange}</p>
                             </div>
+                            {(() => {
+                              const pd = resultPrices[r.ticker]
+                              const sym = pd?.currency === 'USD' ? '$' : pd?.currency === 'GBP' ? '£' : '€'
+                              return pd
+                                ? <span className="aim2-result-price">{sym}{pd.price.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: pd.price < 10 ? 4 : 2 })}</span>
+                                : <span className="aim2-result-price loading">···</span>
+                            })()}
                             <span className={`aim2-result-curr ${currClass}`}>{curr}</span>
                           </div>
                         )

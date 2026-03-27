@@ -17,6 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { useInvestments } from './hooks/useInvestments'
 import { useSavings } from './hooks/useSavings'
 import { useFirestorePortfolio } from './hooks/useFirestorePortfolio'
+import { useCryptos } from './hooks/useCryptos '
 import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
 import { useRebalancingGoals } from './hooks/useRebalancingGoals'
@@ -82,11 +83,13 @@ export default function App() {
     removeTransaction: removeSavTx,
   } = useSavings(user?.uid)
 
-  // ── Crypto (useFirestorePortfolio — sense investments ni savings) ────────────
+  // ── Crypto ────────────────────────────────────────────────────────────────────
   const {
-    cryptos, loading: cryptoLoading,
+    cryptos,
     addCrypto, removeCrypto, updateCrypto, updateCryptoPrice,
-  } = useFirestorePortfolio(user?.uid)
+    addTransaction: addCryptoTx, removeTransaction: removeCryptoTx,
+  } = useCryptos(user?.uid)
+  const cryptoLoading = false
 
   // ── Price fetcher ────────────────────────────────────────────────────────────
   const { loading: priceLoading, status, setStatus, fetchOne, fetchWithCurrency } = usePriceFetcher()
@@ -305,10 +308,12 @@ export default function App() {
             {activeTab === 'crypto' && (
               <CryptoPage
                 cryptos={cryptos}
-                onAdd={c => addCrypto({ ...c, purchaseDate: new Date().toISOString().split('T')[0] })}
+                onAdd={addCrypto}
                 onRemove={removeCrypto}
                 onUpdate={updateCrypto}
                 onRefresh={refreshCryptoPrices}
+                onAddTransaction={addCryptoTx}
+                onRemoveTransaction={removeCryptoTx}
               />
             )}
 

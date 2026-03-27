@@ -103,8 +103,8 @@ const styles = `
   .inv2-sort-arrow.asc { transform: rotate(180deg); }
 
 
-  .inv2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
-  .inv2-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px 14px 0 0; width: 100%; max-width: 440px; padding: 22px 20px 30px; font-family: 'Geist', sans-serif; max-height: 90vh; overflow-y: auto; }
+  .inv2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .inv2-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; width: 100%; max-width: 440px; padding: 22px 20px 26px; font-family: 'Geist', sans-serif; max-height: 90vh; overflow-y: auto; }
   .inv2-modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .inv2-modal-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }
   .inv2-modal-x { width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,0.06); border: none; color: rgba(255,255,255,0.40); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; }
@@ -114,7 +114,7 @@ const styles = `
   .inv2-inp::placeholder { color: rgba(255,255,255,0.18); }
   .inv2-inp.mono { font-family: 'Geist Mono', monospace; text-align: right; }
   .inv2-inp.big { font-size: 20px; padding: 11px 13px; letter-spacing: -0.5px; }
-  .inv2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .inv2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
   .inv2-fgroup { display: flex; flex-direction: column; gap: 11px; }
   .inv2-mfooter { display: flex; gap: 8px; margin-top: 18px; }
   .inv2-btn-cancel { flex: 1; padding: 11px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 6px; font-family: 'Geist', sans-serif; font-size: 13px; color: rgba(255,255,255,0.36); cursor: pointer; }

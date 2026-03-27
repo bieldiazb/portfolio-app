@@ -1,17 +1,13 @@
 import { useState } from 'react'
 
-// ─── ConfirmDialog ────────────────────────────────────────────────────────────
-// Component separat — rep l'estat com a props, no el genera internament.
-// Això garanteix que React el renderitzi correctament a l'arbre.
-
 const dialogStyles = `
   .cd-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.75);
     backdrop-filter: blur(5px);
     z-index: 200;
-    display: flex; align-items: flex-end; justify-content: center;
-    padding-bottom: env(safe-area-inset-bottom);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
     animation: cdFadeIn 150ms ease;
   }
   @keyframes cdFadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -20,16 +16,15 @@ const dialogStyles = `
     font-family: 'Geist', sans-serif;
     background: #111;
     border: 1px solid rgba(255,255,255,0.10);
-    border-bottom: none;
-    border-radius: 14px 14px 0 0;
+    border-radius: 14px;
     width: 100%;
-    max-width: 440px;
-    padding: 24px 20px 28px;
-    animation: cdSlideUp 220ms cubic-bezier(0.32,0.72,0,1);
+    max-width: 380px;
+    padding: 24px 20px 22px;
+    animation: cdPop 200ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  @keyframes cdSlideUp {
-    from { transform: translateY(24px); opacity: 0 }
-    to   { transform: translateY(0);    opacity: 1 }
+  @keyframes cdPop {
+    from { transform: scale(0.94); opacity: 0 }
+    to   { transform: scale(1);    opacity: 1 }
   }
 
   .cd-icon {
@@ -102,20 +97,9 @@ export function ConfirmDialog({ state, onClose }) {
   )
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-// Retorna { confirmState, askConfirm, closeConfirm }
-// A cada component:
-//   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
-//   ...
-//   <ConfirmDialog state={confirmState} onClose={closeConfirm} />
-//   ...
-//   onClick={() => askConfirm({ name: 'MSCI World', onConfirm: () => onRemove(id) })}
-
 export function useConfirmDelete() {
   const [confirmState, setConfirmState] = useState(null)
-
-  const askConfirm  = ({ name, onConfirm }) => setConfirmState({ name, onConfirm })
+  const askConfirm   = ({ name, onConfirm }) => setConfirmState({ name, onConfirm })
   const closeConfirm = () => setConfirmState(null)
-
   return { confirmState, askConfirm, closeConfirm }
 }
