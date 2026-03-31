@@ -1,208 +1,274 @@
-// design-tokens.js — importa això als components que necessitin els colors
-// o copia les variables CSS a globals.css
+// ─── design-tokens.js — Cartera v3 ──────────────────────────────────────────
+// Sistema quasi-monocromàtic + neon accents
+// Inspiració: Bloomberg Terminal · Linear · Vercel Dashboard
 
+// ── Paleta base ───────────────────────────────────────────────────────────────
 export const COLORS = {
-  // text
-  fg1:  'rgba(255,255,255,0.85)',
-  fg2:  'rgba(255,255,255,0.60)',
-  fg3:  'rgba(255,255,255,0.35)',
-  fg4:  'rgba(255,255,255,0.20)',
-  // surfaces
-  bg:       '#080808',
-  surface:  'rgba(255,255,255,0.02)',
-  surface2: 'rgba(255,255,255,0.04)',
-  // borders
-  border:  'rgba(255,255,255,0.06)',
-  border2: 'rgba(255,255,255,0.10)',
-  // accents
-  green:     'rgba(80,210,110,0.85)',
-  greenDim:  'rgba(80,200,110,0.10)',
-  red:       'rgba(255,90,70,0.85)',
-  redDim:    'rgba(255,70,50,0.10)',
+  // Fons
+  bg:          '#0a0a0a',
+  surface:     '#111111',
+  elevated:    '#1a1a1a',
+  overlay:     '#141414',
+
+  // Borders
+  border:      '#1e1e1e',
+  borderMid:   '#2a2a2a',
+  borderHi:    '#333333',
+
+  // Text
+  textPrimary:   '#e8e8e8',
+  textSecondary: '#888888',
+  textMuted:     '#444444',
+  textDisabled:  '#2a2a2a',
+
+  // Neon accents — semàntics, mai decoratius
+  neonGreen:  '#00ff88',   // profit / positiu / success
+  neonRed:    '#ff3b3b',   // pèrdua / negatiu / danger
+  neonPurple: '#7b61ff',   // brand / accent / actiu seleccionat
+  neonCyan:   '#00d4ff',   // ETF / inversions / info
+  neonAmber:  '#ff9500',   // crypto / warning / alert
+
+  // Backgrounds neon (molt subtils)
+  bgGreen:    'rgba(0,255,136,0.05)',
+  bgRed:      'rgba(255,59,59,0.05)',
+  bgPurple:   'rgba(123,97,255,0.08)',
+  bgCyan:     'rgba(0,212,255,0.06)',
+  bgAmber:    'rgba(255,149,0,0.06)',
+
+  // Borders neon
+  borderGreen:  'rgba(0,255,136,0.20)',
+  borderRed:    'rgba(255,59,59,0.20)',
+  borderPurple: 'rgba(123,97,255,0.25)',
+  borderCyan:   'rgba(0,212,255,0.18)',
+  borderAmber:  'rgba(255,149,0,0.20)',
 }
 
-// Per tipus d'actiu
+// ── Tipografia ────────────────────────────────────────────────────────────────
+export const FONTS = {
+  sans: "'Geist',sans-serif",
+  mono: "'Geist Mono','SF Mono','Menlo','Consolas',monospace",
+}
+
+// ── Spacing ───────────────────────────────────────────────────────────────────
+export const RADIUS = {
+  sm:  '3px',
+  md:  '5px',
+  lg:  '8px',
+  xl:  '12px',
+  pill:'20px',
+}
+
+// ── Color per categoria d'actiu ───────────────────────────────────────────────
 export const TYPE_COLORS = {
-  etf:     { bg: 'rgba(60,130,255,0.10)', color: 'rgba(100,160,255,0.85)' },
-  stock:   { bg: 'rgba(80,200,120,0.10)', color: 'rgba(80,210,120,0.85)' },
-  crypto:  { bg: 'rgba(255,160,60,0.10)', color: 'rgba(255,170,70,0.85)'  },
-  robo:    { bg: 'rgba(180,120,255,0.10)', color: 'rgba(180,130,255,0.85)' },
-  estalvi: { bg: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.40)' },
-  efectiu: { bg: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.40)' },
+  etf:     { color: '#00d4ff', bg: 'rgba(0,212,255,0.08)',   border: 'rgba(0,212,255,0.18)'   },
+  stock:   { color: '#7b61ff', bg: 'rgba(123,97,255,0.08)',  border: 'rgba(123,97,255,0.20)'  },
+  robo:    { color: '#ff9500', bg: 'rgba(255,149,0,0.08)',   border: 'rgba(255,149,0,0.20)'   },
+  crypto:  { color: '#ff9500', bg: 'rgba(255,149,0,0.08)',   border: 'rgba(255,149,0,0.20)'   },
+  estalvi: { color: '#00ff88', bg: 'rgba(0,255,136,0.06)',   border: 'rgba(0,255,136,0.18)'   },
+  efectiu: { color: '#888888', bg: 'rgba(136,136,136,0.06)', border: 'rgba(136,136,136,0.15)' },
 }
 
-// Paleta per gràfics (recharts / distribució)
+// ── Colors per gràfics (ordre per pes visual) ─────────────────────────────────
 export const CHART_COLORS = [
-  'rgba(80,210,110,0.75)',
-  'rgba(100,155,255,0.75)',
-  'rgba(255,170,70,0.75)',
-  'rgba(180,130,255,0.75)',
-  'rgba(255,100,80,0.75)',
-  'rgba(80,210,200,0.75)',
-  'rgba(255,150,200,0.75)',
-  'rgba(180,220,80,0.75)',
+  '#00d4ff',  // cian  — ETF
+  '#00ff88',  // verd  — estalvis
+  '#7b61ff',  // lila  — stock/brand
+  '#ff9500',  // ambre — crypto/robo
+  '#ff3b3b',  // vermell — pèrdua
+  '#888888',  // gris  — efectiu/neutre
 ]
 
-// CSS shared per tots els components v2
+// ── CSS global compartit per tots els components ──────────────────────────────
 export const SHARED_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Botó primari — blanc sobre negre */
-  .btn-v2-primary {
+  /* Títols de secció */
+  .sec-title {
+    font-family: ${FONTS.sans};
+    font-size: 16px;
+    font-weight: 400;
+    color: ${COLORS.textPrimary};
+    letter-spacing: -0.3px;
+    margin-bottom: 2px;
+  }
+  .sec-sub {
+    font-family: ${FONTS.sans};
+    font-size: 12px;
+    color: ${COLORS.textMuted};
+    letter-spacing: 0.01em;
+  }
+
+  /* Panel base */
+  .panel {
+    background: ${COLORS.surface};
+    border: 1px solid ${COLORS.border};
+    border-radius: ${RADIUS.lg};
+    padding: 18px 16px;
+  }
+  .panel-title {
+    font-family: ${FONTS.sans};
+    font-size: 11px;
+    font-weight: 500;
+    color: ${COLORS.textMuted};
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+  }
+
+  /* Etiqueta uppercase */
+  .lbl {
+    font-family: ${FONTS.sans};
+    font-size: 10px;
+    font-weight: 500;
+    color: ${COLORS.textMuted};
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  /* Valor numèric */
+  .val-mono {
+    font-family: ${FONTS.mono};
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Badges pill */
+  .badge {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 0 11px; height: 28px;
-    background: rgba(255,255,255,0.92); color: #080808;
-    border: none; border-radius: 5px;
-    font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 500;
-    cursor: pointer; transition: background 100ms;
-    white-space: nowrap; flex-shrink: 0; letter-spacing: -0.1px;
+    font-family: ${FONTS.mono};
+    font-size: 11px; font-weight: 500;
+    padding: 3px 8px; border-radius: ${RADIUS.sm};
   }
-  .btn-v2-primary:hover { background: #fff; }
+  .badge-green  { color: ${COLORS.neonGreen};  background: ${COLORS.bgGreen};  border: 1px solid ${COLORS.borderGreen};  }
+  .badge-red    { color: ${COLORS.neonRed};    background: ${COLORS.bgRed};    border: 1px solid ${COLORS.borderRed};    }
+  .badge-purple { color: ${COLORS.neonPurple}; background: ${COLORS.bgPurple}; border: 1px solid ${COLORS.borderPurple}; }
+  .badge-cyan   { color: ${COLORS.neonCyan};   background: ${COLORS.bgCyan};   border: 1px solid ${COLORS.borderCyan};   }
+  .badge-amber  { color: ${COLORS.neonAmber};  background: ${COLORS.bgAmber};  border: 1px solid ${COLORS.borderAmber};  }
 
-  /* Botó icona */
-  .btn-v2-ico {
-    width: 28px; height: 28px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid rgba(255,255,255,0.08); background: transparent;
-    border-radius: 5px; color: rgba(255,255,255,0.32); cursor: pointer;
-    transition: all 100ms; flex-shrink: 0;
-  }
-  .btn-v2-ico:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.12); }
-  .btn-v2-ico:disabled { opacity: 0.28; pointer-events: none; }
-
-  /* Spin */
-  .v2-spin { display: inline-block; animation: v2spin .7s linear infinite; }
-  @keyframes v2spin { to { transform: rotate(360deg); } }
-
-  /* Section header */
-  .sec-v2-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .sec-v2-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.72); letter-spacing: -0.2px; font-family: 'Geist', sans-serif; }
-  .sec-v2-sub   { font-size: 11px; color: rgba(255,255,255,0.24); margin-top: 2px; font-family: 'Geist', sans-serif; }
-  .sec-v2-btns  { display: flex; gap: 5px; align-items: center; }
-
-  /* Row */
-  .row-v2 {
-    display: flex; align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    cursor: default; transition: background 100ms;
-    position: relative;
-  }
-  .row-v2:last-child { border-bottom: none; }
-  .row-v2:hover { background: rgba(255,255,255,0.02); border-radius: 4px; }
-  .row-v2:hover .row-v2-acts { opacity: 1; }
-
-  /* Avatar */
-  .av-v2 {
-    width: 30px; height: 30px; border-radius: 5px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 600; flex-shrink: 0; margin-right: 10px;
-    letter-spacing: 0.02em;
-  }
-
-  /* Row info */
-  .row-v2-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Geist', sans-serif; }
-  .row-v2-meta { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-  .row-v2-badge { font-size: 10px; font-weight: 500; padding: 1px 5px; border-radius: 3px; }
-  .row-v2-ticker { font-size: 10px; color: rgba(255,255,255,0.24); font-family: 'Geist Mono', monospace; }
-  .row-v2-dot { font-size: 9px; color: rgba(255,255,255,0.12); }
-
-  /* Values */
-  .row-v2-val { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.80); font-family: 'Geist Mono', monospace; letter-spacing: -0.3px; }
-  .row-v2-pg { font-size: 10px; font-family: 'Geist Mono', monospace; margin-top: 2px; font-weight: 400; }
-  .row-v2-pg.pos { color: rgba(80,210,110,0.78); }
-  .row-v2-pg.neg { color: rgba(255,90,70,0.78); }
-
-  /* Price col */
-  .row-v2-price { font-size: 11px; color: rgba(255,255,255,0.36); font-family: 'Geist Mono', monospace; letter-spacing: -0.2px; }
-  .row-v2-price-lbl { font-size: 10px; color: rgba(255,255,255,0.16); margin-top: 1px; }
-
-  /* Actions */
-  .row-v2-acts { display: flex; gap: 1px; opacity: 0; transition: opacity 100ms; flex-shrink: 0; margin-left: 4px; }
-  .row-v2-btn {
-    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-    border: none; background: transparent; border-radius: 4px; cursor: pointer;
-    color: rgba(255,255,255,0.20); transition: all 100ms;
-  }
-  .row-v2-btn:hover { color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.05); }
-  .row-v2-btn.del:hover { color: rgba(255,80,60,0.65); background: rgba(255,50,30,0.06); }
-
-  /* Empty */
-  .v2-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); font-family: 'Geist', sans-serif; }
-
-  /* Panel */
-  .v2-panel {
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 6px; padding: 14px 16px;
-    background: rgba(255,255,255,0.015);
-  }
-  .v2-panel-title { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.50); margin-bottom: 12px; font-family: 'Geist', sans-serif; }
-
-  /* Modal overlay */
-  .v2-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
-  }
-
-  .v2-modal {
-    background: #0f0f0f;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    width: 100%; padding: 22px;
-    max-height: 92vh; overflow-y: auto;
-    font-family: 'Geist', sans-serif;
-  }
-  @media (min-width: 640px) { .v2-modal { max-width: 420px; } }
-
-  .v2-modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .v2-modal-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }
-  .v2-modal-close {
-    width: 26px; height: 26px; border-radius: 5px;
-    background: rgba(255,255,255,0.06); border: none;
-    color: rgba(255,255,255,0.40); font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 100ms; font-family: inherit; line-height: 1;
-  }
-  .v2-modal-close:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.7); }
-
-  .v2-field-label {
-    display: block; font-size: 10px; font-weight: 500;
-    color: rgba(255,255,255,0.28); text-transform: uppercase;
-    letter-spacing: 0.08em; margin-bottom: 6px;
-  }
-  .v2-input {
+  /* Inputs */
+  .inp {
     width: 100%;
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px; padding: 9px 11px;
-    font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 400;
-    color: rgba(255,255,255,0.82); outline: none; transition: border-color 100ms;
+    background: ${COLORS.bg};
+    border: 1px solid ${COLORS.border};
+    border-radius: ${RADIUS.md};
+    padding: 9px 11px;
+    font-family: ${FONTS.sans};
+    font-size: 14px;
+    color: ${COLORS.textPrimary};
+    outline: none;
+    transition: border-color 120ms;
+    touch-action: manipulation;
   }
-  .v2-input:focus { border-color: rgba(255,255,255,0.20); }
-  .v2-input::placeholder { color: rgba(255,255,255,0.18); }
-  .v2-input.mono { font-family: 'Geist Mono', monospace; text-align: right; }
+  .inp:focus { border-color: ${COLORS.neonPurple}; }
+  .inp::placeholder { color: ${COLORS.textMuted}; }
+  .inp.mono { font-family: ${FONTS.mono}; text-align: right; }
 
-  .v2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .v2-space { display: flex; flex-direction: column; gap: 12px; }
-  .v2-error { font-size: 12px; color: rgba(255,90,70,0.8); background: rgba(255,60,40,0.08); border: 1px solid rgba(255,60,40,0.14); border-radius: 5px; padding: 8px 11px; }
-
-  .v2-modal-footer { display: flex; gap: 8px; margin-top: 20px; }
-  .v2-btn-cancel {
-    flex: 1; border: 1px solid rgba(255,255,255,0.08); background: transparent;
-    color: rgba(255,255,255,0.36); padding: 11px; border-radius: 6px;
-    font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 400;
-    cursor: pointer; transition: all 100ms;
+  /* Select */
+  .sel {
+    width: 100%;
+    background: ${COLORS.bg};
+    border: 1px solid ${COLORS.border};
+    border-radius: ${RADIUS.md};
+    padding: 9px 11px;
+    font-family: ${FONTS.sans};
+    font-size: 14px;
+    color: ${COLORS.textPrimary};
+    outline: none;
+    cursor: pointer;
+    touch-action: manipulation;
   }
-  .v2-btn-cancel:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); }
-  .v2-btn-submit {
-    flex: 1; background: rgba(255,255,255,0.92); border: none;
-    color: #080808; padding: 11px; border-radius: 6px;
-    font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: background 100ms;
-  }
-  .v2-btn-submit:hover { background: #fff; }
+  .sel option { background: ${COLORS.surface}; }
+  .sel:focus { border-color: ${COLORS.neonPurple}; }
 
-  /* Pulse */
-  @keyframes v2pulse { 0%,100%{opacity:1} 50%{opacity:0.15} }
-  .v2-pulse { animation: v2pulse 1.4s ease-in-out infinite; }
+  /* Botons */
+  .btn-primary {
+    background: ${COLORS.neonPurple};
+    border: none;
+    border-radius: ${RADIUS.md};
+    padding: 9px 16px;
+    font-family: ${FONTS.sans};
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 100ms;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid ${COLORS.border};
+    border-radius: ${RADIUS.md};
+    padding: 9px 16px;
+    font-family: ${FONTS.sans};
+    font-size: 13px;
+    color: ${COLORS.textSecondary};
+    cursor: pointer;
+    transition: all 120ms;
+    white-space: nowrap;
+  }
+  .btn-secondary:hover { border-color: ${COLORS.borderHi}; color: ${COLORS.textPrimary}; }
+
+  .btn-ghost {
+    background: transparent; border: none;
+    font-family: ${FONTS.sans};
+    font-size: 12px;
+    color: ${COLORS.textMuted};
+    cursor: pointer;
+    transition: color 100ms;
+    padding: 4px 8px;
+  }
+  .btn-ghost:hover { color: ${COLORS.textPrimary}; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 0;
+    border: 1px solid ${COLORS.border};
+    border-radius: ${RADIUS.md};
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 5px 12px;
+    border: none; background: transparent;
+    font-family: ${FONTS.mono};
+    font-size: 11px; font-weight: 500;
+    color: ${COLORS.textMuted};
+    cursor: pointer;
+    transition: all 100ms;
+    border-right: 1px solid ${COLORS.border};
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover { color: ${COLORS.textPrimary}; background: ${COLORS.elevated}; }
+  .tab.on { background: ${COLORS.elevated}; color: ${COLORS.textPrimary}; }
+
+  /* Spinner */
+  .spin {
+    width: 13px; height: 13px;
+    border: 1.5px solid ${COLORS.border};
+    border-top-color: ${COLORS.textSecondary};
+    border-radius: 50%;
+    animation: spin360 .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin360 { to { transform: rotate(360deg); } }
+
+  /* Tooltip */
+  .tooltip-box {
+    background: ${COLORS.elevated};
+    border: 1px solid ${COLORS.borderMid};
+    border-radius: ${RADIUS.md};
+    padding: 8px 12px;
+    font-family: ${FONTS.sans};
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: ${COLORS.borderMid}; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: ${COLORS.borderHi}; }
 `

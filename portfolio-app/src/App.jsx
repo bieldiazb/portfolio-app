@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
-import { MetricsBar } from './components/MetricsBar'
+import MetricsBar from './components/MetricsBar'
 import InvestmentsTable from './components/InvestmentsTable'
 import SavingsList from './components/SavingsList'
 import AllocationChart from './components/AllocationChart'
@@ -17,7 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { useInvestments } from './hooks/useInvestments'
 import { useSavings } from './hooks/useSavings'
 import { useFirestorePortfolio } from './hooks/useFirestorePortfolio'
-import { useCryptos } from './hooks/useCryptos '
+import { useCryptos } from './hooks/useCryptos'
 import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
 import { useRebalancingGoals } from './hooks/useRebalancingGoals'
@@ -40,8 +40,7 @@ export const PAGES = {
 const NO_METRICS = new Set(['movements', 'timeline', 'benchmark', 'rebalancing', 'alerts', 'report'])
 
 const appStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
-  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #080808; position: sticky; top: 0; z-index: 10; font-family: 'Geist', sans-serif; flex-shrink: 0; }
+  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Inter',system-ui,sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
@@ -51,7 +50,7 @@ const appStyles = `
   .mob-av { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; overflow: hidden; cursor: pointer; transition: background 100ms; }
   .mob-av:hover { background: rgba(255,255,255,0.10); }
   .mob-av img { width: 100%; height: 100%; object-fit: cover; }
-  .app-spinner { min-height: 100vh; background: #080808; display: flex; align-items: center; justify-content: center; }
+  .app-spinner { min-height: 100vh; background: #0a0a0a; display: flex; align-items: center; justify-content: center; }
   .app-spinner-ring { width: 18px; height: 18px; border: 1px solid rgba(255,255,255,0.15); border-top-color: rgba(255,255,255,0.6); border-radius: 50%; animation: appSpin 0.6s linear infinite; }
   @keyframes appSpin { to { transform: rotate(360deg); } }
   .swipe-hint { position: fixed; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 0 2px 2px 0; z-index: 5; }
@@ -183,8 +182,9 @@ export default function App() {
       if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) return
       try {
         const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
-        const price = orig ? (orig.currency === 'USD' ? +(orig.price * 0.92).toFixed(2) : orig.currency === 'GBP' ? +(orig.price * 1.17).toFixed(2) : orig.price) : await fetchOne(inv.ticker)
-        if (price != null) updateCurrentPrice(inv.id, price, orig ? { originalPrice: orig.price, originalCurrency: orig.currency } : {})
+        // Guarda sempre el preu original (en la seva moneda) + deixa invVal fer la conversió amb fxRates live
+        if (orig?.price != null) updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
+        else { const price = await fetchOne(inv.ticker); if (price != null) updateCurrentPrice(inv.id, price) }
       } catch {}
     })
   }, [investments.length]) // eslint-disable-line
@@ -248,8 +248,8 @@ export default function App() {
       if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) continue
       try {
         const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
-        const price = orig ? (orig.currency === 'USD' ? +(orig.price * 0.92).toFixed(2) : orig.currency === 'GBP' ? +(orig.price * 1.17).toFixed(2) : orig.price) : await fetchOne(inv.ticker)
-        if (price != null) updateCurrentPrice(inv.id, price, orig ? { originalPrice: orig.price, originalCurrency: orig.currency } : {})
+        if (orig?.price != null) updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
+        else { const price = await fetchOne(inv.ticker); if (price != null) updateCurrentPrice(inv.id, price) }
       } catch {}
     }
   }, [investments, fetchOne, updateCurrentPrice])
@@ -284,7 +284,7 @@ export default function App() {
       />
 
       <div
-        style={{ height: '100dvh', background: '#080808', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ height: '100dvh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         className="lg:ml-[220px]"
       >
         <div className="swipe-hint" />

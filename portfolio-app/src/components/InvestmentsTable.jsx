@@ -3,138 +3,183 @@ import AddInvestmentModal from './AddInvestmentModal'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
+import { SHARED_STYLES, COLORS, FONTS, TYPE_COLORS } from './design-tokens'
 
-const TYPE_COLORS = {
-  etf:     { bg: 'rgba(60,130,255,0.10)',  color: 'rgba(100,160,255,0.85)' },
-  stock:   { bg: 'rgba(80,200,120,0.10)',  color: 'rgba(80,210,120,0.85)'  },
-  robo:    { bg: 'rgba(180,120,255,0.10)', color: 'rgba(180,130,255,0.85)' },
-  estalvi: { bg: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.40)' },
-  efectiu: { bg: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.40)' },
-}
-const TYPE_LABELS = { etf: 'ETF', stock: 'Acció', robo: 'Robo', estalvi: 'Estalvi', efectiu: 'Efectiu' }
+const TYPE_LABELS = { etf:'ETF', stock:'Acció', robo:'Robo', estalvi:'Estalvi', efectiu:'Efectiu' }
+const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
+  .inv { font-family:${FONTS.sans}; }
 
-  .inv2 { font-family: 'Geist', sans-serif; display: flex; flex-direction: column; gap: 10px; }
-  .inv2-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
-  .inv2-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.72); letter-spacing: -0.2px; }
-  .inv2-sub { font-size: 11px; color: rgba(255,255,255,0.26); margin-top: 3px; font-family: 'Geist Mono', monospace; letter-spacing: -0.2px; }
-  .inv2-btn-add { display: flex; align-items: center; gap: 4px; padding: 0 11px; height: 28px; background: rgba(255,255,255,0.92); color: #080808; border: none; border-radius: 5px; font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
-  .inv2-btn-add:hover { background: #fff; }
-  .inv2-btn-ico { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 5px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; flex-shrink: 0; }
-  .inv2-btn-ico:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.60); }
-
-  .inv2-card { border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; background: rgba(255,255,255,0.015); overflow: hidden; }
-  .inv2-card-hdr { display: flex; align-items: center; padding: 12px 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .inv2-card-hdr:active { background: rgba(255,255,255,0.03); }
-  @media (hover: hover) { .inv2-card-hdr:hover { background: rgba(255,255,255,0.025); } }
-
-  .inv2-av { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; margin-right: 10px; }
-  .inv2-info { flex: 1; min-width: 0; }
-  .inv2-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .inv2-meta { font-size: 10px; color: rgba(255,255,255,0.28); margin-top: 2px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .inv2-bdg { font-size: 9px; font-weight: 500; padding: 1px 5px; border-radius: 3px; }
-  .inv2-dot { font-size: 9px; color: rgba(255,255,255,0.14); }
-
-  .inv2-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .inv2-val { text-align: right; }
-  .inv2-val-v { font-size: 14px; font-weight: 500; font-family: 'Geist Mono', monospace; letter-spacing: -0.4px; color: rgba(255,255,255,0.82); }
-  .inv2-val-pg { font-size: 10px; font-family: 'Geist Mono', monospace; margin-top: 1px; }
-  .pos { color: rgba(80,210,110,0.80); }
-  .neg { color: rgba(255,90,70,0.80); }
-
-  .inv2-del { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 5px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 80ms; background: rgba(255,255,255,0.05); color: rgba(220,70,55,0.55); flex-shrink: 0; }
-  .inv2-del:active { transform: scale(0.88); }
-  @media (hover: hover) and (pointer: fine) {
-    .inv2-del { background: transparent; color: rgba(255,255,255,0.18); }
-    .inv2-del:hover { background: rgba(200,40,30,0.10); color: rgba(220,70,55,0.80); }
+  /* Header */
+  .inv-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:12px; }
+  .inv-title { font-size:16px; font-weight:500; color:${COLORS.textPrimary}; letter-spacing:-0.2px; margin-bottom:3px; }
+  .inv-sub-row { display:flex; align-items:center; gap:8px; }
+  .inv-sub-val { font-size:13px; font-family:${FONTS.mono}; color:${COLORS.textSecondary}; font-variant-numeric:tabular-nums; }
+  .inv-pg-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; font-weight:500; font-family:${FONTS.mono};
+    padding:2px 8px; border-radius:${COLORS.sm};
   }
-  .inv2-chev { color: rgba(255,255,255,0.18); transition: transform 220ms; flex-shrink: 0; margin-left: 4px; }
-  .inv2-chev.open { transform: rotate(180deg); }
+  .inv-pg-badge.pos { color:${COLORS.neonGreen}; background:${COLORS.bgGreen}; border:1px solid ${COLORS.borderGreen}; }
+  .inv-pg-badge.neg { color:${COLORS.neonRed};   background:${COLORS.bgRed};   border:1px solid ${COLORS.borderRed};   }
 
-  .inv2-body { border-top: 1px solid rgba(255,255,255,0.06); }
-  .inv2-chart-wrap { padding: 12px 14px 4px; }
-  .inv2-chart-lbl { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .inv2-chart-txt { font-size: 10px; color: rgba(255,255,255,0.26); }
-  .inv2-chart-price { font-size: 10px; font-family: 'Geist Mono', monospace; }
+  .inv-hdr-btns { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+  .inv-btn-ico {
+    width:28px; height:28px;
+    background:transparent; border:1px solid ${COLORS.border};
+    border-radius:${COLORS.sm};
+    color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 100ms; flex-shrink:0;
+  }
+  .inv-btn-ico:hover { border-color:${COLORS.borderHi}; color:${COLORS.textSecondary}; }
+  .inv-btn-add {
+    display:flex; align-items:center; gap:5px;
+    padding:6px 12px;
+    background:${COLORS.neonPurple}; color:#fff;
+    border:none; border-radius:${COLORS.sm};
+    font-family:${FONTS.sans}; font-size:12px; font-weight:500;
+    cursor:pointer; transition:opacity 100ms; white-space:nowrap;
+  }
+  .inv-btn-add:hover { opacity:0.85; }
 
-  .inv2-stats { display: flex; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .inv2-stat { flex: 1; position: relative; padding-right: 10px; }
-  .inv2-stat:not(:last-child)::after { content: ''; position: absolute; right: 5px; top: 0; height: 100%; width: 1px; background: rgba(255,255,255,0.06); }
-  .inv2-stat-l { font-size: 9px; color: rgba(255,255,255,0.24); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .inv2-stat-v { font-size: 11px; font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.65); letter-spacing: -0.3px; }
+  /* Table */
+  .inv-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .inv-thead th {
+    padding:8px 12px 10px;
+    font-size:10px; font-weight:500;
+    color:${COLORS.textMuted};
+    letter-spacing:0.10em; text-transform:uppercase;
+    border-bottom:1px solid ${COLORS.border};
+    white-space:nowrap;
+  }
+  .inv-thead th:first-child { padding-left:0; text-align:left; }
+  .inv-thead th:last-child { padding-right:0; }
+  .inv-thead th:not(:first-child) { text-align:right; }
 
-  .inv2-quick { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .inv2-q-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: transparent; font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 100ms; -webkit-tap-highlight-color: transparent; }
-  .inv2-q-btn.buy  { color: rgba(80,210,110,0.80); }
-  .inv2-q-btn.buy:hover  { background: rgba(80,210,110,0.07); border-color: rgba(80,210,110,0.22); }
-  .inv2-q-btn.sell { color: rgba(255,160,50,0.80); }
-  .inv2-q-btn.sell:hover { background: rgba(255,160,50,0.07); border-color: rgba(255,160,50,0.22); }
-  .inv2-q-btn.cap  { color: rgba(100,155,255,0.80); }
-  .inv2-q-btn.cap:hover  { background: rgba(100,155,255,0.07); border-color: rgba(100,155,255,0.22); }
-  .inv2-q-btn:active { transform: scale(0.97); }
+  .inv-row { border-bottom:1px solid ${COLORS.border}; cursor:pointer; transition:background 80ms; }
+  .inv-row:last-child { border-bottom:none; }
+  .inv-row:hover { background:${COLORS.elevated}; }
+  .inv-row td { padding:12px 12px; vertical-align:middle; }
+  .inv-row td:first-child { padding-left:0; }
+  .inv-row td:last-child { padding-right:0; }
 
-  .inv2-txs { max-height: 220px; overflow-y: auto; }
-  .inv2-tx { display: flex; align-items: center; padding: 7px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .inv2-tx:last-child { border-bottom: none; }
-  .inv2-tx-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-right: 9px; }
-  .inv2-tx-info { flex: 1; min-width: 0; }
-  .inv2-tx-note { font-size: 12px; color: rgba(255,255,255,0.60); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .inv2-tx-date { font-size: 10px; color: rgba(255,255,255,0.22); margin-top: 1px; }
-  .inv2-tx-right { text-align: right; flex-shrink: 0; margin-left: 8px; }
-  .inv2-tx-amt { font-size: 12px; font-family: 'Geist Mono', monospace; letter-spacing: -0.3px; }
-  .inv2-tx-sub { font-size: 10px; color: rgba(255,255,255,0.26); font-family: 'Geist Mono', monospace; margin-top: 1px; }
-  .inv2-tx-del { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 4px; cursor: pointer; color: rgba(255,255,255,0.14); margin-left: 4px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
-  .inv2-tx-del:hover { color: rgba(220,70,55,0.70); background: rgba(200,40,30,0.08); }
-  .inv2-tx-del:active { transform: scale(0.88); }
+  .inv-asset { display:flex; align-items:center; gap:10px; }
+  .inv-av {
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:600; flex-shrink:0;
+    font-family:${FONTS.mono};
+  }
+  .inv-name { font-size:13px; font-weight:500; color:${COLORS.textPrimary}; margin-bottom:3px; white-space:nowrap; }
+  .inv-meta { display:flex; align-items:center; gap:5px; }
+  .inv-type-badge {
+    font-size:9px; font-weight:600; font-family:${FONTS.mono};
+    padding:1px 6px; border-radius:2px;
+    text-transform:uppercase; letter-spacing:0.06em;
+  }
+  .inv-ticker { font-size:10px; color:${COLORS.textMuted}; font-family:${FONTS.mono}; }
+  .inv-curr-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; padding:1px 5px; border-radius:2px; }
+  .inv-curr-badge.usd { color:${COLORS.neonAmber}; background:${COLORS.bgAmber}; }
+  .inv-curr-badge.gbp { color:${COLORS.neonGreen}; background:${COLORS.bgGreen}; }
 
-  .inv2-empty-txs { padding: 16px 14px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.20); }
-  .inv2-empty { padding: 48px 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.22); }
-  .inv2-curr-badge { font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
-  .inv2-curr-badge.usd { background: rgba(255,170,50,0.12); color: rgba(255,170,60,0.80); }
-  .inv2-curr-badge.gbp { background: rgba(100,200,100,0.12); color: rgba(100,210,100,0.80); }
-  .inv2-val-orig { font-size: 10px; color: rgba(255,255,255,0.32); font-family: 'Geist Mono', monospace; margin-top: 2px; letter-spacing: -0.2px; }
-  .inv2-empty-sub { font-size: 10px; color: rgba(255,255,255,0.14); margin-top: 4px; }
-  .inv2-sort-btn { display: flex; align-items: center; gap: 3px; padding: 0 7px; height: 24px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 4px; font-family: 'Geist', sans-serif; font-size: 10px; color: rgba(255,255,255,0.32); cursor: pointer; transition: all 100ms; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
-  .inv2-sort-btn:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.58); }
-  .inv2-sort-btn.on { border-color: rgba(255,255,255,0.16); color: rgba(255,255,255,0.62); }
-  .inv2-sort-arrow { display: inline-block; transition: transform 150ms; font-style: normal; }
-  .inv2-sort-arrow.asc { transform: rotate(180deg); }
+  .inv-num { text-align:right; font-family:${FONTS.mono}; color:${COLORS.textSecondary}; font-size:12px; font-variant-numeric:tabular-nums; }
+  .inv-val { text-align:right; font-family:${FONTS.mono}; font-weight:500; color:${COLORS.textPrimary}; font-size:13px; font-variant-numeric:tabular-nums; }
+  .inv-val-sub { font-size:10px; color:${COLORS.textMuted}; font-weight:400; margin-top:2px; }
+  .inv-pg { text-align:right; font-family:${FONTS.mono}; font-size:12px; font-variant-numeric:tabular-nums; }
+  .inv-pg.pos { color:${COLORS.neonGreen}; }
+  .inv-pg.neg { color:${COLORS.neonRed}; }
+  .inv-pct { text-align:right; font-size:11px; font-weight:500; font-family:${FONTS.mono}; white-space:nowrap; }
+  .inv-pct.pos { color:${COLORS.neonGreen}; }
+  .inv-pct.neg { color:${COLORS.neonRed}; }
+  .inv-pct.neu { color:${COLORS.textMuted}; }
+  .inv-pes { text-align:right; font-family:${FONTS.mono}; color:${COLORS.textMuted}; font-size:12px; }
+  .inv-more-btn { background:transparent; border:none; color:${COLORS.textMuted}; cursor:pointer; font-size:16px; line-height:1; padding:0 2px; letter-spacing:2px; transition:color 100ms; }
+  .inv-more-btn:hover { color:${COLORS.textPrimary}; }
 
+  /* Expanded */
+  .inv-expanded-row > td { padding:0 !important; border-bottom:1px solid ${COLORS.border}; }
+  .inv-panel { padding:16px 0 20px; background:${COLORS.elevated}; border-top:1px solid ${COLORS.border}; }
 
-  .inv2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
-  .inv2-modal { background: #111; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; width: 100%; max-width: 440px; padding: 22px 20px 26px; font-family: 'Geist', sans-serif; max-height: 90vh; overflow-y: auto; }
-  .inv2-modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .inv2-modal-title { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); letter-spacing: -0.3px; }
-  .inv2-modal-x { width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,0.06); border: none; color: rgba(255,255,255,0.40); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; }
-  .inv2-lbl { display: block; font-size: 10px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
-  .inv2-inp { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 9px 11px; font-family: 'Geist', sans-serif; font-size: 13px; color: rgba(255,255,255,0.82); outline: none; box-sizing: border-box; transition: border-color 100ms; }
-  .inv2-inp:focus { border-color: rgba(255,255,255,0.20); }
-  .inv2-inp::placeholder { color: rgba(255,255,255,0.18); }
-  .inv2-inp.mono { font-family: 'Geist Mono', monospace; text-align: right; }
-  .inv2-inp.big { font-size: 20px; padding: 11px 13px; letter-spacing: -0.5px; }
-  .inv2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
-  .inv2-fgroup { display: flex; flex-direction: column; gap: 11px; }
-  .inv2-mfooter { display: flex; gap: 8px; margin-top: 18px; }
-  .inv2-btn-cancel { flex: 1; padding: 11px; border: 1px solid rgba(255,255,255,0.08); background: transparent; border-radius: 6px; font-family: 'Geist', sans-serif; font-size: 13px; color: rgba(255,255,255,0.36); cursor: pointer; }
-  .inv2-btn-ok { flex: 1; padding: 11px; border: none; border-radius: 6px; font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
-  .inv2-btn-ok.def { background: rgba(255,255,255,0.92); color: #080808; }
-  .inv2-btn-ok.grn { background: rgba(60,200,100,0.85); color: #080808; }
-  .inv2-btn-ok.org { background: rgba(245,160,50,0.85); color: #080808; }
-  .inv2-btn-ok.blu { background: rgba(80,140,255,0.85); color: #fff; }
-  .inv2-error { font-size: 12px; color: rgba(255,80,60,0.80); background: rgba(255,50,30,0.08); border: 1px solid rgba(255,50,30,0.14); border-radius: 5px; padding: 8px 11px; }
-  .inv2-type-row { display: flex; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
-  .inv2-type-tab { flex: 1; padding: 9px; border: none; background: transparent; font-family: 'Geist', sans-serif; font-size: 12px; cursor: pointer; transition: all 100ms; color: rgba(255,255,255,0.34); }
-  .inv2-type-tab.grn { background: rgba(60,200,100,0.12); color: rgba(80,210,110,0.85); }
-  .inv2-type-tab.org { background: rgba(245,160,50,0.12); color: rgba(255,160,50,0.85); }
-  .inv2-type-tab.blu { background: rgba(80,140,255,0.12); color: rgba(100,155,255,0.85); }
+  /* Stats grid */
+  .inv-stats { display:grid; grid-template-columns:repeat(4,1fr); padding:14px 0; border-top:1px solid ${COLORS.border}; border-bottom:1px solid ${COLORS.border}; margin-bottom:14px; }
+  .inv-stat { position:relative; padding-right:16px; }
+  .inv-stat:not(:last-child)::after { content:''; position:absolute; right:8px; top:0; height:100%; width:1px; background:${COLORS.border}; }
+  .inv-stat-l { font-size:10px; font-weight:500; color:${COLORS.textMuted}; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
+  .inv-stat-v { font-size:13px; font-family:${FONTS.mono}; color:${COLORS.textPrimary}; letter-spacing:-0.3px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .inv-stat-v.pos { color:${COLORS.neonGreen}; }
+  .inv-stat-v.neg { color:${COLORS.neonRed}; }
+
+  /* Action buttons */
+  .inv-action-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    padding:6px 14px;
+    background:transparent; border:1px solid ${COLORS.border};
+    border-radius:${COLORS.sm};
+    font-family:${FONTS.sans}; font-size:12px; font-weight:500;
+    cursor:pointer; transition:all 100ms; white-space:nowrap;
+  }
+
+  /* Transactions */
+  .inv-tx { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid ${COLORS.border}; }
+  .inv-tx:last-child { border-bottom:none; }
+  .inv-tx-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-right:10px; }
+  .inv-tx-name { font-size:12px; font-weight:500; color:${COLORS.textSecondary}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .inv-tx-date { font-size:10px; color:${COLORS.textMuted}; }
+  .inv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:${COLORS.textMuted}; margin-left:8px; flex-shrink:0; transition:all 80ms; }
+  .inv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
+
+  /* Mobile */
+  .inv-mobile { display:none; flex-direction:column; }
+  .inv-desktop { display:block; }
+  @media (max-width:700px) {
+    .inv-mobile { display:flex; }
+    .inv-desktop { display:none; }
+  }
+
+  .inv-mcard { display:flex; align-items:center; padding:13px 0; border-bottom:1px solid ${COLORS.border}; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .inv-mcard:last-child { border-bottom:none; }
+  .inv-mcard:active { background:${COLORS.elevated}; }
+
+  .inv-empty { padding:56px 0; text-align:center; }
+  .inv-empty-main { font-size:14px; color:${COLORS.textMuted}; font-weight:500; margin-bottom:4px; }
+  .inv-empty-sub { font-size:12px; color:${COLORS.textMuted}; opacity:0.5; }
+
+  /* Modal */
+  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .inv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:8px; width:100%; max-width:420px; padding:24px 20px; font-family:${FONTS.sans}; max-height:90vh; overflow-y:auto; }
+  .inv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .inv-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
+  .inv-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .inv-modal-x:hover { color:${COLORS.textPrimary}; }
+  .inv-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
+  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:14px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; }
+  .inv-inp:focus { border-color:${COLORS.neonPurple}; }
+  .inv-inp::placeholder { color:${COLORS.textMuted}; }
+  .inv-inp.mono { font-family:${FONTS.mono}; text-align:right; }
+  .inv-inp.big { font-size:20px; padding:12px 14px; letter-spacing:-0.5px; }
+  .inv-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
+  .inv-fgroup { display:flex; flex-direction:column; gap:14px; }
+  .inv-mfooter { display:flex; gap:8px; margin-top:20px; }
+  .inv-btn-cancel { flex:1; padding:11px; border:1px solid ${COLORS.border}; background:transparent; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; color:${COLORS.textSecondary}; cursor:pointer; transition:all 100ms; }
+  .inv-btn-cancel:hover { border-color:${COLORS.borderHi}; color:${COLORS.textPrimary}; }
+  .inv-btn-ok { flex:1; padding:11px; border:none; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; transition:opacity 100ms; }
+  .inv-btn-ok.grn { background:${COLORS.neonGreen}; color:#000; }
+  .inv-btn-ok.org { background:${COLORS.neonAmber}; color:#000; }
+  .inv-btn-ok.blu { background:${COLORS.neonPurple}; color:#fff; }
+  .inv-error { font-size:12px; color:${COLORS.neonRed}; background:${COLORS.bgRed}; border:1px solid ${COLORS.borderRed}; border-radius:5px; padding:9px 12px; }
+
+  .inv-type-row { display:flex; gap:1px; background:${COLORS.border}; border-radius:5px; overflow:hidden; margin-bottom:16px; }
+  .inv-type-tab { flex:1; padding:9px; border:none; background:${COLORS.surface}; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; color:${COLORS.textMuted}; }
+  .inv-type-tab:hover { color:${COLORS.textPrimary}; background:${COLORS.elevated}; }
+  .inv-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; border-bottom:1px solid ${COLORS.borderGreen}; }
+  .inv-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; border-bottom:1px solid ${COLORS.borderAmber}; }
+  .inv-type-tab.blu { background:${COLORS.bgPurple}; color:${COLORS.neonPurple}; border-bottom:1px solid ${COLORS.borderPurple}; }
 `
 
-const TrashIcon = ({ size = 11 }) => (
+const TrashIcon = ({ size=12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
     <path d="M10 11v6M14 11v6"/>
   </svg>
 )
@@ -142,154 +187,120 @@ const TrashIcon = ({ size = 11 }) => (
 const PriceTip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#111', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 5, padding: '5px 9px', fontFamily: "'Geist Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
+    <div style={{ background:COLORS.elevated, border:`1px solid ${COLORS.borderMid}`, borderRadius:5, padding:'5px 9px', fontFamily:FONTS.mono, fontSize:11, color:COLORS.textPrimary }}>
       {fmtEur(payload[0]?.value)}
     </div>
   )
 }
 
-function fmtQty(n) {
-  if (!n) return '0'
-  return parseFloat(n.toFixed(6)).toString()
-}
-
-const CURR_SYMBOLS = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr', JPY: '¥' }
-
-// Formata un import en la seva moneda original
-function fmtOrig(amount, currency = 'EUR') {
-  if (amount == null) return null
-  const sym = CURR_SYMBOLS[currency] || currency
-  if (currency === 'EUR') return null // no cal mostrar si ja és EUR
-  const decimals = amount < 10 ? 4 : amount < 100 ? 3 : 2
-  return `${sym}${amount.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: decimals })}`
-}
-
-// Calcula el valor en moneda original a partir del preu original i la qty
-function currentValueOrig(inv) {
-  if (!inv.originalCurrency || inv.originalCurrency === 'EUR') return null
-  if (inv.originalPrice != null && inv.totalQty > 0) {
-    return inv.totalQty * inv.originalPrice
-  }
-  // Fallback: usa initialValueOrig si existeix
-  return inv.initialValueOrig || null
-}
-
-const CURRENCY_SYMBOLS = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr', JPY: '¥' }
-
-function fmtPrice(price, currency = 'EUR') {
-  if (price == null) return '—'
-  const sym = CURRENCY_SYMBOLS[currency] || currency
-  const decimals = price < 10 ? 4 : price < 100 ? 3 : 2
-  if (currency === 'EUR') return fmtEur(price)
-  return `${sym}${price.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: decimals })}`
-}
+function fmtQty(n) { if (!n) return '0'; return parseFloat(n.toFixed(6)).toString() }
 
 function currentValue(inv) {
   if (inv.currentPrice != null && inv.totalQty > 0) return inv.totalQty * inv.currentPrice
   return inv.totalCost || 0
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
 export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh }) {
   const [showNew, setShowNew]   = useState(false)
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
   const [sortDir, setSortDir]   = useState('desc')
-  const [fxRates, setFxRates]   = useState({}) // { USD: 0.87, GBP: 1.17, ... }
+  const [fxRates, setFxRates]   = useState({})
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
-  // Carrega taxes de canvi en temps real (una sola vegada per renderitzar)
   useEffect(() => {
-    const pairs = [...new Set(investments
-      .map(i => i.originalCurrency || i.currency)
-      .filter(c => c && c !== 'EUR')
-    )]
+    const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
     pairs.forEach(curr => {
       fetch(`/yahoo/v8/finance/chart/${curr}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-        .then(r => r.json())
-        .then(d => {
-          const rate = d?.chart?.result?.[0]?.meta?.regularMarketPrice
-          if (rate && rate > 0) setFxRates(prev => ({ ...prev, [curr]: rate }))
-        })
-        .catch(() => {})
+        .then(r => r.json()).then(d => { const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice; if (r > 0) setFxRates(p => ({ ...p, [curr]: r })) }).catch(() => {})
     })
   }, [investments.length]) // eslint-disable-line
 
-  // Mateixa lògica que App/MetricsBar: usa originalPrice×liveRate per USD/GBP
-  const calcVal = (inv) => {
+  const calcVal = inv => {
     const origCurr = inv.originalCurrency || inv.currency || 'EUR'
-    const qty      = inv.totalQty || 0
-    if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr]) {
+    const qty = inv.totalQty || 0
+    if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr])
       return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
-    }
     return currentValue(inv)
   }
 
   const totalValue = investments.reduce((s, inv) => s + calcVal(inv), 0)
   const totalCost  = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
   const totalGain  = totalValue - totalCost
-
-  const sorted = [...investments].sort((a, b) => {
-    const va = calcVal(a), vb = calcVal(b)
-    return sortDir === 'desc' ? vb - va : va - vb
-  })
-
-  const toggle = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
+  const isPos      = totalGain >= 0
+  const gainPct    = totalCost > 0 ? (totalGain / totalCost) * 100 : 0
+  const sorted     = [...investments].sort((a, b) => sortDir === 'desc' ? calcVal(b) - calcVal(a) : calcVal(a) - calcVal(b))
+  const toggle     = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
 
   return (
-    <div className="inv2">
-      <style>{styles}</style>
+    <div className="inv">
+      <style>{`${SHARED_STYLES}${styles}`}</style>
       <ConfirmDialog state={confirmState} onClose={closeConfirm} />
 
-      <div className="inv2-hdr">
+      <div className="inv-hdr">
         <div>
-          <h2 className="inv2-title">Inversions</h2>
-          <p className="inv2-sub">
-            {fmtEur(totalValue)}
+          <h2 className="inv-title">Inversions</h2>
+          <div className="inv-sub-row">
+            <span className="inv-sub-val">{fmtEur(totalValue)}</span>
             {totalCost > 0 && (
-              <span style={{ color: totalGain >= 0 ? 'rgba(80,210,110,0.60)' : 'rgba(255,90,70,0.60)', marginLeft: 6 }}>
-                · {totalGain >= 0 ? '+' : ''}{fmtEur(totalGain)} ({fmtPct(totalCost > 0 ? (totalGain / totalCost) * 100 : 0)})
+              <span className={`inv-pg-badge ${isPos ? 'pos' : 'neg'}`}>
+                {isPos ? '▲' : '▼'} {Math.abs(gainPct).toFixed(2)}%
               </span>
             )}
-          </p>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="inv-hdr-btns">
           {onRefresh && (
-            <button className="inv2-btn-ico" onClick={onRefresh} title="Actualitzar preus">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
+            <button className="inv-btn-ico" onClick={onRefresh} title="Actualitzar preus">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             </button>
           )}
-          <button className={`inv2-sort-btn${sorted.length > 1 ? ' on' : ''}`} onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar per valor">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-            <i className={`inv2-sort-arrow${sortDir === 'asc' ? ' asc' : ''}`}>↓</i>
+          <button className="inv-btn-ico" onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
           </button>
-          <button className="inv2-btn-add" onClick={() => setShowNew(true)}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+          <button className="inv-btn-add" onClick={() => setShowNew(true)}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova posició
           </button>
         </div>
       </div>
 
       {investments.length === 0 ? (
-        <div className="inv2-empty">
-          <p>Cap inversió registrada</p>
-          <p className="inv2-empty-sub">Crea la teva primera posició</p>
+        <div className="inv-empty">
+          <p className="inv-empty-main">Cap inversió registrada</p>
+          <p className="inv-empty-sub">Afegeix la teva primera posició</p>
         </div>
-      ) : sorted.map(inv => (
-        <InvestmentCard key={inv.id} inv={inv}
-          expanded={!!expanded[inv.id]}
-          onToggle={() => toggle(inv.id)}
-          onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
-          onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
-          onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
-          fxRates={fxRates}
-        />
-      ))}
+      ) : (<>
+        {/* Mobile */}
+        <div className="inv-mobile">
+          {sorted.map(inv => (
+            <MobileCard key={inv.id} inv={inv} expanded={!!expanded[inv.id]} onToggle={() => toggle(inv.id)}
+              onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
+              onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
+              onRemoveTx={txId => onRemoveTransaction(inv.id, txId)} fxRates={fxRates} totalValue={totalValue} />
+          ))}
+        </div>
+
+        {/* Desktop */}
+        <div className="inv-desktop">
+          <table className="inv-table">
+            <thead className="inv-thead">
+              <tr>
+                <th>Actiu</th><th>Quantitat</th><th>Preu mig</th><th>Valor</th>
+                <th>P&amp;G</th><th>P&amp;G %</th><th>Pes</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map(inv => (
+                <InvestmentRow key={inv.id} inv={inv} expanded={!!expanded[inv.id]} onToggle={() => toggle(inv.id)}
+                  onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
+                  onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
+                  onRemoveTx={txId => onRemoveTransaction(inv.id, txId)} fxRates={fxRates} totalValue={totalValue} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>)}
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} ticker={txModal.ticker} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
@@ -297,407 +308,321 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
   )
 }
 
-// ── Card ──────────────────────────────────────────────────────────────────────
-function InvestmentCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, fxRates = {} }) {
+function MobileCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, fxRates={}, totalValue }) {
   const tc       = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
   const origCurr = inv.originalCurrency || inv.currency || 'EUR'
   const hasOrig  = origCurr !== 'EUR' && inv.originalPrice != null && inv.totalQty > 0
-
-  // Valor en moneda original (USD, GBP...)
   const origVal  = hasOrig ? inv.totalQty * inv.originalPrice : null
-
-  // Valor en EUR: si tenim taxa live → usa-la; sinó usa currentPrice guardat
   const liveRate = fxRates[origCurr]
-  const curVal   = hasOrig && liveRate
-    ? +(origVal * liveRate).toFixed(2)
-    : currentValue(inv)
-
+  const curVal   = hasOrig && liveRate ? +(origVal * liveRate).toFixed(2) : currentValue(inv)
   const gain     = curVal - (inv.totalCost || 0)
   const gPct     = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
   const isPos    = gain >= 0
 
-  const chartData = useMemo(() => {
-    const pts = (inv.txs || [])
-      .filter(t => t.type === 'buy' && t.pricePerUnit > 0)
-      .map((t, i) => ({ i, price: t.pricePerUnit }))
-    if (inv.currentPrice != null) pts.push({ i: pts.length, price: inv.currentPrice })
-    return pts
-  }, [inv.txs, inv.currentPrice])
-
-  const cc = isPos ? 'rgba(80,210,110,0.75)' : 'rgba(255,90,70,0.75)'
-
   return (
-    <div className="inv2-card">
-      <div className="inv2-card-hdr" onClick={onToggle}>
-        <div className="inv2-av" style={{ background: tc.bg, color: tc.color }}>
-          {inv.name.slice(0, 2).toUpperCase()}
+    <div>
+      <div className="inv-mcard" onClick={onToggle}>
+        <div className="inv-av" style={{ background:tc.bg, color:tc.color, marginRight:12 }}>
+          {inv.name.slice(0,2).toUpperCase()}
         </div>
-        <div className="inv2-info">
-          <p className="inv2-name">{inv.name}</p>
-          <div className="inv2-meta">
-            <span className="inv2-bdg" style={{ background: tc.bg, color: tc.color }}>{TYPE_LABELS[inv.type] || inv.type}</span>
-            {inv.ticker && <><span className="inv2-dot">·</span><span>{inv.ticker}</span></>}
-            {inv.totalQty > 0 && <><span className="inv2-dot">·</span><span>{fmtQty(inv.totalQty)} u.</span></>}
+        <div style={{ flex:1, minWidth:0 }}>
+          <p className="inv-name" style={{ marginBottom:2 }}>{inv.name}</p>
+          <div className="inv-meta">
+            <span className="inv-type-badge" style={{ background:tc.bg, color:tc.color }}>{TYPE_LABELS[inv.type]||inv.type}</span>
+            {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
           </div>
         </div>
-        <div className="inv2-right" onClick={e => e.stopPropagation()}>
-          <div className="inv2-val">
-            <p className="inv2-val-v">
-              {fmtEur(curVal)}
-              {origCurr !== 'EUR' && (
-                <span className={`inv2-curr-badge ${origCurr.toLowerCase()}`}>{origCurr}</span>
-              )}
-            </p>
-            {origVal != null && (
-              <p className="inv2-val-orig">
-                {CURR_SYM[origCurr] || origCurr}{origVal.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                {liveRate && <span style={{ opacity: 0.45, fontSize: 9, marginLeft: 4 }}>@{liveRate.toFixed(4)}</span>}
-              </p>
-            )}
-            <p className={`inv2-val-pg ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)} {fmtPct(gPct)}</p>
-          </div>
-          <button className="inv2-del" onClick={onRemove}><TrashIcon size={12} /></button>
+        <div style={{ textAlign:'right', flexShrink:0, marginLeft:10 }}>
+          <p style={{ fontSize:13, fontWeight:500, fontFamily:FONTS.mono, color:COLORS.textPrimary, fontVariantNumeric:'tabular-nums', marginBottom:2 }}>{fmtEur(curVal)}</p>
+          <p style={{ fontSize:11, fontFamily:FONTS.mono, color:isPos?COLORS.neonGreen:COLORS.neonRed, fontWeight:500 }}>{isPos?'▲':'▼'} {Math.abs(gPct).toFixed(2)}%</p>
         </div>
-        <svg className={`inv2-chev${expanded ? ' open' : ''}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
+        <svg style={{ color:COLORS.textMuted, marginLeft:10, flexShrink:0, transition:'transform 200ms', transform:expanded?'rotate(180deg)':'none' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
       {expanded && (
-        <div className="inv2-body">
-          {chartData.length >= 2 && (
-            <div className="inv2-chart-wrap">
-              <div className="inv2-chart-lbl">
-                <span className="inv2-chart-txt">Evolució del preu de compra</span>
-                {inv.currentPrice != null && (
-                  <span className={`inv2-chart-price ${isPos ? 'pos' : 'neg'}`}>
-                    {fmtPrice(inv.originalPrice ?? inv.currentPrice, inv.originalCurrency ?? 'EUR')}/u.
-                    {inv.originalCurrency && inv.originalCurrency !== 'EUR' && (
-                      <span style={{ fontSize: 9, opacity: 0.55, marginLeft: 4 }}>({fmtEur(inv.currentPrice)})</span>
-                    )}
-                  </span>
-                )}
+        <div style={{ background:COLORS.elevated, borderTop:`1px solid ${COLORS.border}`, padding:'14px 0 16px', fontFamily:FONTS.sans }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:0, paddingBottom:12, marginBottom:12, borderBottom:`1px solid ${COLORS.border}` }}>
+            {[
+              { l:'Cost mitjà', v: inv.totalQty>0 ? fmtEur(inv.avgCost)+'/u.' : '—' },
+              { l:'Invertit',   v: fmtEur(inv.totalCost||0) },
+              { l:'P&G',        v: (isPos?'+':'')+fmtEur(gain), pos:isPos },
+            ].map((s,i) => (
+              <div key={i} style={{ position:'relative', paddingRight:12 }}>
+                {i<2 && <div style={{ position:'absolute', right:6, top:2, height:'calc(100% - 4px)', width:1, background:COLORS.border }}/>}
+                <p style={{ fontSize:10, fontWeight:500, color:COLORS.textMuted, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.08em' }}>{s.l}</p>
+                <p style={{ fontSize:13, fontFamily:FONTS.mono, color:s.pos===true?COLORS.neonGreen:s.pos===false?COLORS.neonRed:COLORS.textPrimary, fontWeight:500, fontVariantNumeric:'tabular-nums' }}>{s.v}</p>
               </div>
-              <ResponsiveContainer width="100%" height={72}>
-                <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`cg${inv.id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={isPos ? 'rgba(80,210,110,0.18)' : 'rgba(255,90,70,0.15)'} />
-                      <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="price" stroke={cc} strokeWidth={1.5} fill={`url(#cg${inv.id})`} dot={false} />
-                  <Tooltip content={<PriceTip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <div className="inv2-stats">
-            <div className="inv2-stat">
-              <p className="inv2-stat-l">Cost mitjà</p>
-              <p className="inv2-stat-v">
-                {inv.totalQty > 0 ? fmtEur(inv.avgCost) : '—'}/u.
-              </p>
-            </div>
-            <div className="inv2-stat"><p className="inv2-stat-l">Accions</p><p className="inv2-stat-v">{fmtQty(inv.totalQty || 0)} u.</p></div>
-            <div className="inv2-stat">
-              <p className="inv2-stat-l">Invertit</p>
-              <p className="inv2-stat-v">{fmtEur(inv.totalCost || 0)}</p>
-              {inv.initialValueOrig && inv.currency && inv.currency !== 'EUR' && (
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 2 }}>
-                  {CURR_SYMBOLS[inv.currency] || inv.currency}{inv.initialValueOrig.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              )}
-            </div>
-            <div className="inv2-stat"><p className="inv2-stat-l">P&G</p><p className={`inv2-stat-v ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)}</p></div>
+            ))}
           </div>
-
-          <div className="inv2-quick">
-            <button className="inv2-q-btn buy" onClick={() => onOpenTx('buy')}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Comprar
-            </button>
-            <button className="inv2-q-btn sell" onClick={() => onOpenTx('sell')}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Vendre
-            </button>
-            <button className="inv2-q-btn cap" onClick={() => onOpenTx('capital')}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-              Aportació
-            </button>
-          </div>
-
-          <div className="inv2-txs">
-            {(!inv.txs || inv.txs.length === 0) ? (
-              <div className="inv2-empty-txs">Cap operació — afegeix la primera compra</div>
-            ) : [...inv.txs].reverse().map(tx => {
-              const dotColor = tx.type === 'buy' ? 'rgba(80,210,110,0.65)' : tx.type === 'sell' ? 'rgba(255,130,60,0.65)' : 'rgba(100,155,255,0.65)'
-              return (
-                <div key={tx.id} className="inv2-tx">
-                  <div className="inv2-tx-dot" style={{ background: dotColor }} />
-                  <div className="inv2-tx-info">
-                    <p className="inv2-tx-note">{tx.note || (tx.type === 'buy' ? 'Compra' : tx.type === 'sell' ? 'Venda' : 'Aportació')}</p>
-                    <p className="inv2-tx-date">{tx.date || '—'}</p>
-                  </div>
-                  <div className="inv2-tx-right">
-                    {tx.type !== 'capital' && tx.qty > 0 && (
-                      <p className={`inv2-tx-amt ${tx.type === 'buy' ? 'pos' : 'neg'}`}>
-                        {tx.type === 'buy' ? '+' : '−'}{fmtQty(tx.qty)} u.
-                      </p>
-                    )}
-                    <p className="inv2-tx-sub">
-                      {tx.type === 'capital'
-                        ? `+${fmtEur(tx.totalCost)}`
-                        : tx.pricePerUnit > 0
-                          ? tx.currency && tx.currency !== 'EUR' && tx.pricePerUnitOrig
-                            ? `${CURR_SYM[tx.currency] || tx.currency}${tx.pricePerUnitOrig}/u. · ${CURR_SYM[tx.currency] || tx.currency}${tx.totalCostOrig} (${fmtEur(tx.totalCost)})`
-                            : `${fmtEur(tx.pricePerUnit)}/u. · ${fmtEur(tx.totalCost)}`
-                          : fmtEur(tx.totalCost)
-                      }
-                    </p>
-                  </div>
-                  <button className="inv2-tx-del" onClick={() => onRemoveTx(tx.id)}><TrashIcon /></button>
-                </div>
-              )
-            })}
-          </div>
+          <ActionButtons onOpenTx={onOpenTx} onRemove={onRemove} />
+          <TxList txs={inv.txs} onRemoveTx={onRemoveTx} />
         </div>
       )}
     </div>
   )
 }
 
-// ── NewInvestmentModal ────────────────────────────────────────────────────────
-function NewInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ name: '', ticker: '', type: 'etf' })
-  const [error, setError] = useState('')
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const TYPES = [{ id: 'etf', label: 'ETF' }, { id: 'stock', label: 'Acció' }, { id: 'robo', label: 'Robo' }, { id: 'efectiu', label: 'Efectiu' }]
-  const submit = () => {
-    if (!form.name.trim()) return setError('El nom és obligatori')
-    setError('')
-    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type })
-  }
+function ActionButtons({ onOpenTx, onRemove }) {
+  const btns = [
+    { label:'Comprar',   color:COLORS.neonGreen,  bg:COLORS.bgGreen,  border:COLORS.borderGreen,  onClick:()=>onOpenTx('buy') },
+    { label:'Vendre',    color:COLORS.neonAmber,  bg:COLORS.bgAmber,  border:COLORS.borderAmber,  onClick:()=>onOpenTx('sell') },
+    { label:'Aportació', color:COLORS.neonCyan,   bg:COLORS.bgCyan,   border:COLORS.borderCyan,   onClick:()=>onOpenTx('capital') },
+    { label:'Eliminar',  color:COLORS.neonRed,    bg:COLORS.bgRed,    border:COLORS.borderRed,    onClick:onRemove, ml:'auto' },
+  ]
   return (
-    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="inv2-modal">
-        <div className="inv2-modal-hdr"><h3 className="inv2-modal-title">Nova posició</h3><button className="inv2-modal-x" onClick={onClose}>×</button></div>
-        <div className="inv2-fgroup">
-          <div>
-            <label className="inv2-lbl">Tipus</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-              {TYPES.map(t => (
-                <button key={t.id} onClick={() => set('type', t.id)} style={{ padding: '8px 4px', borderRadius: 5, cursor: 'pointer', textAlign: 'center', fontFamily: "'Geist',sans-serif", fontSize: 12, fontWeight: 500, border: form.type === t.id ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.07)', background: form.type === t.id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', color: form.type === t.id ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.34)', transition: 'all 100ms' }}>{t.label}</button>
-              ))}
+    <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:14, paddingTop:4 }}>
+      {btns.map(b => (
+        <button key={b.label} onClick={b.onClick} style={{ marginLeft:b.ml||0, display:'inline-flex', alignItems:'center', gap:5, padding:'6px 12px', background:'transparent', border:`1px solid ${COLORS.border}`, borderRadius:4, fontFamily:FONTS.sans, fontSize:12, fontWeight:500, cursor:'pointer', color:b.color, whiteSpace:'nowrap', transition:'all 100ms' }}
+          onMouseOver={e=>{ e.currentTarget.style.background=b.bg; e.currentTarget.style.borderColor=b.border }}
+          onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=COLORS.border }}
+        >{b.label}</button>
+      ))}
+    </div>
+  )
+}
+
+function TxList({ txs, onRemoveTx }) {
+  if (!txs || txs.length === 0) return (
+    <p style={{ fontSize:12, color:COLORS.textMuted, textAlign:'center', padding:'12px 0' }}>Cap operació registrada</p>
+  )
+  return (
+    <div>
+      <p style={{ fontSize:10, fontWeight:500, color:COLORS.textMuted, textTransform:'uppercase', letterSpacing:'0.10em', margin:'0 0 8px' }}>Operacions</p>
+      <div style={{ maxHeight:200, overflowY:'auto' }}>
+        {[...txs].reverse().map(tx => {
+          const dotC = tx.type==='buy' ? COLORS.neonGreen : tx.type==='sell' ? COLORS.neonAmber : COLORS.neonCyan
+          return (
+            <div key={tx.id} className="inv-tx">
+              <div className="inv-tx-dot" style={{ background:dotC }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p className="inv-tx-name">{tx.note||(tx.type==='buy'?'Compra':tx.type==='sell'?'Venda':'Aportació')}</p>
+                <p className="inv-tx-date">{tx.date||'—'}</p>
+              </div>
+              <div style={{ textAlign:'right', flexShrink:0, marginLeft:10 }}>
+                {tx.type!=='capital' && tx.qty>0 && <p style={{ fontSize:12, fontWeight:600, fontFamily:FONTS.mono, color:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber, margin:0 }}>{tx.type==='buy'?'+':'−'}{fmtQty(tx.qty)}</p>}
+                <p style={{ fontSize:11, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:2 }}>{fmtEur(tx.totalCost)}</p>
+              </div>
+              <button className="inv-tx-del" onClick={()=>onRemoveTx(tx.id)}><TrashIcon size={11}/></button>
             </div>
-          </div>
-          <div><label className="inv2-lbl">Nom</label><input className="inv2-inp" autoFocus value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: iShares Core MSCI World" /></div>
-          <div><label className="inv2-lbl">Ticker (Yahoo Finance)</label><input className="inv2-inp mono" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="ex: IWDA.AS" /></div>
-          {error && <p className="inv2-error">{error}</p>}
-        </div>
-        <div className="inv2-mfooter"><button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button><button className="inv2-btn-ok def" onClick={submit}>Crear posició</button></div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-// ── TransactionModal ──────────────────────────────────────────────────────────
-const CURR_SYM = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr' }
+function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, fxRates={}, totalValue }) {
+  const tc       = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+  const hasOrig  = origCurr !== 'EUR' && inv.originalPrice != null && inv.totalQty > 0
+  const origVal  = hasOrig ? inv.totalQty * inv.originalPrice : null
+  const liveRate = fxRates[origCurr]
+  const curVal   = hasOrig && liveRate ? +(origVal * liveRate).toFixed(2) : currentValue(inv)
+  const gain     = curVal - (inv.totalCost || 0)
+  const gPct     = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
+  const isPos    = gain >= 0
+  const weight   = totalValue > 0 ? (curVal / totalValue) * 100 : 0
 
-function TransactionModal({ invName, defaultType, currency = 'EUR', ticker, onAdd, onClose }) {
-  const [type, setType]         = useState(defaultType || 'buy')
-  const [qty, setQty]           = useState('')
-  const [price, setPrice]       = useState('')
-  const [total, setTotal]       = useState('')
-  const [note, setNote]         = useState('')
-  const [date, setDate]         = useState(new Date().toISOString().split('T')[0])
-  const [error, setError]       = useState('')
-  const [rate, setRate]             = useState(null)
-  const [livePrice, setLivePrice]   = useState(null)
+  const chartData = useMemo(() => {
+    const pts = (inv.txs||[]).filter(t=>t.type==='buy'&&t.pricePerUnit>0).map((t,i)=>({i,price:t.pricePerUnit}))
+    if (inv.currentPrice!=null) pts.push({i:pts.length,price:inv.currentPrice})
+    return pts
+  }, [inv.txs, inv.currentPrice])
+
+  return (<>
+    <tr className="inv-row" onClick={onToggle}>
+      <td>
+        <div className="inv-asset">
+          <div className="inv-av" style={{ background:tc.bg, color:tc.color }}>{inv.name.slice(0,2).toUpperCase()}</div>
+          <div>
+            <p className="inv-name">{inv.name}</p>
+            <div className="inv-meta">
+              <span className="inv-type-badge" style={{ background:tc.bg, color:tc.color }}>{TYPE_LABELS[inv.type]||inv.type}</span>
+              {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+              {origCurr!=='EUR' && <span className={`inv-curr-badge ${origCurr.toLowerCase()}`}>{origCurr}</span>}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="inv-num">{inv.totalQty>0?fmtQty(inv.totalQty):'—'}</td>
+      <td className="inv-num">{inv.avgCost>0?fmtEur(inv.avgCost):'—'}</td>
+      <td className="inv-val" onClick={e=>e.stopPropagation()}>
+        {fmtEur(curVal)}
+        {origVal!=null && <div className="inv-val-sub">{CURR_SYM[origCurr]||origCurr}{origVal.toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>}
+      </td>
+      <td className={`inv-pg ${isPos?'pos':'neg'}`} onClick={e=>e.stopPropagation()}>{isPos?'+':''}{fmtEur(gain)}</td>
+      <td className={`inv-pct ${isPos?'pos':gPct===0?'neu':'neg'}`} onClick={e=>e.stopPropagation()}>
+        {isPos?'▲':gPct<0?'▼':''} {Math.abs(gPct).toFixed(2)}%
+      </td>
+      <td className="inv-pes" onClick={e=>e.stopPropagation()}>{weight.toFixed(1)}%</td>
+      <td style={{textAlign:'right'}} onClick={e=>e.stopPropagation()}>
+        <button className="inv-more-btn">···</button>
+      </td>
+    </tr>
+
+    {expanded && (
+      <tr className="inv-expanded-row">
+        <td colSpan={8}>
+          <div className="inv-panel" style={{ padding:'16px 0 20px', fontFamily:FONTS.sans }}>
+            {chartData.length>=2 && (
+              <div style={{ marginBottom:14 }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                  <span style={{ fontSize:10, fontWeight:500, color:COLORS.textMuted, textTransform:'uppercase', letterSpacing:'0.10em' }}>Evolució del preu</span>
+                  {inv.currentPrice!=null && <span style={{ fontSize:11, fontFamily:FONTS.mono, color:isPos?COLORS.neonGreen:COLORS.neonRed }}>{fmtEur(inv.originalPrice??inv.currentPrice)}/u.</span>}
+                </div>
+                <ResponsiveContainer width="100%" height={60}>
+                  <AreaChart data={chartData} margin={{top:2,right:0,left:0,bottom:0}}>
+                    <defs>
+                      <linearGradient id={`g${inv.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={isPos?'rgba(0,255,136,0.15)':'rgba(255,59,59,0.12)'} />
+                        <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="price" stroke={isPos?COLORS.neonGreen:COLORS.neonRed} strokeWidth={1.5} fill={`url(#g${inv.id})`} dot={false} />
+                    <Tooltip content={<PriceTip />} cursor={{ stroke:COLORS.border, strokeWidth:1 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            <div className="inv-stats">
+              {[
+                { l:'Cost mitjà', v:inv.totalQty>0?fmtEur(inv.avgCost)+'/u.':'—' },
+                { l:'Accions',    v:fmtQty(inv.totalQty||0) },
+                { l:'Invertit',   v:fmtEur(inv.totalCost||0) },
+                { l:'P&G',        v:(isPos?'+':'')+fmtEur(gain), cls:isPos?'pos':'neg' },
+              ].map((s,i) => (
+                <div key={i} className="inv-stat">
+                  <p className="inv-stat-l">{s.l}</p>
+                  <p className={`inv-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
+                </div>
+              ))}
+            </div>
+
+            <ActionButtons onOpenTx={onOpenTx} onRemove={onRemove} />
+            <TxList txs={inv.txs} onRemoveTx={onRemoveTx} />
+          </div>
+        </td>
+      </tr>
+    )}
+  </>)
+}
+
+function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd, onClose }) {
+  const [type, setType]       = useState(defaultType||'buy')
+  const [qty, setQty]         = useState('')
+  const [price, setPrice]     = useState('')
+  const [total, setTotal]     = useState('')
+  const [note, setNote]       = useState('')
+  const [date, setDate]       = useState(new Date().toISOString().split('T')[0])
+  const [error, setError]     = useState('')
+  const [rate, setRate]       = useState(null)
+  const [livePrice, setLivePrice] = useState(null)
   const [fetchingPrice, setFetchingPrice] = useState(false)
-  // Moneda real detectada des de Yahoo (pot diferir de la prop si no estava guardada)
-  const [resolvedCurrency, setResolvedCurrency] = useState(currency || 'EUR')
+  const [resolvedCurrency, setResolvedCurrency] = useState(currency||'EUR')
 
-  const isBuySell = type === 'buy' || type === 'sell'
-  const isNonEur  = resolvedCurrency !== 'EUR'
-  const sym       = CURR_SYM[resolvedCurrency] || resolvedCurrency
+  const isBuySell = type==='buy'||type==='sell'
+  const isNonEur  = resolvedCurrency!=='EUR'
+  const sym       = CURR_SYM[resolvedCurrency]||resolvedCurrency
 
-  // ── Carrega la taxa de canvi i el preu live en obrir el modal ────────────────
   useEffect(() => {
-    // 1. Obté preu live + moneda real de Yahoo (font de veritat)
-    if (ticker) {
-      setFetchingPrice(true)
-      fetch(`/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-        .then(r => r.json())
-        .then(d => {
-          const result   = d?.chart?.result?.[0]
-          let p          = result?.meta?.regularMarketPrice
-          const yahooCurr = result?.meta?.currency
-          // Normalitza GBp (pence) → GBP
-          const realCurr = yahooCurr === 'GBp' ? 'GBP' : (yahooCurr || currency || 'EUR')
-          if (p && yahooCurr === 'GBp') p = p * 0.01
-          if (p && p > 0) setLivePrice(+p.toFixed(4))
-          // Actualitza la moneda detectada si no l'havíem rebut
-          if (realCurr && realCurr !== resolvedCurrency) setResolvedCurrency(realCurr)
-        })
-        .catch(() => {})
-        .finally(() => setFetchingPrice(false))
-    }
+    if (!ticker) return
+    setFetchingPrice(true)
+    fetch(`/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+      .then(r=>r.json()).then(d => {
+        const result = d?.chart?.result?.[0]
+        let p = result?.meta?.regularMarketPrice
+        const yahooCurr = result?.meta?.currency
+        const realCurr = yahooCurr==='GBp'?'GBP':(yahooCurr||currency||'EUR')
+        if (p&&yahooCurr==='GBp') p=p*0.01
+        if (p>0) setLivePrice(+p.toFixed(4))
+        if (realCurr!==resolvedCurrency) setResolvedCurrency(realCurr)
+      }).catch(()=>{}).finally(()=>setFetchingPrice(false))
   }, [ticker]) // eslint-disable-line
 
-  // 2. Quan tenim la moneda resolta, obté la taxa de canvi
   useEffect(() => {
-    if (!resolvedCurrency || resolvedCurrency === 'EUR') {
-      setRate(1)
-      return
-    }
+    if (!resolvedCurrency||resolvedCurrency==='EUR') { setRate(1); return }
     fetch(`/yahoo/v8/finance/chart/${resolvedCurrency}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-      .then(r => r.json())
-      .then(d => {
-        const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
-        setRate(r && r > 0 ? r : null)
-      })
-      .catch(() => setRate(null))
+      .then(r=>r.json()).then(d=>{ const r=d?.chart?.result?.[0]?.meta?.regularMarketPrice; setRate(r>0?r:null) }).catch(()=>setRate(null))
   }, [resolvedCurrency]) // eslint-disable-line
 
-  // ── Recalcula el total quan canvia qty o price ───────────────────────────────
-  const recalcTotal = useCallback((q, p) => {
-    const t = parseFloat(q) * parseFloat(p)
-    if (!isNaN(t) && t > 0) setTotal(t.toFixed(2))
-  }, [])
+  const recalc = useCallback((q,p)=>{ const t=parseFloat(q)*parseFloat(p); if (!isNaN(t)&&t>0) setTotal(t.toFixed(2)) },[])
+  const handleQty   = v=>{ setQty(v);   if(v&&price) recalc(v,price) }
+  const handlePrice = v=>{ setPrice(v); if(v&&qty)   recalc(qty,v) }
+  const fillLive = ()=>{ if(!livePrice) return; setPrice(livePrice.toString()); if(qty) recalc(qty,livePrice) }
 
-  const handleQty   = v => { setQty(v);   if (v && price) recalcTotal(v, price) }
-  const handlePrice = v => { setPrice(v); if (v && qty)   recalcTotal(qty, v) }
+  const totalOrig = parseFloat(total)||0
+  const totalEur  = isNonEur&&rate ? +(totalOrig*rate).toFixed(2) : totalOrig
+  const priceOrig = parseFloat(price)||0
+  const priceEur  = isNonEur&&rate ? +(priceOrig*rate).toFixed(4) : priceOrig
 
-  // Botó "Preu actual" — omple el camp price amb el live price
-  const fillLivePrice = () => {
-    if (!livePrice) return
-    setPrice(livePrice.toString())
-    if (qty) recalcTotal(qty, livePrice)
-  }
-
-  // ── Conversió a EUR per mostrar i guardar ─────────────────────────────────────
-  const totalOrig = parseFloat(total) || 0
-  const totalEur  = isNonEur && rate ? +(totalOrig * rate).toFixed(2) : totalOrig
-  const priceOrig = parseFloat(price) || 0
-  const priceEur  = isNonEur && rate ? +(priceOrig * rate).toFixed(4) : priceOrig
-
-  const rateOk = !isNonEur || (rate && rate > 0)
-
-  // ── Submit ────────────────────────────────────────────────────────────────────
   const submit = () => {
-    if (!rateOk) return setError('No s\'ha pogut obtenir la taxa de canvi. Torna-ho a intentar.')
+    if (isNonEur&&!rate) return setError('Taxa de canvi no disponible')
     if (isBuySell) {
-      const q = parseFloat(qty)
-      if (!q || q <= 0) return setError('La quantitat és obligatòria')
-      if (!totalOrig || totalOrig <= 0) return setError("L'import és obligatori")
+      const q=parseFloat(qty)
+      if (!q||q<=0) return setError('La quantitat és obligatòria')
+      if (!totalOrig||totalOrig<=0) return setError("L'import és obligatori")
       setError('')
-      onAdd({
-        qty:              q,
-        pricePerUnit:     priceEur,
-        pricePerUnitOrig: priceOrig,
-        totalCost:        totalEur,
-        totalCostOrig:    totalOrig,
-        currency:         resolvedCurrency,
-        type, note, date,
-      })
+      onAdd({ qty:q, pricePerUnit:priceEur, pricePerUnitOrig:priceOrig, totalCost:totalEur, totalCostOrig:totalOrig, currency:resolvedCurrency, type, note, date })
     } else {
-      if (!totalOrig || totalOrig <= 0) return setError("L'import és obligatori")
+      if (!totalOrig||totalOrig<=0) return setError("L'import és obligatori")
       setError('')
-      onAdd({ qty: 0, pricePerUnit: 0, totalCost: totalEur, totalCostOrig: totalOrig, currency: resolvedCurrency, type, note, date })
+      onAdd({ qty:0, pricePerUnit:0, totalCost:totalEur, totalCostOrig:totalOrig, currency:resolvedCurrency, type, note, date })
     }
   }
 
   return (
-    <div className="inv2-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="inv2-modal">
-        <div className="inv2-modal-hdr">
-          <h3 className="inv2-modal-title">{invName}</h3>
-          <button className="inv2-modal-x" onClick={onClose}>×</button>
+    <div className="inv-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="inv-modal">
+        <div className="inv-modal-hdr">
+          <h3 className="inv-modal-title">{invName}</h3>
+          <button className="inv-modal-x" onClick={onClose}>×</button>
         </div>
-
-        <div className="inv2-type-row">
-          <button className={`inv2-type-tab${type === 'buy' ? ' grn' : ''}`} onClick={() => setType('buy')}>↑ Compra</button>
-          <button className={`inv2-type-tab${type === 'sell' ? ' org' : ''}`} onClick={() => setType('sell')}>↓ Venda</button>
-          <button className={`inv2-type-tab${type === 'capital' ? ' blu' : ''}`} onClick={() => setType('capital')}>+ Aportació</button>
+        <div className="inv-type-row">
+          <button className={`inv-type-tab${type==='buy'?' grn':''}`} onClick={()=>setType('buy')}>↑ Compra</button>
+          <button className={`inv-type-tab${type==='sell'?' org':''}`} onClick={()=>setType('sell')}>↓ Venda</button>
+          <button className={`inv-type-tab${type==='capital'?' blu':''}`} onClick={()=>setType('capital')}>+ Aportació</button>
         </div>
-
-        <div className="inv2-fgroup">
+        <div className="inv-fgroup">
           {isBuySell && (
-            <div className="inv2-grid2">
-              {/* Quantitat */}
+            <div className="inv-grid2">
               <div>
-                <label className="inv2-lbl">Accions</label>
-                <input type="number" inputMode="decimal" step="any" className="inv2-inp mono"
-                  autoFocus value={qty} onChange={e => handleQty(e.target.value)} placeholder="0" />
+                <label className="inv-lbl">Accions</label>
+                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" autoFocus value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0" />
               </div>
-
-              {/* Preu per unitat + botó preu actual */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <label className="inv2-lbl" style={{ margin: 0 }}>Preu/u ({sym})</label>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                  <label className="inv-lbl" style={{ margin:0 }}>Preu/u. ({sym})</label>
                   {ticker && (
-                    <button onClick={fillLivePrice} disabled={fetchingPrice || !livePrice} style={{
-                      fontSize: 9, fontWeight: 500, padding: '2px 7px', borderRadius: 3, cursor: livePrice ? 'pointer' : 'default',
-                      border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)',
-                      color: livePrice ? 'rgba(80,210,110,0.80)' : 'rgba(255,255,255,0.22)',
-                      fontFamily: "'Geist Mono',monospace", transition: 'all 100ms',
-                    }}>
-                      {fetchingPrice ? '...' : livePrice ? `↓ ${sym}${livePrice}` : '—'}
+                    <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{ fontSize:10, fontWeight:600, padding:'3px 8px', border:`1px solid ${COLORS.border}`, borderRadius:4, background:COLORS.elevated, color:livePrice?COLORS.neonGreen:COLORS.textMuted, fontFamily:FONTS.mono, cursor:livePrice?'pointer':'default', transition:'all 100ms' }}>
+                      {fetchingPrice?'...' : livePrice?`${sym}${livePrice}`:'—'}
                     </button>
                   )}
                 </div>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
-                  <input type="number" inputMode="decimal" step="any"
-                    className="inv2-inp mono" style={{ paddingLeft: resolvedCurrency === 'EUR' ? 11 : 20 }}
-                    value={price} onChange={e => handlePrice(e.target.value)} placeholder="0.00" />
-                </div>
-                {isNonEur && priceOrig > 0 && rate && (
-                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.24)', fontFamily: "'Geist Mono',monospace", marginTop: 3, textAlign: 'right' }}>
-                    = €{priceEur.toFixed(4)}
-                  </p>
-                )}
+                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00" />
+                {isNonEur&&priceOrig>0&&rate && <p style={{ fontSize:10, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:4, textAlign:'right' }}>= €{priceEur.toFixed(4)}</p>}
               </div>
             </div>
           )}
-
-          {/* Total */}
           <div>
-            <label className="inv2-lbl">{isBuySell ? `Total (${sym})` : `Import (${sym})`}</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: "'Geist Mono',monospace", pointerEvents: 'none' }}>{sym}</span>
-              <input type="number" inputMode="decimal" step="any"
-                className={`inv2-inp mono${!isBuySell ? ' big' : ''}`}
-                style={{ paddingLeft: resolvedCurrency === 'EUR' ? 11 : 20 }}
-                autoFocus={!isBuySell} value={total}
-                onChange={e => setTotal(e.target.value)} placeholder="0.00" />
-            </div>
-            {/* Conversió EUR */}
-            {isNonEur && totalOrig > 0 && (
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Geist Mono',monospace", marginTop: 4, textAlign: 'right' }}>
-                {rate
-                  ? <>= <span style={{ color: 'rgba(255,255,255,0.55)' }}>€{totalEur.toFixed(2)}</span> EUR <span style={{ opacity: 0.45 }}>· 1 {sym} = €{rate.toFixed(4)}</span></>
-                  : <span style={{ color: 'rgba(255,90,70,0.65)' }}>Taxa de canvi no disponible</span>
-                }
+            <label className="inv-lbl">{isBuySell?`Total (${sym})`:`Import (${sym})`}</label>
+            <input type="number" inputMode="decimal" step="any" className={`inv-inp mono${!isBuySell?' big':''}`} autoFocus={!isBuySell} value={total} onChange={e=>setTotal(e.target.value)} placeholder="0.00" />
+            {isNonEur&&totalOrig>0 && (
+              <p style={{ fontSize:11, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:5, textAlign:'right' }}>
+                {rate?<>= <span style={{color:COLORS.textPrimary}}>€{totalEur.toFixed(2)}</span> <span style={{opacity:0.4}}>· 1{sym}=€{rate.toFixed(4)}</span></>:<span style={{color:COLORS.neonRed}}>Taxa no disponible</span>}
               </p>
             )}
           </div>
-
-          {/* Data + Nota */}
-          <div className="inv2-grid2">
-            <div><label className="inv2-lbl">Data</label><input type="date" className="inv2-inp" value={date} onChange={e => setDate(e.target.value)} /></div>
-            <div><label className="inv2-lbl">Nota</label><input className="inv2-inp" value={note} onChange={e => setNote(e.target.value)} placeholder="opcional" /></div>
+          <div className="inv-grid2">
+            <div><label className="inv-lbl">Data</label><input type="date" className="inv-inp" value={date} onChange={e=>setDate(e.target.value)} /></div>
+            <div><label className="inv-lbl">Nota</label><input className="inv-inp" value={note} onChange={e=>setNote(e.target.value)} placeholder="opcional" /></div>
           </div>
-
-          {error && <p className="inv2-error">{error}</p>}
+          {error && <p className="inv-error">{error}</p>}
         </div>
-
-        <div className="inv2-mfooter">
-          <button className="inv2-btn-cancel" onClick={onClose}>Cancel·lar</button>
-          <button className={`inv2-btn-ok ${type === 'buy' ? 'grn' : type === 'sell' ? 'org' : 'blu'}`} onClick={submit}>
-            {type === 'buy' ? 'Registrar compra' : type === 'sell' ? 'Registrar venda' : 'Afegir aportació'}
+        <div className="inv-mfooter">
+          <button className="inv-btn-cancel" onClick={onClose}>Cancel·lar</button>
+          <button className={`inv-btn-ok ${type==='buy'?'grn':type==='sell'?'org':'blu'}`} onClick={submit}>
+            {type==='buy'?'Registrar compra':type==='sell'?'Registrar venda':'Afegir aportació'}
           </button>
         </div>
       </div>
