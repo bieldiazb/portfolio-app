@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { fmtEur } from '../utils/format'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
-import { fetchNextDividend } from '../hooks/useDividends'
+import { fetchNextDividend } from '../hooks/Usedividends'
 
 const TrashIcon = ({ size=12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
