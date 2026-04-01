@@ -463,7 +463,7 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
     {expanded && (
       <tr className="inv-expanded-row">
         <td colSpan={8}>
-          <div className="inv-panel" style={{ padding:'16px 0 20px', fontFamily:FONTS.sans }}>
+          <div className="inv-panel" style={{ padding:'16px 5px', fontFamily:FONTS.sans }}>
             {chartData.length>=2 && (
               <div style={{ marginBottom:14 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>

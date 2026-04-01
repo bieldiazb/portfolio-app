@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
 import MetricsBar from './components/MetricsBar'
+import CommoditiesPage from './components/Commoditiespage'
+import DividendsPage from './components/Dividendspage'
+import { useDividends } from './hooks/useDividends'
+import { useCommodities } from './hooks/useCommodities'
 import InvestmentsTable from './components/InvestmentsTable'
 import SavingsList from './components/SavingsList'
 import AllocationChart from './components/AllocationChart'
@@ -35,12 +39,14 @@ export const PAGES = {
   rebalancing: 'Rebalanceig',
   alerts:      'Alertes',
   report:      'Informe PDF',
+  commodities: 'Mat. primeres',
+  dividends:   'Dividends',
 }
 
 const NO_METRICS = new Set(['movements', 'timeline', 'benchmark', 'rebalancing', 'alerts', 'report'])
 
 const appStyles = `
-  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Inter',system-ui,sans-serif; flex-shrink: 0; }
+  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Geist',sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
@@ -73,6 +79,12 @@ const cryVal  = c => {
   if (qty > 0 && c.currentPrice != null) return +(qty * c.currentPrice).toFixed(2)
   return c.totalCost || c.initialValue || 0
 }
+const comVal  = c => {
+  const qty = c.totalQty ?? c.qty ?? 0
+  if (qty > 0 && c.currentPriceEur != null) return +(qty * c.currentPriceEur).toFixed(2)
+  if (qty > 0 && c.currentPrice != null && c.fxRate) return +(qty * c.currentPrice * c.fxRate).toFixed(2)
+  return c.totalCost || 0
+}
 
 export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
@@ -103,6 +115,13 @@ export default function App() {
     addTransaction: addCryptoTx, removeTransaction: removeCryptoTx,
   } = useCryptos(user?.uid)
   const cryptoLoading = false
+
+  // ── Commodities ───────────────────────────────────────────────────────────────
+  const { commodities, addCommodity, removeCommodity, addTransaction: addComTx,
+          removeTransaction: removeComTx, refreshPrices: refreshCom } = useCommodities(user?.uid)
+
+  // ── Dividends ─────────────────────────────────────────────────────────────────
+  const { dividends, addDividend, removeDividend, byMonth, totalThisYear, totalAll: totalDivAll } = useDividends(user?.uid)
 
   // ── FX rates (per conversió USD/GBP→EUR en temps real) ──────────────────────
   const [fxRates, setFxRates] = useState({})
@@ -143,13 +162,15 @@ export default function App() {
 
   // ── Totals ───────────────────────────────────────────────────────────────────
   const totalInv  = investments.reduce((s, inv) => s + invVal(inv, fxRates), 0)
+  const totalCom  = commodities.reduce((s, c) => s + comVal(c), 0)
   const totalSav  = accounts.reduce((s, a) => s + a.balance, 0)
   const totalCry  = cryptos.reduce((s, c) => s + cryVal(c), 0)
   // totalInvCost = cost de les inversions (per MetricsBar i pg)
   const totalInvCost = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
                      + cryptos.reduce((s, c) => s + (c.totalCost || c.initialValue || 0), 0)
+                     + commodities.reduce((s, c) => s + (c.totalCost || 0), 0)
 
-  const totalAll  = totalInv + totalSav + totalCry
+  const totalAll  = totalInv + totalSav + totalCry + totalCom
   const pg        = (totalInv + totalCry) - totalInvCost
   const pgPct     = totalInvCost > 0 ? (pg / totalInvCost) * 100 : 0
 
@@ -189,15 +210,18 @@ export default function App() {
     })
   }, [investments.length]) // eslint-disable-line
 
-  // Preus crypto en carregar
+  // Preus crypto: actualitza en carregar i cada 60 segons
   useEffect(() => {
-    if (!cryptoLoading && cryptos.length) refreshCryptoPrices()
-  }, [cryptoLoading]) // eslint-disable-line
+    if (!cryptos.length) return
+    refreshCryptoPrices()
+    const interval = setInterval(refreshCryptoPrices, 60_000)
+    return () => clearInterval(interval)
+  }, [cryptos.length]) // eslint-disable-line
 
   // Snapshot + alertes quan canvia el total
   useEffect(() => {
     if (totalAll > 0 && user) {
-      saveSnapshot(totalAll, totalInv, totalSav, totalCry)
+      saveSnapshot(totalAll, totalInv + totalCom, totalSav, totalCry)
       checkAlerts(investmentsCompat, cryptos, totalAll, goals, currentPcts)
     }
   }, [totalAll]) // eslint-disable-line
@@ -215,16 +239,23 @@ export default function App() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────────
 
-  const refreshCryptoPrices = async () => {
-    for (const c of cryptos) {
-      if (!c.coinId) continue
-      try {
-        const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${c.coinId}&vs_currencies=eur`)
-        const data = await res.json()
-        if (data[c.coinId]?.eur) updateCryptoPrice(c.id, data[c.coinId].eur)
-      } catch {}
-    }
-  }
+  const refreshCryptoPrices = useCallback(async () => {
+    const coinIds = cryptos.filter(c => c.coinId).map(c => c.coinId)
+    if (!coinIds.length) return
+    try {
+      const res  = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds.join(',')}&vs_currencies=eur`,
+        { signal: AbortSignal.timeout(10000) }
+      )
+      if (!res.ok) return
+      const data = await res.json()
+      cryptos.forEach(c => {
+        if (c.coinId && data[c.coinId]?.eur) {
+          updateCryptoPrice(c.id, data[c.coinId].eur)
+        }
+      })
+    } catch {}
+  }, [cryptos, updateCryptoPrice])
 
   const handleAddInvestment = useCallback(async ({ name, ticker, type }) => {
     await addInvestment({ name, ticker, type })
@@ -316,7 +347,7 @@ export default function App() {
               total={totalAll}
               totalInvCost={totalInvCost}
               totalSav={totalSav}
-              numPositions={investments.length + cryptos.length}
+              numPositions={investments.length + cryptos.length + commodities.length}
               numAccounts={accounts.length}
               pg={pg}
               pgPct={pgPct}
@@ -389,6 +420,8 @@ export default function App() {
                 investments={investmentsCompat}
                 savings={savingsCompat}
                 cryptos={cryptos}
+                commodities={commodities}
+                fxRates={fxRates}
               />
             )}
 
@@ -422,6 +455,29 @@ export default function App() {
                 savings={savingsCompat}
                 cryptos={cryptos}
                 snapshots={snapshots}
+              />
+            )}
+
+            {activeTab === 'dividends' && (
+              <DividendsPage
+                dividends={dividends}
+                addDividend={addDividend}
+                removeDividend={removeDividend}
+                byMonth={byMonth}
+                totalThisYear={totalThisYear}
+                totalAll={totalDivAll}
+                investments={investmentsCompat}
+              />
+            )}
+
+            {activeTab === 'commodities' && (
+              <CommoditiesPage
+                commodities={commodities}
+                onAdd={addCommodity}
+                onRemove={removeCommodity}
+                onAddTransaction={addComTx}
+                onRemoveTransaction={removeComTx}
+                onRefresh={refreshCom}
               />
             )}
 

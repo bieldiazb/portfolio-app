@@ -114,7 +114,7 @@ function ExpandedPanel({ acc, onOpenTx, onRemoveTx, onRemove, formatDate }) {
     { label:'Eliminar', color:COLORS.neonRed,   bg:COLORS.bgRed,   border:COLORS.borderRed,   type:'del', ml:'auto' },
   ]
   return (
-    <div style={{ background:COLORS.elevated, borderTop:`1px solid ${COLORS.border}`, padding:'14px 0 16px', fontFamily:FONTS.sans }}>
+    <div style={{ background:COLORS.elevated, borderTop:`1px solid ${COLORS.border}`, padding:'14px 5px', fontFamily:FONTS.sans }}>
       <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:14 }}>
         {btns.map(b => (
           <button key={b.type} onClick={()=>b.type==='del'?onRemove():onOpenTx(b.type)}

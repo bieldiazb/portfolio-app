@@ -1,67 +1,75 @@
 import { useState } from 'react'
+import { COLORS, FONTS} from './../components/design-tokens'
 
 const dialogStyles = `
   .cd-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(5px);
+    background: rgba(0,0,0,0.80);
     z-index: 200;
     display: flex; align-items: center; justify-content: center;
     padding: 16px;
-    animation: cdFadeIn 150ms ease;
+    animation: cdFadeIn 120ms ease;
   }
-  @keyframes cdFadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes cdFadeIn { from { opacity:0 } to { opacity:1 } }
 
   .cd-box {
-    font-family: 'Geist', sans-serif;
-    background: #111;
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 14px;
-    width: 100%;
-    max-width: 380px;
-    padding: 24px 20px 22px;
-    animation: cdPop 200ms cubic-bezier(0.34,1.56,0.64,1);
+    font-family: ${FONTS.sans};
+    background: ${COLORS.surface};
+    border: 1px solid ${COLORS.border};
+    border-radius: 6px;
+    width: 100%; max-width: 360px;
+    padding: 22px 20px 20px;
+    animation: cdPop 160ms cubic-bezier(0.34,1.4,0.64,1);
   }
   @keyframes cdPop {
-    from { transform: scale(0.94); opacity: 0 }
-    to   { transform: scale(1);    opacity: 1 }
+    from { transform: scale(0.96); opacity:0 }
+    to   { transform: scale(1);    opacity:1 }
   }
 
   .cd-icon {
-    width: 42px; height: 42px; border-radius: 10px;
-    background: rgba(220,50,40,0.10);
-    border: 1px solid rgba(220,50,40,0.18);
+    width: 36px; height: 36px; border-radius: 4px;
+    background: ${COLORS.bgRed};
+    border: 1px solid ${COLORS.borderRed};
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 14px;
   }
+
   .cd-title {
-    font-size: 16px; font-weight: 500;
-    color: rgba(255,255,255,0.88);
-    letter-spacing: -0.3px; margin-bottom: 6px;
+    font-size: 14px; font-weight: 600;
+    color: ${COLORS.textPrimary};
+    letter-spacing: -0.2px; margin-bottom: 6px;
   }
   .cd-sub {
-    font-size: 13px; color: rgba(255,255,255,0.38);
-    line-height: 1.55; margin-bottom: 22px;
+    font-size: 12px;
+    color: ${COLORS.textMuted};
+    line-height: 1.6; margin-bottom: 20px;
   }
-  .cd-name { color: rgba(255,255,255,0.65); font-weight: 500; }
-  .cd-btns { display: flex; gap: 8px; }
+  .cd-name {
+    color: ${COLORS.textSecondary};
+    font-weight: 500;
+    font-family: ${FONTS.mono};
+  }
+
+  .cd-btns { display:flex; gap:8px; }
+
   .cd-cancel {
-    flex: 1; padding: 13px;
-    border: 1px solid rgba(255,255,255,0.10);
-    background: transparent; border-radius: 8px;
-    font-family: 'Geist', sans-serif; font-size: 14px;
-    color: rgba(255,255,255,0.42); cursor: pointer;
+    flex: 1; padding: 10px;
+    border: 1px solid ${COLORS.border};
+    background: transparent; border-radius: 4px;
+    font-family: ${FONTS.sans}; font-size: 13px;
+    color: ${COLORS.textSecondary}; cursor: pointer;
     transition: all 100ms; -webkit-tap-highlight-color: transparent;
   }
-  .cd-cancel:active { background: rgba(255,255,255,0.05); }
+  .cd-cancel:hover { border-color: ${COLORS.borderHi}; color: ${COLORS.textPrimary}; }
+
   .cd-delete {
-    flex: 1; padding: 13px; border: none;
-    background: rgba(210,45,35,0.90); border-radius: 8px;
-    font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 500;
-    color: #fff; cursor: pointer; transition: background 100ms;
+    flex: 1; padding: 10px; border: none;
+    background: ${COLORS.neonRed}; border-radius: 4px;
+    font-family: ${FONTS.sans}; font-size: 13px; font-weight: 600;
+    color: #fff; cursor: pointer; transition: opacity 100ms;
     -webkit-tap-highlight-color: transparent;
   }
-  .cd-delete:active { background: rgba(210,45,35,1); }
+  .cd-delete:hover { opacity: 0.85; }
 `
 
 export function ConfirmDialog({ state, onClose }) {
@@ -72,8 +80,8 @@ export function ConfirmDialog({ state, onClose }) {
       <div className="cd-overlay" onClick={onClose}>
         <div className="cd-box" onClick={e => e.stopPropagation()}>
           <div className="cd-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(220,60,50,0.90)" strokeWidth="2"
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke={COLORS.neonRed} strokeWidth="1.8"
               strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>

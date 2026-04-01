@@ -1,27 +1,37 @@
-export const fmtEur = (n) => {
-  if (n === null || n === undefined || isNaN(n)) return '—'
+// ─── utils/format.js ─────────────────────────────────────────────────────────
+// Substitueix el teu utils/format.js existent
+
+export function fmtEur(n) {
+  if (n == null || isNaN(n)) return '—'
   return new Intl.NumberFormat('ca-ES', {
     style: 'currency', currency: 'EUR',
-    minimumFractionDigits: 2, maximumFractionDigits: 2
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
   }).format(n)
 }
 
-export const fmtPct = (n) => {
-  if (n === null || n === undefined || isNaN(n)) return '—'
-  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%'
+export function fmtPct(n) {
+  if (n == null || isNaN(n)) return '—'
+  return `${Math.abs(n).toFixed(2)}%`
 }
 
-export const getEffectiveValue = (inv) => {
-  if (inv.qty && inv.currentPrice !== null && inv.currentPrice !== undefined) {
-    return +(inv.qty * inv.currentPrice).toFixed(2)
+// ── getEffectiveValue ─────────────────────────────────────────────────────────
+// Retorna el valor actual d'una inversió en EUR.
+// Accepta opcionalment fxRates={ USD: 0.92, GBP: 1.17, ... }
+// per fer la conversió amb la taxa live en lloc de la taxa hardcodejada.
+export function getEffectiveValue(inv, fxRates = {}) {
+  const qty      = inv.totalQty || inv.qty || 0
+  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+
+  // 1. Preu original en la seva moneda × taxa live → EUR (més precís)
+  if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr]) {
+    return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
   }
-  return inv.initialValue
-}
 
-export const TYPE_META = {
-  efectiu: { label: 'Efectiu', colorTw: 'text-slate-500',   bgTw: 'bg-slate-100'    },
-  estalvi: { label: 'Estalvi', colorTw: 'text-emerald-600', bgTw: 'bg-emerald-50'   },
-  etf:     { label: 'ETF',     colorTw: 'text-blue-600',    bgTw: 'bg-blue-50'      },
-  stock:   { label: 'Acció',   colorTw: 'text-violet-600',  bgTw: 'bg-violet-50'    },
-  robo:    { label: 'Robo',    colorTw: 'text-amber-600',   bgTw: 'bg-amber-50'     },
+  // 2. currentPrice ja en EUR (guardat per usePriceFetcher)
+  if (inv.currentPrice != null && qty > 0) {
+    return +(qty * inv.currentPrice).toFixed(2)
+  }
+
+  // 3. Fallback: cost d'adquisició
+  return inv.totalCost || inv.initialValue || 0
 }
