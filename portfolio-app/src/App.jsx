@@ -6,6 +6,7 @@ import DividendsPage from './components/Dividendspage'
 import NewsPage from './components/Newspage'
 import GoalsPage from './components/Goalspage'
 import { useGoals } from './hooks/Usegoals'
+import AIAnalyst from './components/Aianalyst'
 import { useDividends } from './hooks/Usedividends'
 import { useCommodities } from './hooks/useCommodities'
 import InvestmentsTable from './components/InvestmentsTable'
@@ -420,6 +421,17 @@ export default function App() {
           </main>
         </div>
       </div>
+      {/* AI Analyst — botó flotant visible des de qualsevol pàgina */}
+      <AIAnalyst
+        investments={investmentsCompat}
+        savings={savingsCompat}
+        cryptos={cryptos}
+        commodities={commodities}
+        totalAll={totalAll}
+        totalCost={totalCost}
+        pg={pg}
+        pgPct={pgPct}
+      />
     </>
   )
 }
