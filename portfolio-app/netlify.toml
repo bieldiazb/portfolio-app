@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 # Yahoo Finance — proxy principal
 [[redirects]]
@@ -9,7 +10,7 @@
   status = 200
   force = true
 
-# Yahoo Finance — fallback query2 (si query1 falla)
+# Yahoo Finance — fallback query2
 [[redirects]]
   from = "/yahoo2/*"
   to = "https://query2.finance.yahoo.com/:splat"
@@ -30,10 +31,17 @@
   status = 200
   force = true
 
-# CoinGecko — proxy per evitar CORS i rate limiting
+# CoinGecko — proxy per evitar CORS
 [[redirects]]
   from = "/coingecko/*"
   to = "https://api.coingecko.com/:splat"
+  status = 200
+  force = true
+
+# Claude API — Netlify Function (injecta x-api-key del servidor)
+[[redirects]]
+  from = "/claude/*"
+  to = "/.netlify/functions/claude"
   status = 200
   force = true
 
