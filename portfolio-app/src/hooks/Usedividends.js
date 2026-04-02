@@ -54,40 +54,80 @@ export function generateDividendDates(lastExDate, lastPayDate, frequency, yearsA
 // A partir d'ells calculem freqüència i projectem totes les dates de l'any.
 export async function fetchDividendInfo(ticker) {
   try {
+    // range=2y + events=dividends per obtenir l'historial real de pagaments
     const res = await fetch(
-      `/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`,
+      `/yahoo/v8/finance/chart/${ticker}?interval=1mo&range=2y&events=dividends`,
       { signal: AbortSignal.timeout(8000) }
     )
     if (!res.ok) return null
     const data = await res.json()
-    const meta = data?.chart?.result?.[0]?.meta
-    if (!meta) return null
+    const result = data?.chart?.result?.[0]
+    if (!result) return null
 
+    const meta = result.meta || {}
+
+    // Dividends històrics de Yahoo (timestamps)
+    const rawDivs = result.events?.dividends
+      ? Object.values(result.events.dividends)
+      : []
+
+    // Ordena per data desc
+    const histDivs = rawDivs
+      .map(d => ({
+        date:   new Date(d.date * 1000).toISOString().split('T')[0],
+        amount: d.amount,
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date))
+
+    // Ex-date del meta (el proper confirmat)
     const exDate = meta.exDividendDate
       ? new Date(meta.exDividendDate * 1000).toISOString().split('T')[0]
       : null
 
-    const dividendRate = meta.dividendRate || null
-    const trailingRate = meta.trailingAnnualDividendRate || null
+    const dividendRate  = meta.dividendRate || null
+    const trailingRate  = meta.trailingAnnualDividendRate || null
     const dividendYield = meta.dividendYield || null
     const trailingYield = meta.trailingAnnualDividendYield || null
 
-    const frequency = guessFrequency(dividendRate, trailingRate)
+    // Calcula freqüència real a partir dels pagaments històrics
+    let frequency = guessFrequency(dividendRate, trailingRate)
+    if (histDivs.length >= 3) {
+      // Mira l'interval mitjà entre els últims pagaments (en mesos)
+      const gaps = []
+      for (let i = 0; i < Math.min(histDivs.length - 1, 6); i++) {
+        const a = new Date(histDivs[i].date)
+        const b = new Date(histDivs[i + 1].date)
+        const months = (a.getFullYear() - b.getFullYear()) * 12 + (a.getMonth() - b.getMonth())
+        if (months > 0 && months <= 13) gaps.push(months)
+      }
+      if (gaps.length > 0) {
+        const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length
+        if      (avgGap <= 1.5) frequency = 12
+        else if (avgGap <= 2.5) frequency = 6
+        else if (avgGap <= 4.5) frequency = 4
+        else if (avgGap <= 7)   frequency = 2
+        else                    frequency = 1
+      }
+    }
 
-    // Yahoo no dona el payDate via /chart, però típicament és
-    // ~2-4 setmanes després de l'ex-date. Usem l'ex-date com a referència.
-    const allDates = generateDividendDates(exDate, null, frequency)
+    // Data de referència: el darrer pagament històric és el més fiable
+    // Si no, usem l'exDate del meta
+    const refDate = histDivs[0]?.date || exDate
+
+    const allDates = generateDividendDates(refDate, null, frequency)
 
     return {
       exDate,
-      payDate: null,
+      payDate:      null,
       dividendRate,
       dividendYield,
       trailingRate,
       trailingYield,
       frequency,
       allDates,
-      source: 'chart',
+      histDivs,   // historial per debug
+      refDate,
+      source: 'chart-events',
     }
   } catch { return null }
 }

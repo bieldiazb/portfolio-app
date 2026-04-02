@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import CorrelationMatrix from './Correlationmatrix'
 import { fmtEur, getEffectiveValue } from '../utils/format'
 import { SHARED_STYLES, COLORS, FONTS, CHART_COLORS, TYPE_COLORS } from './design-tokens'
 
@@ -177,6 +178,7 @@ export default function AllocationChart({ investments, savings, cryptos=[], comm
           )
         })}
       </div>
+      <CorrelationMatrix investments={investments}/>
     </div>
   )
 }
