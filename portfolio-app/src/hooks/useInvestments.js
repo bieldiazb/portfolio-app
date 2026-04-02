@@ -66,25 +66,29 @@ export function useInvestments(uid) {
             const txs = txSnap.docs.map(t => ({ id: t.id, ...t.data() }))
 
             // Calcula totals
-            let totalQty  = 0
-            let totalCost = 0
+            let totalQty     = 0
+            let totalCost    = 0   // en moneda original (USD per LMT, EUR per ETFs)
+            let totalCostEur = 0   // sempre en EUR (per totals globals)
             txs.forEach(tx => {
               if (tx.type === 'buy') {
-                totalQty  += tx.qty || 0
-                totalCost += tx.totalCost || 0
+                totalQty     += tx.qty || 0
+                totalCost    += tx.totalCost || 0
+                totalCostEur += tx.totalCostEur || tx.totalCost || 0
               } else if (tx.type === 'sell') {
-                totalQty  -= tx.qty || 0
-                // Al vendre, reduïm el cost proporcionalment
-                totalCost -= (tx.qty || 0) * (totalQty > 0 ? totalCost / (totalQty + (tx.qty || 0)) : 0)
+                const avgBefore    = totalQty > 0 ? totalCost    / totalQty : 0
+                const avgEurBefore = totalQty > 0 ? totalCostEur / totalQty : 0
+                totalQty     -= tx.qty || 0
+                totalCost    -= (tx.qty || 0) * avgBefore
+                totalCostEur -= (tx.qty || 0) * avgEurBefore
               } else if (tx.type === 'capital') {
-                // Aportació de capital sense canvi de qty (ex: dividends reinvertits, ajust)
-                totalCost += tx.totalCost || 0
+                totalCost    += tx.totalCost || 0
+                totalCostEur += tx.totalCostEur || tx.totalCost || 0
               }
             })
             const avgCost = totalQty > 0 ? totalCost / totalQty : 0
 
             if (invRef.current[id]) {
-              invRef.current[id] = { ...invRef.current[id], txs, totalQty, totalCost, avgCost }
+              invRef.current[id] = { ...invRef.current[id], txs, totalQty, totalCost, totalCostEur, avgCost }
               publish()
             }
           })

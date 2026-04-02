@@ -6,7 +6,7 @@ import DividendsPage from './components/Dividendspage'
 import NewsPage from './components/Newspage'
 import GoalsPage from './components/Goalspage'
 import { useGoals } from './hooks/Usegoals'
-import AIAnalyst from './components/Aianalyst'
+import AIAnalyst from './components/Aianalyst.JSX'
 import { useDividends } from './hooks/Usedividends'
 import { useCommodities } from './hooks/useCommodities'
 import InvestmentsTable from './components/InvestmentsTable'
@@ -71,11 +71,21 @@ const appStyles = `
 const invVal = (inv, fxRates = {}) => {
   const origCurr = inv.originalCurrency || inv.currency || 'EUR'
   const qty      = inv.totalQty || 0
+
+  // Actius sense qty (efectiu, robo sense transaccions): usa currentPrice directament
+  if (qty === 0) {
+    if (inv.currentPrice != null) return inv.currentPrice
+    return inv.totalCostEur || inv.totalCost || 0
+  }
+
+  // 1. Preu original × taxa live → EUR (més precís per USD)
   if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr]) {
     return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
   }
+  // 2. Preu actual en EUR (guardat per usePriceFetcher)
   if (inv.currentPrice != null && qty > 0) return +(qty * inv.currentPrice).toFixed(2)
-  return inv.totalCost || 0
+  // 3. Fallback: cost en EUR (mai 0 si hi ha dades)
+  return inv.totalCostEur || inv.totalCost || 0
 }
 const cryVal = c => {
   const qty = c.totalQty ?? c.qty ?? 0
@@ -147,7 +157,10 @@ export default function App() {
   const totalCom     = commodities.reduce((s, c) => s + comVal(c), 0)
   const totalSav     = accounts.reduce((s, a) => s + a.balance, 0)
   const totalCry     = cryptos.reduce((s, c) => s + cryVal(c), 0)
-  const totalInvCost = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
+  // totalCostEur: cost en EUR (usa la conversió al moment de compra)
+  // Per actius EUR: totalCostEur == totalCost
+  // Per actius USD: totalCostEur = totalCost / fxRateAtBuy (correcte)
+  const totalInvCost = investments.reduce((s, inv) => s + (inv.totalCostEur || inv.totalCost || 0), 0)
                      + cryptos.reduce((s, c) => s + (c.totalCost || c.initialValue || 0), 0)
                      + commodities.reduce((s, c) => s + (c.totalCost || 0), 0)
   const totalAll  = totalInv + totalSav + totalCry + totalCom
@@ -260,10 +273,11 @@ export default function App() {
       } else {
         // addInvestment retorna el docRef amb l'id
         const docRef = await addInvestment({
-          name:     asset.name || asset.ticker || key,
-          ticker:   asset.ticker || '',
-          type:     asset.type || 'stock',
-          currency: asset.currency || 'EUR',
+          name:             asset.name || asset.ticker || key,
+          ticker:           asset.ticker || '',
+          type:             asset.type || 'stock',
+          currency:         asset.currency || 'EUR',
+          originalCurrency: asset.currency || 'EUR',
         })
         // addInvestment pot retornar el ref o no — agafem l'id directament
         if (docRef?.id) {
@@ -284,12 +298,19 @@ export default function App() {
       // Afegeix cada transacció directament amb l'id
       for (const tx of asset.txs) {
         await addInvTx(invId, {
-          qty:          tx.qty,
-          pricePerUnit: tx.pricePerUnit || 0,
-          totalCost:    tx.totalCost || 0,
-          type:         tx.action || 'buy',
-          date:         tx.date || new Date().toISOString().split('T')[0],
-          note:         `Importat des de ${broker}`,
+          qty:             tx.qty,
+          pricePerUnit:    tx.pricePerUnit || 0,
+          // totalCost en moneda original (USD per LMT, EUR per ETFs)
+          // el hook calcula avgCost en moneda original → P&G correcte
+          totalCost:       tx.totalCost || 0,
+          totalCostEur:    tx.totalCostEur || tx.totalCost || 0,
+          currency:        tx.currency || 'EUR',
+          fxRate:          tx.fxRate || 1,
+          type:            tx.action || 'buy',
+          date:            tx.date || new Date().toISOString().split('T')[0],
+          note:            `Importat des de ${broker}`,
+          originalCurrency: tx.currency || 'EUR',
+          originalPrice:   tx.pricePerUnit || 0,
         })
       }
     }

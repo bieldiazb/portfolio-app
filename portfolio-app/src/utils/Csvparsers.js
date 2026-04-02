@@ -150,14 +150,20 @@ function parseRevolut(rows) {
     const assetType = curr === 'EUR' ? 'etf' : 'stock'
 
     const isBuy = typeLow.includes('buy')
+    const fxRate = cleanNum(r['fx rate'] || r['fx_rate'] || '1') || 1
+
     result.push({
-      name:         ticker, // Revolut no dona el nom complet
+      name:         ticker,
       ticker:       normalizedTicker,
       date:         date || new Date().toISOString().split('T')[0],
       qty:          Math.abs(qty),
+      // Guardem en moneda ORIGINAL (USD per LMT, EUR per ETFs)
+      // El P&G es calcula en moneda original → resultat correcte
       pricePerUnit: price || (qty > 0 ? total / qty : 0),
-      totalCost:    total,
+      totalCost:    total,          // en moneda original (USD o EUR)
+      totalCostEur: curr === 'EUR' ? total : total / fxRate, // per referència
       currency:     curr,
+      fxRate:       fxRate,         // taxa al moment de compra
       action:       isBuy ? 'buy' : 'sell',
       type:         assetType,
       source:       'Revolut',
