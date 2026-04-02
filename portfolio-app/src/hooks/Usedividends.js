@@ -18,29 +18,28 @@ function guessFrequency(dividendRate, trailingRate) {
   return 12
 }
 
-export function generateDividendDates(lastExDate, lastPayDate, frequency, yearsAhead = 1) {
-  // Usem payDate si disponible, sinó exDate com a referència
-  const refDateStr = lastPayDate || lastExDate
-  if (!refDateStr) return []
+export function generateDividendDates(refDate, frequency, yearsAhead = 1) {
+  // refDate: última data de pagament REAL coneguda (de l'historial)
+  if (!refDate || !frequency) return []
 
   const monthGap  = Math.round(12 / frequency)
   const now       = new Date()
   const yearStart = new Date(now.getFullYear(), 0, 1)
   const limit     = new Date(now.getFullYear() + yearsAhead, 11, 31)
 
-  let current = new Date(refDateStr)
-  // Retrocedim fins a estar dins o just abans de l'any actual
+  // Partim de la data de referència i retrocedim fins a l'any actual
+  let current = new Date(refDate)
   while (current > yearStart) {
     current = new Date(current.getFullYear(), current.getMonth() - monthGap, current.getDate())
   }
-  // Avancem i recollim totes les dates dins el rang
+
   const dates = []
   current = new Date(current.getFullYear(), current.getMonth() + monthGap, current.getDate())
   while (current <= limit) {
     if (current >= yearStart) {
       dates.push({
         date:    current.toISOString().split('T')[0],
-        isExact: false, // projectada, no confirmada
+        isExact: false,
       })
     }
     current = new Date(current.getFullYear(), current.getMonth() + monthGap, current.getDate())
@@ -56,7 +55,7 @@ export async function fetchDividendInfo(ticker) {
   try {
     // range=2y + events=dividends per obtenir l'historial real de pagaments
     const res = await fetch(
-      `/yahoo/v8/finance/chart/${ticker}?interval=1mo&range=2y&events=dividends`,
+      `/yahoo/v8/finance/chart/${ticker}?interval=1mo&range=5y&events=dividends`,
       { signal: AbortSignal.timeout(8000) }
     )
     if (!res.ok) return null
@@ -71,13 +70,15 @@ export async function fetchDividendInfo(ticker) {
       ? Object.values(result.events.dividends)
       : []
 
-    // Ordena per data desc
+    // Ordena per data DESC (el més recent primer)
+    // IMPORTANT: d.date és el PAY DATE real, no l'ex-date
     const histDivs = rawDivs
       .map(d => ({
         date:   new Date(d.date * 1000).toISOString().split('T')[0],
         amount: d.amount,
+        ts:     d.date,
       }))
-      .sort((a, b) => b.date.localeCompare(a.date))
+      .sort((a, b) => b.ts - a.ts)  // ordena per timestamp numèric
 
     // Ex-date del meta (el proper confirmat)
     const exDate = meta.exDividendDate
