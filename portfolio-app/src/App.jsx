@@ -237,7 +237,7 @@ export default function App() {
   }, [addInvestment, fetchOne, setStatus, updateCurrentPrice, investments])
 
   const handleImportCSV = useCallback(async (transactions, broker) => {
-    // Agrupa per ticker/nom i crea/actualitza inversions
+    // Agrupa per ticker
     const byAsset = {}
     transactions.forEach(t => {
       const key = t.ticker || t.name
@@ -246,33 +246,43 @@ export default function App() {
     })
 
     for (const [key, asset] of Object.entries(byAsset)) {
-      // Busca si ja existeix la inversió
-      let inv = investments.find(i =>
-        (i.ticker && i.ticker === asset.ticker) ||
+      // Busca si ja existeix
+      let existingInv = investments.find(i =>
+        (i.ticker && i.ticker.toUpperCase() === asset.ticker?.toUpperCase()) ||
         (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
       )
 
-      // Si no existeix, crea-la
-      if (!inv) {
-        await addInvestment({
+      let invId
+
+      if (existingInv) {
+        invId = existingInv.id
+      } else {
+        // addInvestment retorna el docRef amb l'id
+        const docRef = await addInvestment({
           name:     asset.name || asset.ticker || key,
           ticker:   asset.ticker || '',
           type:     asset.type || 'stock',
           currency: asset.currency || 'EUR',
         })
-        // Espera que Firestore la creï
-        await new Promise(r => setTimeout(r, 800))
-        inv = investments.find(i =>
-          (i.ticker && i.ticker === asset.ticker) ||
-          (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
-        )
+        // addInvestment pot retornar el ref o no — agafem l'id directament
+        if (docRef?.id) {
+          invId = docRef.id
+        } else {
+          // Esperem que onSnapshot actualitzi investments i busquem de nou
+          await new Promise(r => setTimeout(r, 1200))
+          const fresh = investments.find(i =>
+            (i.ticker && i.ticker.toUpperCase() === asset.ticker?.toUpperCase()) ||
+            (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
+          )
+          invId = fresh?.id
+        }
       }
 
-      if (!inv) continue
+      if (!invId) continue
 
-      // Afegeix cada transacció
+      // Afegeix cada transacció directament amb l'id
       for (const tx of asset.txs) {
-        await addInvTx(inv.id, {
+        await addInvTx(invId, {
           qty:          tx.qty,
           pricePerUnit: tx.pricePerUnit || 0,
           totalCost:    tx.totalCost || 0,

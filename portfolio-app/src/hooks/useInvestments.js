@@ -105,8 +105,8 @@ export function useInvestments(uid) {
   // ── Accions ─────────────────────────────────────────────────────────────────
 
   const addInvestment = useCallback(async ({ name, ticker, type, notes, currency }) => {
-    if (!uid) return
-    await addDoc(collection(db, 'users', uid, 'investments'), {
+    if (!uid) return null
+    const docRef = await addDoc(collection(db, 'users', uid, 'investments'), {
       name,
       ticker:           ticker || '',
       type:             type || 'etf',
@@ -117,6 +117,7 @@ export function useInvestments(uid) {
       originalPrice:    null,
       createdAt:        serverTimestamp(),
     })
+    return docRef
   }, [uid])
 
   const removeInvestment = useCallback(async (invId) => {
