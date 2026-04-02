@@ -2,35 +2,42 @@
   command = "npm run build"
   publish = "dist"
 
+# Yahoo Finance — proxy principal
 [[redirects]]
   from = "/yahoo/*"
   to = "https://query1.finance.yahoo.com/:splat"
   status = 200
   force = true
-  [redirects.headers]
-    User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    Accept = "application/json, text/plain, */*"
-    Accept-Language = "en-US,en;q=0.9"
-    Origin = "https://finance.yahoo.com"
-    Referer = "https://finance.yahoo.com/"
 
+# Yahoo Finance — fallback query2 (si query1 falla)
+[[redirects]]
+  from = "/yahoo2/*"
+  to = "https://query2.finance.yahoo.com/:splat"
+  status = 200
+  force = true
+
+# Yahoo search
 [[redirects]]
   from = "/yahoo-search/*"
   to = "https://query1.finance.yahoo.com/:splat"
   status = 200
   force = true
-  [redirects.headers]
-    User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    Accept = "application/json, text/plain, */*"
-    Origin = "https://finance.yahoo.com"
-    Referer = "https://finance.yahoo.com/"
 
+# Yahoo autocomplete
 [[redirects]]
   from = "/yahoo-ac"
   to = "https://autoc.finance.yahoo.com/autoc:splat"
   status = 200
   force = true
 
+# CoinGecko — proxy per evitar CORS i rate limiting
+[[redirects]]
+  from = "/coingecko/*"
+  to = "https://api.coingecko.com/:splat"
+  status = 200
+  force = true
+
+# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"

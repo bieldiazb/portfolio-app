@@ -115,8 +115,9 @@ function parseRevolut(rows) {
 
     if (!ticker || qty === 0) return
     const isBuy = type.includes('buy') || type.includes('compra') || (!type.includes('sell') && !type.includes('venda'))
+    const normalizedTicker = normalizeEuropeanTicker(ticker, curr)
     result.push({
-      name, ticker,
+      name, ticker: normalizedTicker,
       date:         formatDate(date),
       qty:          Math.abs(qty),
       pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
@@ -145,8 +146,9 @@ function parseTradeRepublic(rows) {
 
     if (!name || qty === 0) return
     const isBuy = type.includes('buy') || type.includes('purchase') || type.includes('saving')
+    const trTicker = r['ticker'] || r['symbol'] || normalizeEuropeanTicker(isin?.slice(-6) || name?.slice(0,6), curr)
     result.push({
-      name, ticker: isin, isin,
+      name, ticker: trTicker, isin,
       date:         formatDate(date),
       qty:          Math.abs(qty),
       pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
@@ -240,6 +242,29 @@ function formatDate(s) {
     return parseInt(a) > 12 ? `${c}-${b}-${a}` : `${c}-${a}-${b}`
   }
   try { return new Date(s).toISOString().split('T')[0] } catch { return s }
+}
+
+// ── Normalitza ticker europeu ─────────────────────────────────────────────────
+// Revolut i Trade Republic sovint no posen l'extensió de borsa.
+// Intentem afegir-la basant-nos en patrons coneguts.
+function normalizeEuropeanTicker(ticker, currency) {
+  if (!ticker) return ticker
+  // Ja té extensió
+  if (ticker.includes('.')) return ticker
+  // Si la moneda és EUR, probablement és un mercat europeu
+  if (currency === 'EUR') {
+    // ETFs iShares/Vanguard/Amundi comuns a Euronext Amsterdam o Xetra
+    const xetraETFs = ['EUNL','VUAA','IWDA','CSPX','VWCE','VUSA','EUNM','IEMA',
+                       'SPPW','VFEM','EQQQ','IQQQ','QDVE','EXXT','XDWD','DBXW']
+    const euronextETFs = ['IWDA','VWCE','CSPX','VUAA','EUNL']
+    if (xetraETFs.includes(ticker.toUpperCase())) return ticker + '.DE'
+    // Per defecte per ETFs EUR sense extensió, prova .DE
+    return ticker + '.DE'
+  }
+  // GBP → LSE
+  if (currency === 'GBP') return ticker + '.L'
+  // USD → no cal extensió (NYSE/NASDAQ)
+  return ticker
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────

@@ -211,7 +211,8 @@ export default function App() {
     const coinIds = cryptos.filter(c => c.coinId).map(c => c.coinId)
     if (!coinIds.length) return
     try {
-      const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinIds.join(',')}&vs_currencies=eur`, { signal: AbortSignal.timeout(10000) })
+      // Usem el proxy de Netlify per evitar CORS i rate limiting de CoinGecko
+      const res  = await fetch(`/coingecko/api/v3/simple/price?ids=${coinIds.join(',')}&vs_currencies=eur`, { signal: AbortSignal.timeout(10000) })
       if (!res.ok) return
       const data = await res.json()
       cryptos.forEach(c => { if (c.coinId && data[c.coinId]?.eur) updateCryptoPrice(c.id, data[c.coinId].eur) })

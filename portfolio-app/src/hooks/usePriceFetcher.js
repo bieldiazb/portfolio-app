@@ -10,11 +10,29 @@ async function getExchangeRate(from, to) {
   } catch { return null }
 }
 
+// Tickers europeus sense extensió → prova afegint .DE o .AS
+const EU_SUFFIXES = ['.DE', '.AS', '.PA', '.MI', '.L']
+async function tryFetchTicker(ticker) {
+  // Prova primer query1, fallback query2
+  for (const base of ['/yahoo', '/yahoo2']) {
+    const res = await fetch(`${base}/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+    if (res.ok) return res
+  }
+  return null
+}
+
 async function getPriceWithCurrency(ticker) {
   if (!ticker) return null
   try {
-    const res = await fetch(`/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return null
+    let res = await tryFetchTicker(ticker)
+    // Si falla i no té extensió, prova extensions europees
+    if (!res && !ticker.includes('.')) {
+      for (const suffix of EU_SUFFIXES) {
+        res = await tryFetchTicker(ticker + suffix)
+        if (res) { ticker = ticker + suffix; break }
+      }
+    }
+    if (!res) return null
     const data     = await res.json()
     const result   = data?.chart?.result?.[0]
     const price    = result?.meta?.regularMarketPrice
