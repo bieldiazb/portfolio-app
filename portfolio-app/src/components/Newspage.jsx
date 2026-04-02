@@ -3,55 +3,59 @@ import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 
 // ── Fetch notícies via Yahoo Finance RSS ──────────────────────────────────────
 async function fetchNews(ticker = null) {
+  // Estratègia: prova múltiples endpoints fins trobar un que funcioni
+
+  // 1. Yahoo Finance search amb notícies (funciona amb el proxy actual)
   try {
     const url = ticker
-      ? `/yahoo/v2/finance/news?tickers=${encodeURIComponent(ticker)}&count=20&lang=en`
-      : `/yahoo/v2/finance/news?category=generalnews&count=20&lang=en`
+      ? `/yahoo/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=20&quotesCount=0&lang=en`
+      : `/yahoo/v1/finance/search?q=market+news+stocks&newsCount=20&quotesCount=0&lang=en`
 
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
-    if (!res.ok) throw new Error('fetch failed')
-    const data = await res.json()
+    if (res.ok) {
+      const data  = await res.json()
+      const items = data?.news || []
+      if (items.length > 0) {
+        return items.map(item => ({
+          id:        item.uuid || Math.random().toString(36),
+          title:     item.title || '',
+          summary:   item.summary || '',
+          url:       item.link || '#',
+          source:    item.publisher || 'Yahoo Finance',
+          time:      item.providerPublishTime || 0,
+          thumbnail: item.thumbnail?.resolutions?.[0]?.url || null,
+          tickers:   item.relatedTickers || [],
+        })).filter(n => n.title)
+      }
+    }
+  } catch {}
 
-    // Yahoo retorna { items: { result: [...] } } o { data: [...] }
-    const items = data?.items?.result
-      || data?.data
-      || data?.news
-      || []
-
-    return items.map(item => ({
-      id:        item.id || item.uuid || Math.random().toString(36),
-      title:     item.title || item.headline || '',
-      summary:   item.summary || item.shortDescription || '',
-      url:       item.url || item.link || '#',
-      source:    item.publisher || item.source?.label || item.source || 'Yahoo Finance',
-      time:      item.providerPublishTime || item.pubTime || item.published_at || 0,
-      thumbnail: item.thumbnail?.resolutions?.[0]?.url || item.main_image?.original_url || null,
-      tickers:   item.relatedTickers || item.tickers || [],
-    })).filter(n => n.title)
-
-  } catch {
-    // Fallback: RSS via allorigins
-    try {
-      const rssUrl = ticker
-        ? `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`
-        : `https://feeds.finance.yahoo.com/rss/2.0/headline?region=US&lang=en-US`
-      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`
-      const res2  = await fetch(proxy, { signal: AbortSignal.timeout(8000) })
-      if (!res2.ok) return []
-      const xml   = await res2.text()
-      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
-      return items.slice(0, 20).map((m, i) => {
-        const inner   = m[1]
-        const title   = inner.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || inner.match(/<title>(.*?)<\/title>/)?.[1] || ''
-        const link    = inner.match(/<link>(.*?)<\/link>/)?.[1] || '#'
-        const desc    = inner.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || ''
-        const source  = inner.match(/<source[^>]*>(.*?)<\/source>/)?.[1] || 'Yahoo Finance'
-        const pubDate = inner.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
-        const time    = pubDate ? new Date(pubDate).getTime() / 1000 : 0
-        return { id: `rss-${i}`, title, summary: desc.replace(/<[^>]+>/g, '').slice(0, 200), url: link, source, time, thumbnail: null, tickers: [] }
-      }).filter(n => n.title)
-    } catch { return [] }
-  }
+  // 2. Fallback: RSS de Yahoo Finance via proxy allorigins
+  try {
+    const rssUrl = ticker
+      ? `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`
+      : `https://feeds.finance.yahoo.com/rss/2.0/headline?region=US&lang=en-US`
+    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`
+    const res2  = await fetch(proxy, { signal: AbortSignal.timeout(10000) })
+    if (!res2.ok) return []
+    const xml   = await res2.text()
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
+    return items.slice(0, 20).map((m, i) => {
+      const inner   = m[1]
+      const title   = inner.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1]
+                   || inner.match(/<title>(.*?)<\/title>/)?.[1] || ''
+      const link    = inner.match(/<link>(.*?)<\/link>/)?.[1] || '#'
+      const desc    = inner.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || ''
+      const source  = inner.match(/<source[^>]*>(.*?)<\/source>/)?.[1] || 'Yahoo Finance'
+      const pubDate = inner.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+      const time    = pubDate ? new Date(pubDate).getTime() / 1000 : 0
+      return {
+        id: `rss-${i}`, title,
+        summary: desc.replace(/<[^>]+>/g, '').slice(0, 200),
+        url: link, source, time, thumbnail: null, tickers: [],
+      }
+    }).filter(n => n.title)
+  } catch { return [] }
 }
 
 function timeAgo(ts) {
