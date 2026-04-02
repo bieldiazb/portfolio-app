@@ -235,6 +235,54 @@ export default function App() {
     }
   }, [addInvestment, fetchOne, setStatus, updateCurrentPrice, investments])
 
+  const handleImportCSV = useCallback(async (transactions, broker) => {
+    // Agrupa per ticker/nom i crea/actualitza inversions
+    const byAsset = {}
+    transactions.forEach(t => {
+      const key = t.ticker || t.name
+      if (!byAsset[key]) byAsset[key] = { ...t, txs: [] }
+      byAsset[key].txs.push(t)
+    })
+
+    for (const [key, asset] of Object.entries(byAsset)) {
+      // Busca si ja existeix la inversió
+      let inv = investments.find(i =>
+        (i.ticker && i.ticker === asset.ticker) ||
+        (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
+      )
+
+      // Si no existeix, crea-la
+      if (!inv) {
+        await addInvestment({
+          name:     asset.name || asset.ticker || key,
+          ticker:   asset.ticker || '',
+          type:     asset.type || 'stock',
+          currency: asset.currency || 'EUR',
+        })
+        // Espera que Firestore la creï
+        await new Promise(r => setTimeout(r, 800))
+        inv = investments.find(i =>
+          (i.ticker && i.ticker === asset.ticker) ||
+          (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
+        )
+      }
+
+      if (!inv) continue
+
+      // Afegeix cada transacció
+      for (const tx of asset.txs) {
+        await addInvTx(inv.id, {
+          qty:          tx.qty,
+          pricePerUnit: tx.pricePerUnit || 0,
+          totalCost:    tx.totalCost || 0,
+          type:         tx.action || 'buy',
+          date:         tx.date || new Date().toISOString().split('T')[0],
+          note:         `Importat des de ${broker}`,
+        })
+      }
+    }
+  }, [investments, addInvestment, addInvTx])
+
   const handleRefreshPrices = useCallback(async () => {
     for (const inv of investments) {
       if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) continue
@@ -300,7 +348,7 @@ export default function App() {
               <InvestmentsTable investments={investments} onAddInvestment={handleAddInvestment}
                 onRemoveInvestment={removeInvestment} onAddTransaction={addInvTx}
                 onRemoveTransaction={removeInvTx} loading={priceLoading} status={status}
-                onRefresh={handleRefreshPrices} />
+                onRefresh={handleRefreshPrices} onImportCSV={handleImportCSV} />
             )}
             {activeTab === 'savings' && (
               <SavingsList accounts={accounts} onAddAccount={addAccount}

@@ -4,6 +4,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
 import { SHARED_STYLES, COLORS, FONTS, TYPE_COLORS } from './design-tokens'
+import ImportCSVModal from './Importcsvmodal.jsx'
 
 const TYPE_LABELS = { etf:'ETF', stock:'Acció', robo:'Robo', estalvi:'Estalvi', efectiu:'Efectiu' }
 const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
@@ -200,13 +201,14 @@ function currentValue(inv) {
   return inv.totalCost || 0
 }
 
-export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh }) {
+export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh, onImportCSV }) {
   const [showNew, setShowNew]   = useState(false)
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
   const [sortDir, setSortDir]   = useState('desc')
   const [fxRates, setFxRates]   = useState({})
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
+  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => {
     const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
@@ -258,6 +260,26 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           <button className="inv-btn-ico" onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
           </button>
+          <button
+            style={{
+              display:'flex', alignItems:'center', gap:5,
+              padding:'6px 12px', background:'transparent',
+              border:`1px solid ${COLORS.border}`, borderRadius:4,
+              fontFamily:FONTS.sans, fontSize:12, fontWeight:500,
+              color:COLORS.textSecondary, cursor:'pointer', transition:'all 100ms',
+              whiteSpace:'nowrap',
+            }}
+            onMouseOver={e=>{ e.currentTarget.style.borderColor=COLORS.borderHi; e.currentTarget.style.color=COLORS.textPrimary }}
+            onMouseOut={e=>{ e.currentTarget.style.borderColor=COLORS.border; e.currentTarget.style.color=COLORS.textSecondary }}
+            onClick={() => setShowImport(true)}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Importar CSV
+          </button>
           <button className="inv-btn-add" onClick={() => setShowNew(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova posició
@@ -304,6 +326,15 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} ticker={txModal.ticker} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
+      {showImport && (
+        <ImportCSVModal
+          onClose={() => setShowImport(false)}
+          onImport={async (txs, broker) => {
+            await onImportCSV?.(txs, broker)
+            setShowImport(false)
+          }}
+        />
+      )}
     </div>
   )
 }
