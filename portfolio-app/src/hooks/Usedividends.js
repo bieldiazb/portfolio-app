@@ -48,75 +48,45 @@ export function generateDividendDates(lastExDate, lastPayDate, frequency, yearsA
   return dates
 }
 
-// ── Fetch Yahoo Finance quoteSummary ──────────────────────────────────────────
-// Usa quoteSummary per obtenir calendarEvents (dividends confirmats)
-// i summaryDetail per dividend rate i freqüència
+// ── Fetch Yahoo Finance ───────────────────────────────────────────────────────
+// Usa /v8/finance/chart que ja funciona amb el proxy de Netlify.
+// El camp meta té: exDividendDate, dividendRate, trailingAnnualDividendRate
+// A partir d'ells calculem freqüència i projectem totes les dates de l'any.
 export async function fetchDividendInfo(ticker) {
   try {
-    // Prova primer calendarEvents + summaryDetail
     const res = await fetch(
-      `/yahoo/v11/finance/quoteSummary/${ticker}?modules=calendarEvents,summaryDetail,defaultKeyStatistics`,
+      `/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`,
       { signal: AbortSignal.timeout(8000) }
     )
-    if (res.ok) {
-      const data = await res.json()
-      const result = data?.quoteSummary?.result?.[0]
+    if (!res.ok) return null
+    const data = await res.json()
+    const meta = data?.chart?.result?.[0]?.meta
+    if (!meta) return null
 
-      const cal     = result?.calendarEvents
-      const summary = result?.summaryDetail
-      const stats   = result?.defaultKeyStatistics
-
-      // Dividend confirmat de calendarEvents
-      const exDateTs  = cal?.exDividendDate?.raw
-      const exDate    = exDateTs ? new Date(exDateTs * 1000).toISOString().split('T')[0] : null
-
-      // Pay date (quan realment es cobra)
-      const payDateTs = cal?.dividendDate?.raw
-      const payDate   = payDateTs ? new Date(payDateTs * 1000).toISOString().split('T')[0] : null
-
-      const dividendRate  = summary?.dividendRate?.raw  || null
-      const dividendYield = summary?.dividendYield?.raw || null
-      const trailingRate  = summary?.trailingAnnualDividendRate?.raw || stats?.trailingAnnualDividendRate?.raw || null
-      const trailingYield = summary?.trailingAnnualDividendYield?.raw || null
-
-      const frequency = guessFrequency(dividendRate, trailingRate)
-      const allDates  = generateDividendDates(exDate, payDate, frequency)
-
-      return {
-        exDate, payDate,
-        dividendRate, dividendYield,
-        trailingRate, trailingYield,
-        frequency,
-        allDates,     // { date, isExact }[]
-        source: 'quoteSummary',
-      }
-    }
-  } catch {}
-
-  // Fallback: /chart
-  try {
-    const res2 = await fetch(
-      `/yahoo/v8/finance/chart/${ticker}?interval=1d&range=1d`,
-      { signal: AbortSignal.timeout(6000) }
-    )
-    if (!res2.ok) return null
-    const d2   = await res2.json()
-    const meta = d2?.chart?.result?.[0]?.meta
-
-    const exDate = meta?.exDividendDate
+    const exDate = meta.exDividendDate
       ? new Date(meta.exDividendDate * 1000).toISOString().split('T')[0]
       : null
 
-    const dividendRate = meta?.dividendRate || null
-    const trailingRate = meta?.trailingAnnualDividendRate || null
-    const frequency    = guessFrequency(dividendRate, trailingRate)
-    const allDates     = generateDividendDates(exDate, null, frequency)
+    const dividendRate = meta.dividendRate || null
+    const trailingRate = meta.trailingAnnualDividendRate || null
+    const dividendYield = meta.dividendYield || null
+    const trailingYield = meta.trailingAnnualDividendYield || null
+
+    const frequency = guessFrequency(dividendRate, trailingRate)
+
+    // Yahoo no dona el payDate via /chart, però típicament és
+    // ~2-4 setmanes després de l'ex-date. Usem l'ex-date com a referència.
+    const allDates = generateDividendDates(exDate, null, frequency)
 
     return {
-      exDate, payDate: null,
-      dividendRate, dividendYield: meta?.dividendYield || null,
-      trailingRate, trailingYield: meta?.trailingAnnualDividendYield || null,
-      frequency, allDates,
+      exDate,
+      payDate: null,
+      dividendRate,
+      dividendYield,
+      trailingRate,
+      trailingYield,
+      frequency,
+      allDates,
       source: 'chart',
     }
   } catch { return null }
