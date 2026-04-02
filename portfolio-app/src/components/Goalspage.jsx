@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { fmtEur } from '../utils/format'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
-import { GOAL_TYPES } from '../hooks/useGoals'
+import { GOAL_TYPES } from '../hooks/Usegoals.js'
 
 // ── Simulació de creixement futur ─────────────────────────────────────────────
 function fv(pv, pmt, rAnnual, months) {
