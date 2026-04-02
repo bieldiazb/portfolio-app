@@ -20,7 +20,16 @@ function parseCSVRows(text) {
 
 function cleanNum(s) {
   if (!s) return 0
-  return parseFloat(s.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0
+  // Revolut posa "EUR 111.27" o "USD 150.10" — treiem el prefix de moneda
+  const cleaned = s.replace(/^[A-Z]{3}\s+/, '').replace(/[^0-9.,-]/g, '').replace(',', '.')
+  return parseFloat(cleaned) || 0
+}
+
+function extractCurrency(s) {
+  if (!s) return null
+  // "EUR 111.27" → "EUR", "USD 150.10" → "USD"
+  const m = s.match(/^([A-Z]{3})\s/)
+  return m ? m[1] : null
 }
 
 function detectBroker(headers, firstRow) {
@@ -29,6 +38,7 @@ function detectBroker(headers, firstRow) {
   if (h.includes('isin') && h.includes('product') && (h.includes('auto fx') || h.includes('exchange'))) return 'degiro'
   if (h.includes('financial instrument') && h.includes('trade date') && h.includes('quantity')) return 'ib'
   if (h.includes('actif') || h.includes('produit') || h.includes('cours')) return 'degiro'
+  if (h.includes('ticker') && h.includes('type') && h.includes('quantity') && h.includes('price per share')) return 'revolut'
   if (h.includes('ticker') && h.includes('type') && h.includes('shares') && h.includes('amount')) return 'revolut'
   if (h.includes('type') && h.includes('instrument') && h.includes('shares') && h.includes('amount')) return 'traderepublic'
   if (h.includes('action') && h.includes('symbol') && h.includes('quantity') && h.includes('price')) return 'schwab'
@@ -101,30 +111,55 @@ function parseIB(rows) {
 }
 
 // ── Revolut ───────────────────────────────────────────────────────────────────
+// Format real: Date, Ticker, Type, Quantity, Price per share, Total Amount, Currency, FX Rate
+// Valors monetaris amb prefix: "EUR 111.27", "USD 150.10"
+// Tipus: "BUY - MARKET", "SELL - MARKET", "DIVIDEND", "CASH TOP-UP", "CASH WITHDRAWAL"
 function parseRevolut(rows) {
   const result = []
   rows.forEach(r => {
-    const ticker  = r['ticker'] || r['symbol'] || ''
-    const name    = r['name'] || r['company'] || ticker
-    const date    = r['date'] || r['completed date'] || r['date completed'] || ''
-    const qty     = cleanNum(r['shares'] || r['quantity'] || r['no. of shares'] || '0')
-    const price   = cleanNum(r['price per share'] || r['price'] || '0')
-    const total   = cleanNum(r['total amount'] || r['amount'] || r['total'] || '0')
-    const curr    = r['currency'] || 'USD'
-    const type    = (r['type'] || r['transaction type'] || '').toLowerCase()
+    const ticker  = (r['ticker'] || r['symbol'] || '').trim()
+    const rawType = (r['type'] || r['transaction type'] || '').trim()
+    const typeLow = rawType.toLowerCase()
 
-    if (!ticker || qty === 0) return
-    const isBuy = type.includes('buy') || type.includes('compra') || (!type.includes('sell') && !type.includes('venda'))
+    // Ignora files sense ticker o que no siguin compres/vendes
+    if (!ticker) return
+    if (!typeLow.includes('buy') && !typeLow.includes('sell')) return
+
+    const date  = (r['date'] || '').split('T')[0] // treu la part de temps ISO
+    const qty   = cleanNum(r['quantity'] || '0')
+
+    // Preu i total amb prefix de moneda: "EUR 111.27"
+    const priceRaw = r['price per share'] || r['price'] || ''
+    const totalRaw = r['total amount']    || r['amount'] || r['total'] || ''
+
+    const price = cleanNum(priceRaw)
+    const total = Math.abs(cleanNum(totalRaw))
+
+    // Moneda: prefereix la del camp Currency, sinó extreu del preu
+    const curr = r['currency']
+      || extractCurrency(priceRaw)
+      || extractCurrency(totalRaw)
+      || 'EUR'
+
+    if (qty <= 0) return
+
+    // Normalitza ticker per ETFs europeus sense extensió
     const normalizedTicker = normalizeEuropeanTicker(ticker, curr)
+
+    // Tipus d'actiu: si cotitza en EUR probablement ETF, USD → stock
+    const assetType = curr === 'EUR' ? 'etf' : 'stock'
+
+    const isBuy = typeLow.includes('buy')
     result.push({
-      name, ticker: normalizedTicker,
-      date:         formatDate(date),
+      name:         ticker, // Revolut no dona el nom complet
+      ticker:       normalizedTicker,
+      date:         date || new Date().toISOString().split('T')[0],
       qty:          Math.abs(qty),
-      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
-      totalCost:    Math.abs(total),
+      pricePerUnit: price || (qty > 0 ? total / qty : 0),
+      totalCost:    total,
       currency:     curr,
       action:       isBuy ? 'buy' : 'sell',
-      type:         'stock',
+      type:         assetType,
       source:       'Revolut',
     })
   })
@@ -254,8 +289,11 @@ function normalizeEuropeanTicker(ticker, currency) {
   // Si la moneda és EUR, probablement és un mercat europeu
   if (currency === 'EUR') {
     // ETFs iShares/Vanguard/Amundi comuns a Euronext Amsterdam o Xetra
+    // ETFs comuns en mercats europeus (Xetra .DE, Euronext .AS)
     const xetraETFs = ['EUNL','VUAA','IWDA','CSPX','VWCE','VUSA','EUNM','IEMA',
-                       'SPPW','VFEM','EQQQ','IQQQ','QDVE','EXXT','XDWD','DBXW']
+                       'SPPW','VFEM','EQQQ','IQQQ','QDVE','EXXT','XDWD','DBXW',
+                       'XDEW','XDEM','XDEP','XDEX','VEUR','VERX','VGKE','VFEA',
+                       'EMIM','HMEF','HMWO','LCUW','LCUD','AGGG','IGLN','PHAU']
     const euronextETFs = ['IWDA','VWCE','CSPX','VUAA','EUNL']
     if (xetraETFs.includes(ticker.toUpperCase())) return ticker + '.DE'
     // Per defecte per ETFs EUR sense extensió, prova .DE
