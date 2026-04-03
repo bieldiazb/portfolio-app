@@ -4,6 +4,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
 import { SHARED_STYLES, COLORS, FONTS, TYPE_COLORS } from './design-tokens'
+import ImportCSVModal from './Importcsvmodal.jsx'
 
 const TYPE_LABELS = { etf:'ETF', stock:'Acció', robo:'Robo', estalvi:'Estalvi', efectiu:'Efectiu' }
 const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
@@ -11,48 +12,24 @@ const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
 const styles = `
   .inv { font-family:${FONTS.sans}; }
 
-  /* Header */
-  .inv-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:12px; }
+  .inv-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
   .inv-title { font-size:16px; font-weight:500; color:${COLORS.textPrimary}; letter-spacing:-0.2px; margin-bottom:3px; }
   .inv-sub-row { display:flex; align-items:center; gap:8px; }
   .inv-sub-val { font-size:13px; font-family:${FONTS.mono}; color:${COLORS.textSecondary}; font-variant-numeric:tabular-nums; }
-  .inv-pg-badge {
-    display:inline-flex; align-items:center; gap:5px;
-    font-size:11px; font-weight:500; font-family:${FONTS.mono};
-    padding:2px 8px; border-radius:${COLORS.sm};
-  }
+  .inv-pg-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; font-family:${FONTS.mono}; padding:2px 8px; border-radius:3px; }
   .inv-pg-badge.pos { color:${COLORS.neonGreen}; background:${COLORS.bgGreen}; border:1px solid ${COLORS.borderGreen}; }
   .inv-pg-badge.neg { color:${COLORS.neonRed};   background:${COLORS.bgRed};   border:1px solid ${COLORS.borderRed};   }
 
-  .inv-hdr-btns { display:flex; gap:6px; align-items:center; flex-shrink:0; }
-  .inv-btn-ico {
-    width:28px; height:28px;
-    background:transparent; border:1px solid ${COLORS.border};
-    border-radius:${COLORS.sm};
-    color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:all 100ms; flex-shrink:0;
-  }
+  .inv-hdr-btns { display:flex; gap:6px; align-items:center; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+  .inv-btn-ico { width:28px; height:28px; background:transparent; border:1px solid ${COLORS.border}; border-radius:4px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
   .inv-btn-ico:hover { border-color:${COLORS.borderHi}; color:${COLORS.textSecondary}; }
-  .inv-btn-add {
-    display:flex; align-items:center; gap:5px;
-    padding:6px 12px;
-    background:${COLORS.neonPurple}; color:#fff;
-    border:none; border-radius:${COLORS.sm};
-    font-family:${FONTS.sans}; font-size:12px; font-weight:500;
-    cursor:pointer; transition:opacity 100ms; white-space:nowrap;
-  }
+  .inv-btn-add { display:flex; align-items:center; gap:5px; padding:6px 12px; background:${COLORS.neonPurple}; color:#fff; border:none; border-radius:4px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:opacity 100ms; white-space:nowrap; }
   .inv-btn-add:hover { opacity:0.85; }
+  .inv-btn-import { display:flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:4px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; color:${COLORS.textSecondary}; cursor:pointer; transition:all 100ms; white-space:nowrap; }
+  .inv-btn-import:hover { border-color:${COLORS.borderHi}; color:${COLORS.textPrimary}; }
 
-  /* Table */
   .inv-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .inv-thead th {
-    padding:8px 12px 10px;
-    font-size:10px; font-weight:500;
-    color:${COLORS.textMuted};
-    letter-spacing:0.10em; text-transform:uppercase;
-    border-bottom:1px solid ${COLORS.border};
-    white-space:nowrap;
-  }
+  .inv-thead th { padding:8px 12px 10px; font-size:10px; font-weight:500; color:${COLORS.textMuted}; letter-spacing:0.10em; text-transform:uppercase; border-bottom:1px solid ${COLORS.border}; white-space:nowrap; }
   .inv-thead th:first-child { padding-left:0; text-align:left; }
   .inv-thead th:last-child { padding-right:0; }
   .inv-thead th:not(:first-child) { text-align:right; }
@@ -65,19 +42,10 @@ const styles = `
   .inv-row td:last-child { padding-right:0; }
 
   .inv-asset { display:flex; align-items:center; gap:10px; }
-  .inv-av {
-    width:28px; height:28px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:10px; font-weight:600; flex-shrink:0;
-    font-family:${FONTS.mono};
-  }
+  .inv-av { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0; font-family:${FONTS.mono}; }
   .inv-name { font-size:13px; font-weight:500; color:${COLORS.textPrimary}; margin-bottom:3px; white-space:nowrap; }
   .inv-meta { display:flex; align-items:center; gap:5px; }
-  .inv-type-badge {
-    font-size:9px; font-weight:600; font-family:${FONTS.mono};
-    padding:1px 6px; border-radius:2px;
-    text-transform:uppercase; letter-spacing:0.06em;
-  }
+  .inv-type-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; padding:1px 6px; border-radius:2px; text-transform:uppercase; letter-spacing:0.06em; }
   .inv-ticker { font-size:10px; color:${COLORS.textMuted}; font-family:${FONTS.mono}; }
   .inv-curr-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; padding:1px 5px; border-radius:2px; }
   .inv-curr-badge.usd { color:${COLORS.neonAmber}; background:${COLORS.bgAmber}; }
@@ -97,11 +65,9 @@ const styles = `
   .inv-more-btn { background:transparent; border:none; color:${COLORS.textMuted}; cursor:pointer; font-size:16px; line-height:1; padding:0 2px; letter-spacing:2px; transition:color 100ms; }
   .inv-more-btn:hover { color:${COLORS.textPrimary}; }
 
-  /* Expanded */
   .inv-expanded-row > td { padding:0 !important; border-bottom:1px solid ${COLORS.border}; }
   .inv-panel { padding:16px 0 20px; background:${COLORS.elevated}; border-top:1px solid ${COLORS.border}; }
 
-  /* Stats grid */
   .inv-stats { display:grid; grid-template-columns:repeat(4,1fr); padding:14px 0; border-top:1px solid ${COLORS.border}; border-bottom:1px solid ${COLORS.border}; margin-bottom:14px; }
   .inv-stat { position:relative; padding-right:16px; }
   .inv-stat:not(:last-child)::after { content:''; position:absolute; right:8px; top:0; height:100%; width:1px; background:${COLORS.border}; }
@@ -110,17 +76,8 @@ const styles = `
   .inv-stat-v.pos { color:${COLORS.neonGreen}; }
   .inv-stat-v.neg { color:${COLORS.neonRed}; }
 
-  /* Action buttons */
-  .inv-action-btn {
-    display:inline-flex; align-items:center; justify-content:center; gap:5px;
-    padding:6px 14px;
-    background:transparent; border:1px solid ${COLORS.border};
-    border-radius:${COLORS.sm};
-    font-family:${FONTS.sans}; font-size:12px; font-weight:500;
-    cursor:pointer; transition:all 100ms; white-space:nowrap;
-  }
+  .inv-action-btn { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 14px; background:transparent; border:1px solid ${COLORS.border}; border-radius:4px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
 
-  /* Transactions */
   .inv-tx { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid ${COLORS.border}; }
   .inv-tx:last-child { border-bottom:none; }
   .inv-tx-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-right:10px; }
@@ -129,7 +86,6 @@ const styles = `
   .inv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:${COLORS.textMuted}; margin-left:8px; flex-shrink:0; transition:all 80ms; }
   .inv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
-  /* Mobile */
   .inv-mobile { display:none; flex-direction:column; }
   .inv-desktop { display:block; }
   @media (max-width:700px) {
@@ -145,27 +101,26 @@ const styles = `
   .inv-empty-main { font-size:14px; color:${COLORS.textMuted}; font-weight:500; margin-bottom:4px; }
   .inv-empty-sub { font-size:12px; color:${COLORS.textMuted}; opacity:0.5; }
 
-  /* Modal */
+  /* Modal — bottom sheet en mòbil */
   .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
   @media (min-width:640px) { .inv-overlay { align-items:center; padding:16px; } }
-  .inv-modal {
-    background:${COLORS.surface}; border:1px solid ${COLORS.border};
-    border-radius:12px 12px 0 0; width:100%; padding:20px 16px 32px;
-    font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto;
-  }
+  .inv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 36px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
   @media (min-width:640px) { .inv-modal { border-radius:8px; max-width:420px; padding:24px 20px; } }
-  .inv-modal-handle { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 16px; display:block; }
-  @media (min-width:640px) { .inv-modal-handle { display:none; } }
+  .inv-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
+  @media (min-width:640px) { .inv-modal-drag { display:none; } }
+
   .inv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .inv-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
   .inv-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
   .inv-modal-x:hover { color:${COLORS.textPrimary}; }
   .inv-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  /* font-size:16px evita zoom automàtic en iOS */
+  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; touch-action:manipulation; }
   .inv-inp:focus { border-color:${COLORS.neonPurple}; }
   .inv-inp::placeholder { color:${COLORS.textMuted}; }
   .inv-inp.mono { font-family:${FONTS.mono}; text-align:right; }
   .inv-inp.big { font-size:20px; padding:12px 14px; letter-spacing:-0.5px; }
+  .inv-sel { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; cursor:pointer; -webkit-appearance:none; }
   .inv-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
   .inv-fgroup { display:flex; flex-direction:column; gap:14px; }
   .inv-mfooter { display:flex; gap:8px; margin-top:20px; }
@@ -205,16 +160,17 @@ function fmtQty(n) { if (!n) return '0'; return parseFloat(n.toFixed(6)).toStrin
 
 function currentValue(inv) {
   if (inv.currentPrice != null && inv.totalQty > 0) return inv.totalQty * inv.currentPrice
-  return inv.totalCost || 0
+  return inv.totalCostEur || inv.totalCost || 0
 }
 
-export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh }) {
+export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh, onImportCSV }) {
   const [showNew, setShowNew]   = useState(false)
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
   const [sortDir, setSortDir]   = useState('desc')
   const [fxRates, setFxRates]   = useState({})
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
+  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => {
     const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
@@ -233,10 +189,10 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
   }
 
   const totalValue = investments.reduce((s, inv) => s + calcVal(inv), 0)
-  const totalCost  = investments.reduce((s, inv) => s + (inv.totalCost || 0), 0)
-  const totalGain  = totalValue - totalCost
+  const totalCostEur = investments.reduce((s, inv) => s + (inv.totalCostEur || inv.totalCost || 0), 0)
+  const totalGain  = totalValue - totalCostEur
   const isPos      = totalGain >= 0
-  const gainPct    = totalCost > 0 ? (totalGain / totalCost) * 100 : 0
+  const gainPct    = totalCostEur > 0 ? (totalGain / totalCostEur) * 100 : 0
   const sorted     = [...investments].sort((a, b) => sortDir === 'desc' ? calcVal(b) - calcVal(a) : calcVal(a) - calcVal(b))
   const toggle     = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
 
@@ -250,7 +206,7 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           <h2 className="inv-title">Inversions</h2>
           <div className="inv-sub-row">
             <span className="inv-sub-val">{fmtEur(totalValue)}</span>
-            {totalCost > 0 && (
+            {totalCostEur > 0 && (
               <span className={`inv-pg-badge ${isPos ? 'pos' : 'neg'}`}>
                 {isPos ? '▲' : '▼'} {Math.abs(gainPct).toFixed(2)}%
               </span>
@@ -265,6 +221,14 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           )}
           <button className="inv-btn-ico" onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+          </button>
+          <button className="inv-btn-import" onClick={() => setShowImport(true)}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Importar CSV
           </button>
           <button className="inv-btn-add" onClick={() => setShowNew(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -312,6 +276,12 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} ticker={txModal.ticker} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
+      {showImport && (
+        <ImportCSVModal
+          onClose={() => setShowImport(false)}
+          onImport={async (txs, broker) => { await onImportCSV?.(txs, broker); setShowImport(false) }}
+        />
+      )}
     </div>
   )
 }
@@ -353,7 +323,7 @@ function MobileCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, f
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:0, paddingBottom:12, marginBottom:12, borderBottom:`1px solid ${COLORS.border}` }}>
             {[
               { l:'Cost mitjà', v: inv.totalQty>0 ? fmtEur(inv.avgCost)+'/u.' : '—' },
-              { l:'Invertit',   v: fmtEur(inv.totalCostEur||inv.totalCost||0) },
+              { l:'Invertit',   v: fmtEur(costEur) },
               { l:'P&G',        v: (isPos?'+':'')+fmtEur(gain), pos:isPos },
             ].map((s,i) => (
               <div key={i} style={{ position:'relative', paddingRight:12 }}>
@@ -409,7 +379,7 @@ function TxList({ txs, onRemoveTx }) {
               </div>
               <div style={{ textAlign:'right', flexShrink:0, marginLeft:10 }}>
                 {tx.type!=='capital' && tx.qty>0 && <p style={{ fontSize:12, fontWeight:600, fontFamily:FONTS.mono, color:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber, margin:0 }}>{tx.type==='buy'?'+':'−'}{fmtQty(tx.qty)}</p>}
-                <p style={{ fontSize:11, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:2 }}>{fmtEur(tx.totalCost)}</p>
+                <p style={{ fontSize:11, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:2 }}>{fmtEur(tx.totalCostEur||tx.totalCost)}</p>
               </div>
               <button className="inv-tx-del" onClick={()=>onRemoveTx(tx.id)}><TrashIcon size={11}/></button>
             </div>
@@ -473,7 +443,7 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
     {expanded && (
       <tr className="inv-expanded-row">
         <td colSpan={8}>
-          <div className="inv-panel" style={{ padding:'16px 0 20px', fontFamily:FONTS.sans }}>
+          <div className="inv-panel" style={{ padding:'16px 5px', fontFamily:FONTS.sans }}>
             {chartData.length>=2 && (
               <div style={{ marginBottom:14 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
@@ -494,12 +464,11 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
                 </ResponsiveContainer>
               </div>
             )}
-
             <div className="inv-stats">
               {[
                 { l:'Cost mitjà', v:inv.totalQty>0?fmtEur(inv.avgCost)+'/u.':'—' },
                 { l:'Accions',    v:fmtQty(inv.totalQty||0) },
-                { l:'Invertit',   v:fmtEur(inv.totalCost||0) },
+                { l:'Invertit',   v:fmtEur(costEur) },
                 { l:'P&G',        v:(isPos?'+':'')+fmtEur(gain), cls:isPos?'pos':'neg' },
               ].map((s,i) => (
                 <div key={i} className="inv-stat">
@@ -508,7 +477,6 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
                 </div>
               ))}
             </div>
-
             <ActionButtons onOpenTx={onOpenTx} onRemove={onRemove} />
             <TxList txs={inv.txs} onRemoveTx={onRemoveTx} />
           </div>
@@ -556,36 +524,70 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
       .then(r=>r.json()).then(d=>{ const r=d?.chart?.result?.[0]?.meta?.regularMarketPrice; setRate(r>0?r:null) }).catch(()=>setRate(null))
   }, [resolvedCurrency]) // eslint-disable-line
 
-  const toNum = v => parseFloat(String(v).replace(',','.')) || 0
-  const recalc = useCallback((q,p)=>{ const t=toNum(q)*toNum(p); if (t>0) setTotal(t.toFixed(2)) },[])
-  const handleQty   = v=>{ setQty(v);   if(v&&price) recalc(v,price) }
-  const handlePrice = v=>{ setPrice(v); if(v&&qty)   recalc(qty,v) }
-  const fillLive = ()=>{ if(!livePrice) return; setPrice(livePrice.toString()); if(qty) recalc(qty,livePrice) }
+  // toNum normalitza coma/punt — funciona en tots els teclats mòbil
+  const toNum = v => parseFloat(String(v||'').replace(',','.').replace(/[^0-9.-]/g,'')) || 0
+
+  const recalc = useCallback((q,p) => {
+    const t = toNum(q) * toNum(p)
+    if (t > 0) setTotal(t.toFixed(2))
+  }, [])
+
+  const handleQty   = v => { setQty(v);   if(v && price) recalc(v, price) }
+  const handlePrice = v => { setPrice(v); if(v && qty)   recalc(qty, v) }
+  const handleTotal = v => {
+    setTotal(v)
+    if (isBuySell && qty && v) {
+      const p = toNum(v) / toNum(qty)
+      if (p > 0) setPrice(p.toFixed(4))
+    }
+  }
+  const fillLive = () => {
+    if (!livePrice) return
+    setPrice(livePrice.toString())
+    if (qty) recalc(qty, livePrice)
+  }
 
   const totalOrig = toNum(total)
-  const totalEur  = isNonEur&&rate ? +(totalOrig*rate).toFixed(2) : totalOrig
+  const totalEur  = isNonEur && rate ? +(totalOrig * rate).toFixed(2) : totalOrig
   const priceOrig = toNum(price)
-  const priceEur  = isNonEur&&rate ? +(priceOrig*rate).toFixed(4) : priceOrig
+  const priceEur  = isNonEur && rate ? +(priceOrig * rate).toFixed(4) : priceOrig
 
   const submit = () => {
-    if (isNonEur&&!rate) return setError('Taxa de canvi no disponible')
+    if (isNonEur && !rate) return setError('Taxa de canvi no disponible')
     if (isBuySell) {
-      const q=toNum(qty)
-      if (!q||q<=0) return setError('La quantitat és obligatòria')
-      if (!totalOrig||totalOrig<=0) return setError("L'import és obligatori")
+      const q = toNum(qty)
+      if (!q || q <= 0) return setError('La quantitat és obligatòria')
+      if (totalOrig <= 0) return setError("L'import és obligatori")
       setError('')
-      onAdd({ qty:q, pricePerUnit:priceEur, pricePerUnitOrig:priceOrig, totalCost:totalEur, totalCostOrig:totalOrig, currency:resolvedCurrency, type, note, date })
+      onAdd({
+        qty: q,
+        pricePerUnit: priceEur,
+        pricePerUnitOrig: priceOrig,
+        totalCost: totalEur,
+        totalCostEur: totalEur,
+        totalCostOrig: totalOrig,
+        currency: resolvedCurrency,
+        type, note, date,
+      })
     } else {
-      if (!totalOrig||totalOrig<=0) return setError("L'import és obligatori")
+      if (totalOrig <= 0) return setError("L'import és obligatori")
       setError('')
-      onAdd({ qty:0, pricePerUnit:0, totalCost:totalEur, totalCostOrig:totalOrig, currency:resolvedCurrency, type, note, date })
+      onAdd({
+        qty: 0, pricePerUnit: 0,
+        totalCost: totalEur,
+        totalCostEur: totalEur,
+        totalCostOrig: totalOrig,
+        currency: resolvedCurrency,
+        type, note, date,
+      })
     }
   }
 
   return (
     <div className="inv-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="inv-modal">
-        <div className="inv-modal-handle"/>
+        <div className="inv-modal-drag"/>
+        <div className="inv-modal-drag"/>
         <div className="inv-modal-hdr">
           <h3 className="inv-modal-title">{invName}</h3>
           <button className="inv-modal-x" onClick={onClose}>×</button>
@@ -600,34 +602,64 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
             <div className="inv-grid2">
               <div>
                 <label className="inv-lbl">Accions</label>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0" style={{fontSize:16}} />
+                <input
+                  type="number" inputMode="decimal" step="any"
+                  className="inv-inp mono"
+                  value={qty}
+                  onChange={e => handleQty(e.target.value)}
+                  placeholder="0"
+                />
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
                   <label className="inv-lbl" style={{ margin:0 }}>Preu/u. ({sym})</label>
                   {ticker && (
-                    <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{ fontSize:10, fontWeight:600, padding:'3px 8px', border:`1px solid ${COLORS.border}`, borderRadius:4, background:COLORS.elevated, color:livePrice?COLORS.neonGreen:COLORS.textMuted, fontFamily:FONTS.mono, cursor:livePrice?'pointer':'default', transition:'all 100ms' }}>
-                      {fetchingPrice?'...' : livePrice?`${sym}${livePrice}`:'—'}
+                    <button onClick={fillLive} disabled={fetchingPrice||!livePrice}
+                      style={{ fontSize:10, fontWeight:600, padding:'3px 8px', border:`1px solid ${COLORS.border}`, borderRadius:4, background:COLORS.elevated, color:livePrice?COLORS.neonGreen:COLORS.textMuted, fontFamily:FONTS.mono, cursor:livePrice?'pointer':'default', transition:'all 100ms' }}>
+                      {fetchingPrice ? '...' : livePrice ? `${sym}${livePrice}` : '—'}
                     </button>
                   )}
                 </div>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00" style={{fontSize:16}} />
-                {isNonEur&&priceOrig>0&&rate && <p style={{ fontSize:10, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:4, textAlign:'right' }}>= €{priceEur.toFixed(4)}</p>}
+                <input
+                  type="number" inputMode="decimal" step="any"
+                  className="inv-inp mono"
+                  value={price}
+                  onChange={e => handlePrice(e.target.value)}
+                  placeholder="0.00"
+                />
+                {isNonEur && priceOrig > 0 && rate && (
+                  <p style={{ fontSize:10, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:4, textAlign:'right' }}>= €{priceEur.toFixed(4)}</p>
+                )}
               </div>
             </div>
           )}
           <div>
-            <label className="inv-lbl">{isBuySell?`Total (${sym})`:`Import (${sym})`}</label>
-            <input type="number" inputMode="decimal" step="any" className={`inv-inp mono${!isBuySell?' big':''}`} autoFocus={!isBuySell} value={total} onChange={e=>setTotal(e.target.value)} placeholder="0.00" />
-            {isNonEur&&totalOrig>0 && (
+            <label className="inv-lbl">{isBuySell ? `Total (${sym})` : `Import (${sym})`}</label>
+            <input
+              type="number" inputMode="decimal" step="any"
+              className={`inv-inp mono${!isBuySell?' big':''}`}
+              value={total}
+              onChange={e => handleTotal(e.target.value)}
+              placeholder="0.00"
+            />
+            {isNonEur && totalOrig > 0 && (
               <p style={{ fontSize:11, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:5, textAlign:'right' }}>
-                {rate?<>= <span style={{color:COLORS.textPrimary}}>€{totalEur.toFixed(2)}</span> <span style={{opacity:0.4}}>· 1{sym}=€{rate.toFixed(4)}</span></>:<span style={{color:COLORS.neonRed}}>Taxa no disponible</span>}
+                {rate
+                  ? <><span style={{color:COLORS.textPrimary}}>= €{totalEur.toFixed(2)}</span> <span style={{opacity:0.4}}>· 1{sym}=€{rate.toFixed(4)}</span></>
+                  : <span style={{color:COLORS.neonRed}}>Taxa no disponible</span>
+                }
               </p>
             )}
           </div>
           <div className="inv-grid2">
-            <div><label className="inv-lbl">Data</label><input type="date" className="inv-inp" value={date} onChange={e=>setDate(e.target.value)} /></div>
-            <div><label className="inv-lbl">Nota</label><input className="inv-inp" value={note} onChange={e=>setNote(e.target.value)} placeholder="opcional" /></div>
+            <div>
+              <label className="inv-lbl">Data</label>
+              <input type="date" className="inv-inp" value={date} onChange={e=>setDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="inv-lbl">Nota</label>
+              <input className="inv-inp" value={note} onChange={e=>setNote(e.target.value)} placeholder="opcional" />
+            </div>
           </div>
           {error && <p className="inv-error">{error}</p>}
         </div>
