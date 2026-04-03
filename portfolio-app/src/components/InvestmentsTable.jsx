@@ -4,7 +4,6 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtEur, fmtPct } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
 import { SHARED_STYLES, COLORS, FONTS, TYPE_COLORS } from './design-tokens'
-import ImportCSVModal from './Importcsvmodal.jsx'
 
 const TYPE_LABELS = { etf:'ETF', stock:'Acció', robo:'Robo', estalvi:'Estalvi', efectiu:'Efectiu' }
 const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
@@ -147,14 +146,22 @@ const styles = `
   .inv-empty-sub { font-size:12px; color:${COLORS.textMuted}; opacity:0.5; }
 
   /* Modal */
-  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
-  .inv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:8px; width:100%; max-width:420px; padding:24px 20px; font-family:${FONTS.sans}; max-height:90vh; overflow-y:auto; }
+  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
+  @media (min-width:640px) { .inv-overlay { align-items:center; padding:16px; } }
+  .inv-modal {
+    background:${COLORS.surface}; border:1px solid ${COLORS.border};
+    border-radius:12px 12px 0 0; width:100%; padding:20px 16px 32px;
+    font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto;
+  }
+  @media (min-width:640px) { .inv-modal { border-radius:8px; max-width:420px; padding:24px 20px; } }
+  .inv-modal-handle { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 16px; display:block; }
+  @media (min-width:640px) { .inv-modal-handle { display:none; } }
   .inv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .inv-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
   .inv-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
   .inv-modal-x:hover { color:${COLORS.textPrimary}; }
   .inv-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:14px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; }
+  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
   .inv-inp:focus { border-color:${COLORS.neonPurple}; }
   .inv-inp::placeholder { color:${COLORS.textMuted}; }
   .inv-inp.mono { font-family:${FONTS.mono}; text-align:right; }
@@ -201,14 +208,13 @@ function currentValue(inv) {
   return inv.totalCost || 0
 }
 
-export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh, onImportCSV }) {
+export default function InvestmentsTable({ investments, onAddInvestment, onRemoveInvestment, onAddTransaction, onRemoveTransaction, loading, status, onRefresh }) {
   const [showNew, setShowNew]   = useState(false)
   const [txModal, setTxModal]   = useState(null)
   const [expanded, setExpanded] = useState({})
   const [sortDir, setSortDir]   = useState('desc')
   const [fxRates, setFxRates]   = useState({})
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
-  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => {
     const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
@@ -260,26 +266,6 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
           <button className="inv-btn-ico" onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')} title="Ordenar">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
           </button>
-          <button
-            style={{
-              display:'flex', alignItems:'center', gap:5,
-              padding:'6px 12px', background:'transparent',
-              border:`1px solid ${COLORS.border}`, borderRadius:4,
-              fontFamily:FONTS.sans, fontSize:12, fontWeight:500,
-              color:COLORS.textSecondary, cursor:'pointer', transition:'all 100ms',
-              whiteSpace:'nowrap',
-            }}
-            onMouseOver={e=>{ e.currentTarget.style.borderColor=COLORS.borderHi; e.currentTarget.style.color=COLORS.textPrimary }}
-            onMouseOut={e=>{ e.currentTarget.style.borderColor=COLORS.border; e.currentTarget.style.color=COLORS.textSecondary }}
-            onClick={() => setShowImport(true)}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Importar CSV
-          </button>
           <button className="inv-btn-add" onClick={() => setShowNew(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova posició
@@ -326,15 +312,6 @@ export default function InvestmentsTable({ investments, onAddInvestment, onRemov
 
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal invName={txModal.name} defaultType={txModal.type} currency={txModal.currency} ticker={txModal.ticker} onAdd={tx => { onAddTransaction(txModal.invId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
-      {showImport && (
-        <ImportCSVModal
-          onClose={() => setShowImport(false)}
-          onImport={async (txs, broker) => {
-            await onImportCSV?.(txs, broker)
-            setShowImport(false)
-          }}
-        />
-      )}
     </div>
   )
 }
@@ -346,8 +323,9 @@ function MobileCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, f
   const origVal  = hasOrig ? inv.totalQty * inv.originalPrice : null
   const liveRate = fxRates[origCurr]
   const curVal   = hasOrig && liveRate ? +(origVal * liveRate).toFixed(2) : currentValue(inv)
-  const gain     = curVal - (inv.totalCost || 0)
-  const gPct     = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
+  const costEur  = inv.totalCostEur || inv.totalCost || 0
+  const gain     = curVal - costEur
+  const gPct     = costEur > 0 ? (gain / costEur) * 100 : 0
   const isPos    = gain >= 0
 
   return (
@@ -375,7 +353,7 @@ function MobileCard({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx, f
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:0, paddingBottom:12, marginBottom:12, borderBottom:`1px solid ${COLORS.border}` }}>
             {[
               { l:'Cost mitjà', v: inv.totalQty>0 ? fmtEur(inv.avgCost)+'/u.' : '—' },
-              { l:'Invertit',   v: fmtEur(inv.totalCost||0) },
+              { l:'Invertit',   v: fmtEur(inv.totalCostEur||inv.totalCost||0) },
               { l:'P&G',        v: (isPos?'+':'')+fmtEur(gain), pos:isPos },
             ].map((s,i) => (
               <div key={i} style={{ position:'relative', paddingRight:12 }}>
@@ -449,8 +427,9 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
   const origVal  = hasOrig ? inv.totalQty * inv.originalPrice : null
   const liveRate = fxRates[origCurr]
   const curVal   = hasOrig && liveRate ? +(origVal * liveRate).toFixed(2) : currentValue(inv)
-  const gain     = curVal - (inv.totalCost || 0)
-  const gPct     = (inv.totalCost || 0) > 0 ? (gain / inv.totalCost) * 100 : 0
+  const costEur  = inv.totalCostEur || inv.totalCost || 0
+  const gain     = curVal - costEur
+  const gPct     = costEur > 0 ? (gain / costEur) * 100 : 0
   const isPos    = gain >= 0
   const weight   = totalValue > 0 ? (curVal / totalValue) * 100 : 0
 
@@ -494,7 +473,7 @@ function InvestmentRow({ inv, expanded, onToggle, onRemove, onOpenTx, onRemoveTx
     {expanded && (
       <tr className="inv-expanded-row">
         <td colSpan={8}>
-          <div className="inv-panel" style={{ padding:'16px 5px', fontFamily:FONTS.sans }}>
+          <div className="inv-panel" style={{ padding:'16px 0 20px', fontFamily:FONTS.sans }}>
             {chartData.length>=2 && (
               <div style={{ marginBottom:14 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
@@ -577,20 +556,21 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
       .then(r=>r.json()).then(d=>{ const r=d?.chart?.result?.[0]?.meta?.regularMarketPrice; setRate(r>0?r:null) }).catch(()=>setRate(null))
   }, [resolvedCurrency]) // eslint-disable-line
 
-  const recalc = useCallback((q,p)=>{ const t=parseFloat(q)*parseFloat(p); if (!isNaN(t)&&t>0) setTotal(t.toFixed(2)) },[])
+  const toNum = v => parseFloat(String(v).replace(',','.')) || 0
+  const recalc = useCallback((q,p)=>{ const t=toNum(q)*toNum(p); if (t>0) setTotal(t.toFixed(2)) },[])
   const handleQty   = v=>{ setQty(v);   if(v&&price) recalc(v,price) }
   const handlePrice = v=>{ setPrice(v); if(v&&qty)   recalc(qty,v) }
   const fillLive = ()=>{ if(!livePrice) return; setPrice(livePrice.toString()); if(qty) recalc(qty,livePrice) }
 
-  const totalOrig = parseFloat(total)||0
+  const totalOrig = toNum(total)
   const totalEur  = isNonEur&&rate ? +(totalOrig*rate).toFixed(2) : totalOrig
-  const priceOrig = parseFloat(price)||0
+  const priceOrig = toNum(price)
   const priceEur  = isNonEur&&rate ? +(priceOrig*rate).toFixed(4) : priceOrig
 
   const submit = () => {
     if (isNonEur&&!rate) return setError('Taxa de canvi no disponible')
     if (isBuySell) {
-      const q=parseFloat(qty)
+      const q=toNum(qty)
       if (!q||q<=0) return setError('La quantitat és obligatòria')
       if (!totalOrig||totalOrig<=0) return setError("L'import és obligatori")
       setError('')
@@ -605,6 +585,7 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
   return (
     <div className="inv-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="inv-modal">
+        <div className="inv-modal-handle"/>
         <div className="inv-modal-hdr">
           <h3 className="inv-modal-title">{invName}</h3>
           <button className="inv-modal-x" onClick={onClose}>×</button>
@@ -619,7 +600,7 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
             <div className="inv-grid2">
               <div>
                 <label className="inv-lbl">Accions</label>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" autoFocus value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0" />
+                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0" style={{fontSize:16}} />
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
@@ -630,7 +611,7 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
                     </button>
                   )}
                 </div>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00" />
+                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00" style={{fontSize:16}} />
                 {isNonEur&&priceOrig>0&&rate && <p style={{ fontSize:10, color:COLORS.textMuted, fontFamily:FONTS.mono, marginTop:4, textAlign:'right' }}>= €{priceEur.toFixed(4)}</p>}
               </div>
             </div>
