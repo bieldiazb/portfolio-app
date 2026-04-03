@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import Sidebar from './components/Sidebar'
 import MetricsBar from './components/MetricsBar'
+import BottomNav from './components/BottomNav'
+import DashboardPage from './components/Dashboardpage'
 import CommoditiesPage from './components/Commoditiespage'
 import DividendsPage from './components/Dividendspage'
 import NewsPage from './components/Newspage'
 import GoalsPage from './components/Goalspage'
 import { useGoals } from './hooks/Usegoals'
-import AIAnalyst from './components/Aianalyst'
+import AIAnalyst from './components/AIAnalyst'
 import { useDividends } from './hooks/Usedividends'
 import { useCommodities } from './hooks/useCommodities'
 import InvestmentsTable from './components/InvestmentsTable'
@@ -31,6 +33,7 @@ import { useRebalancingGoals } from './hooks/useRebalancingGoals'
 import { useAlerts } from './components/AlertsSystem'
 
 export const PAGES = {
+  dashboard:   'Inici',
   investments: 'Inversions',
   savings:     'Estalvis',
   crypto:      'Crypto',
@@ -48,12 +51,13 @@ export const PAGES = {
   goals:       'Objectius',
 }
 
-const NO_METRICS = new Set(['movements', 'timeline', 'benchmark', 'rebalancing', 'alerts', 'report', 'news'])
+const NO_METRICS = new Set(['dashboard', 'movements', 'timeline', 'benchmark', 'rebalancing', 'alerts', 'report', 'news'])
 
 const appStyles = `
   .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Geist',sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
+  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgba(123,97,255,0.8); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
   .mob-menu-btn:hover { background: rgba(255,255,255,0.05); }
   .mob-hdr-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.82); letter-spacing: -0.3px; }
@@ -101,7 +105,7 @@ const comVal = c => {
 
 export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab]     = useState('investments')
+  const [activeTab, setActiveTab]     = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const {
@@ -353,18 +357,18 @@ export default function App() {
 
         <div className="mob-hdr">
           <div className="mob-hdr-left">
-            <button className="mob-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="Obrir menú">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.60)" strokeWidth="1.8" strokeLinecap="round">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
+            <div className="mob-hdr-logo">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
               </svg>
-            </button>
+            </div>
             <span className="mob-hdr-title">Cartera</span>
-            <span className="mob-hdr-page">/ {PAGES[activeTab]}</span>
           </div>
-          <div className="mob-av" onClick={() => setSidebarOpen(true)}>
-            {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : initials}
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:12,fontFamily:'var(--font-mono,monospace)',color:'rgba(255,255,255,0.45)'}}>{PAGES[activeTab]}</span>
+            <div className="mob-av" onClick={() => setSidebarOpen(true)}>
+              {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : initials}
+            </div>
           </div>
         </div>
 
@@ -375,7 +379,27 @@ export default function App() {
               numAccounts={accounts.length} pg={pg} pgPct={pgPct} />
           )}
 
-          <main style={{ flex: 1, padding: '22px 18px' }} className="lg:px-8 lg:py-7">
+          <main style={{ flex: 1, padding: '22px 18px', paddingBottom: 'calc(22px + 60px + env(safe-area-inset-bottom))' }} className="lg:px-8 lg:py-7 lg:pb-7">
+
+            {activeTab === 'dashboard' && (
+              <DashboardPage
+                totalAll={totalAll}
+                totalInvCost={totalInvCost}
+                pg={pg}
+                pgPct={pgPct}
+                totalSav={totalSav}
+                totalCry={totalCry}
+                totalInv={totalInv}
+                totalCom={totalCom}
+                investments={investmentsCompat}
+                savings={savingsCompat}
+                cryptos={cryptos}
+                commodities={commodities}
+                snapshots={snapshots}
+                dividends={[]}
+                onNavigate={id => setActiveTab(id)}
+              />
+            )}
 
             {activeTab === 'investments' && (
               <InvestmentsTable investments={investments} onAddInvestment={handleAddInvestment}
@@ -442,6 +466,13 @@ export default function App() {
           </main>
         </div>
       </div>
+      {/* Bottom Navigation — visible només en mòbil */}
+      <BottomNav
+        activePage={activeTab}
+        onNavigate={id => setActiveTab(id)}
+        alertsCount={activeAlertsCount}
+      />
+
       {/* AI Analyst — botó flotant visible des de qualsevol pàgina */}
       <AIAnalyst
         investments={investmentsCompat}

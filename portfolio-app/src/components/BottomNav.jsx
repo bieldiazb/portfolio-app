@@ -1,115 +1,226 @@
-import { useState, useEffect } from 'react'
+// ─── components/BottomNav.jsx ─────────────────────────────────────────────────
+// Bottom navigation bar per a mòbil (visible només <1024px)
+// 5 tabs: Inici · Cartera · Anàlisi · Dividends · Més
+import { useState } from 'react'
+import { COLORS, FONTS } from './design-tokens'
 
-const NAV = [
-  { id: 'investments', label: 'Inversions', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> },
-  { id: 'savings',     label: 'Estalvis',   icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
-  { id: 'movements',   label: 'Moviments',  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> },
-  { id: 'projections', label: 'Projeccions',icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> },
-  { id: 'chart',       label: 'Distribució',icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10H12V2z"/></svg> },
+// Icones inline — sense dependències extra
+const IcoHome = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+)
+const IcoPortfolio = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+  </svg>
+)
+const IcoChart = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+    <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+  </svg>
+)
+const IcoDividend = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+)
+const IcoMore = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+  </svg>
+)
+
+// Mapa de tab → pàgines que pertanyen a aquell tab
+export const TAB_MAP = {
+  home:      ['dashboard'],
+  portfolio: ['investments', 'savings', 'crypto', 'commodities'],
+  analysis:  ['chart', 'benchmark', 'projections', 'rebalancing', 'timeline'],
+  dividends: ['dividends'],
+  more:      ['movements', 'goals', 'news', 'alerts', 'report'],
+}
+
+// Retorna quin tab és actiu donada la pàgina activa
+export function pageToTab(page) {
+  for (const [tab, pages] of Object.entries(TAB_MAP)) {
+    if (pages.includes(page)) return tab
+  }
+  return 'home'
+}
+
+const TABS = [
+  { id: 'home',      label: 'Inici',    Icon: IcoHome },
+  { id: 'portfolio', label: 'Cartera',  Icon: IcoPortfolio },
+  { id: 'analysis',  label: 'Anàlisi',  Icon: IcoChart },
+  { id: 'dividends', label: 'Dividends',Icon: IcoDividend },
+  { id: 'more',      label: 'Més',      Icon: IcoMore },
 ]
 
-const bnStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
-
-  .bn {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 40;
-    background: hsl(0 0% 5%);
-    border-top: 1px solid hsl(0 0% 11%);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    font-family: 'DM Sans', sans-serif;
+const styles = `
+  .bnav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: rgba(10,10,10,0.96);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex; align-items: stretch;
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(60px + env(safe-area-inset-bottom));
   }
+  @media (min-width: 1024px) { .bnav { display: none; } }
 
-  /* Amaga en desktop amb CSS pur — no depèn de Tailwind */
-  @media (min-width: 1024px) {
-    .bn { display: none; }
-  }
-
-  .bn-inner {
-    display: flex;
-    align-items: stretch;
-    justify-content: space-around;
-    height: 58px;
-  }
-
-  .bn-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 0;
+  .bnav-tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; border: none; background: transparent; cursor: pointer;
+    padding: 8px 4px 4px; position: relative;
     -webkit-tap-highlight-color: transparent;
+    transition: opacity 80ms;
+  }
+  .bnav-tab:active { opacity: 0.7; }
+
+  .bnav-tab-label {
+    font-family: ${FONTS.sans};
+    font-size: 9px; font-weight: 500;
+    letter-spacing: 0.02em;
     transition: color 150ms;
-    color: hsl(0 0% 32%);
-    font-family: 'DM Sans', sans-serif;
   }
+  .bnav-tab.active .bnav-tab-label { color: #fff; font-weight: 600; }
+  .bnav-tab:not(.active) .bnav-tab-label { color: rgba(255,255,255,0.35); }
+  .bnav-tab.active svg { color: #fff; }
+  .bnav-tab:not(.active) svg { color: rgba(255,255,255,0.35); }
 
-  .bn-item.active { color: hsl(142 60% 50%); }
-  .bn-item:active { opacity: 0.7; }
-
-  .bn-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px; height: 28px;
-    border-radius: 8px;
-    transition: background 150ms;
-    position: relative;
+  /* Indicador actiu */
+  .bnav-dot {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 2px; border-radius: 0 0 2px 2px;
+    background: ${COLORS.neonPurple};
+    transition: opacity 150ms;
   }
+  .bnav-tab:not(.active) .bnav-dot { opacity: 0; }
 
-  .bn-item.active .bn-icon {
-    background: hsl(142 60% 45% / 0.13);
-  }
-
-  .bn-item.active .bn-icon::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%; transform: translateX(-50%);
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: hsl(142 60% 50%);
-  }
-
-  .bn-label {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    line-height: 1;
-  }
-
-  .bn-item.active .bn-label {
-    font-weight: 600;
-    color: hsl(142 60% 50%);
+  /* Badge alertes */
+  .bnav-badge {
+    position: absolute; top: 6px; right: calc(50% - 14px);
+    min-width: 14px; height: 14px; border-radius: 7px;
+    background: ${COLORS.neonRed}; color: #fff;
+    font-size: 8px; font-weight: 700; font-family: ${FONTS.mono};
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
   }
 `
 
-export default function BottomNav({ active, onChange }) {
+// Drawer "Més" — apareix quan cliques el tab Més
+const MORE_ITEMS = [
+  { page: 'movements', label: 'Moviments',   emoji: '📋' },
+  { page: 'goals',     label: 'Objectius',   emoji: '🎯' },
+  { page: 'news',      label: 'Notícies',    emoji: '📰' },
+  { page: 'alerts',    label: 'Alertes',     emoji: '🔔' },
+  { page: 'rebalancing',label:'Rebalanceig', emoji: '⚖️' },
+  { page: 'report',    label: 'Informe PDF', emoji: '📄' },
+]
+
+const drawerStyles = `
+  .bnav-drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 49; backdrop-filter: blur(4px);
+    animation: drawerFadeIn 150ms ease;
+  }
+  @keyframes drawerFadeIn { from { opacity:0 } to { opacity:1 } }
+
+  .bnav-drawer {
+    position: fixed; bottom: calc(60px + env(safe-area-inset-bottom));
+    left: 0; right: 0; z-index: 49;
+    background: #111; border-top: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px 16px 0 0;
+    padding: 16px 0 8px;
+    animation: drawerSlideUp 200ms cubic-bezier(0.34,1.2,0.64,1);
+  }
+  @keyframes drawerSlideUp { from { transform:translateY(100%) } to { transform:translateY(0) } }
+
+  .bnav-drawer-handle {
+    width: 32px; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.12); margin: 0 auto 16px;
+  }
+  .bnav-drawer-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    padding: 0 8px;
+  }
+  .bnav-drawer-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; padding: 14px 8px; border-radius: 10px;
+    border: none; background: transparent; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 100ms;
+  }
+  .bnav-drawer-item:active { background: rgba(255,255,255,0.06); }
+  .bnav-drawer-emoji { font-size: 22px; }
+  .bnav-drawer-label {
+    font-family: ${FONTS.sans}; font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.65); text-align: center;
+  }
+`
+
+export default function BottomNav({ activePage, onNavigate, alertsCount = 0 }) {
+  const [showMore, setShowMore] = useState(false)
+  const activeTab = pageToTab(activePage)
+
+  const handleTab = (tabId) => {
+    if (tabId === 'more') {
+      setShowMore(v => !v)
+      return
+    }
+    setShowMore(false)
+    // Navega a la primera pàgina del tab
+    const firstPage = TAB_MAP[tabId][0]
+    onNavigate(firstPage)
+  }
+
+  const handleMoreItem = (page) => {
+    setShowMore(false)
+    onNavigate(page)
+  }
+
   return (
     <>
-      <style>{bnStyles}</style>
-      {/* Sense lg:hidden — el CSS del @media s'encarrega d'ocultar-lo en desktop */}
-      <nav className="bn">
-        <div className="bn-inner">
-          {NAV.map(item => (
-            <button
-              key={item.id}
-              className={`bn-item${active === item.id ? ' active' : ''}`}
-              onClick={() => onChange(item.id)}
-            >
-              <span className="bn-icon">{item.icon}</span>
-              <span className="bn-label">{item.label}</span>
-            </button>
-          ))}
-        </div>
+      <style>{`${styles}${drawerStyles}`}</style>
+
+      {showMore && (
+        <>
+          <div className="bnav-drawer-overlay" onClick={() => setShowMore(false)}/>
+          <div className="bnav-drawer">
+            <div className="bnav-drawer-handle"/>
+            <div className="bnav-drawer-grid">
+              {MORE_ITEMS.map(item => (
+                <button key={item.page} className="bnav-drawer-item" onClick={() => handleMoreItem(item.page)}>
+                  <span className="bnav-drawer-emoji">{item.emoji}</span>
+                  <span className="bnav-drawer-label">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      <nav className="bnav">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            className={`bnav-tab${activeTab === id || (id === 'more' && showMore) ? ' active' : ''}`}
+            onClick={() => handleTab(id)}
+          >
+            <div className="bnav-dot"/>
+            <Icon active={activeTab === id || (id === 'more' && showMore)} />
+            <span className="bnav-tab-label">{label}</span>
+            {id === 'more' && alertsCount > 0 && (
+              <span className="bnav-badge">{alertsCount}</span>
+            )}
+          </button>
+        ))}
       </nav>
     </>
   )

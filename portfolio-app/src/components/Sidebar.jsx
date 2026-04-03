@@ -1,230 +1,241 @@
-// ─── Sidebar.v3.jsx — Cartera v3 ─────────────────────────────────────────────
-import { SHARED_STYLES, COLORS, FONTS, RADIUS } from './design-tokens'
+// ─── components/Sidebar.v4.jsx ────────────────────────────────────────────────
+// Sidebar desktop reorganitzat: grups visuals, icones grans, secció "Més" col·lapsable
+import { useState } from 'react'
+import { COLORS, FONTS } from './design-tokens'
 
-const NAV_MAIN = [
-  { id:'investments', label:'Inversions', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> },
-  { id:'savings',     label:'Estalvis',   icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
-  { id:'commodities', label:'Mat. primeres', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c0 0 4 4 4 9s-4 9-4 9"/><path d="M3 12h18"/><path d="M12 3c0 0-4 4-4 9s4 9 4 9"/></svg> },
-  { id:'crypto',      label:'Crypto',     icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 8h5a2 2 0 0 1 0 4H9v4h5a2 2 0 0 0 0-4"/></svg> },
-  { id:'movements',   label:'Moviments',  icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> },
-  { id:'news',        label:'Notícies',   icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/></svg> },
-  { id:'dividends',   label:'Dividends',    icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
-]
-const NAV_ANALYSIS = [
-  { id:'timeline',    label:'Evolució',    icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M3 15l5-5 4 4 5-7"/></svg> },
-  { id:'projections', label:'Projeccions', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> },
-  { id:'chart',       label:'Distribució', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10H12V2z"/></svg> },
-  { id:'goals',       label:'Objectius',  icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> },
-  { id:'benchmark',   label:'Benchmark',   icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> },
-  { id:'rebalancing', label:'Rebalanceig', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 3a3 3 0 0 1 0 6H6a3 3 0 0 1 0-6 3 3 0 0 1 0 6"/><path d="M6 21a3 3 0 0 1 0-6h12a3 3 0 0 1 0 6 3 3 0 0 1 0-6"/></svg> },
-]
-const NAV_TOOLS = [
-  { id:'alerts', label:'Alertes',    icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
-  { id:'report',  label:'Informe PDF', icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
-]
-
-const sbStyles = `
-  .sb-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.70); z-index:29; opacity:0; pointer-events:none; transition:opacity 200ms; }
-  .sb-overlay.on { opacity:1; pointer-events:all; }
-
-  .sb {
+const styles = `
+  .sb4 {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 220px;
+    background: #0a0a0a; border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex; flex-direction: column; z-index: 30;
+    transition: transform 200ms cubic-bezier(0.4,0,0.2,1);
     font-family: ${FONTS.sans};
-    position: fixed; top:0; left:0; bottom:0;
-    width: 220px;
-    background: #0d0d0d;
-    border-right: 1px solid ${COLORS.border};
-    display: flex; flex-direction: column;
-    z-index: 30;
-    transition: transform 260ms cubic-bezier(0.32,0.72,0,1);
   }
   @media (max-width:1023px) {
-    .sb { transform:translateX(-100%); }
-    .sb.open { transform:translateX(0); }
+    .sb4 { transform: translateX(-100%); }
+    .sb4.open { transform: translateX(0); box-shadow: 20px 0 60px rgba(0,0,0,0.8); }
   }
+
+  /* Overlay mòbil */
+  .sb4-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 29; display: none;
+    backdrop-filter: blur(4px);
+  }
+  @media (max-width:1023px) { .sb4-overlay.show { display: block; } }
 
   /* Logo */
-  .sb-logo {
-    padding: 16px 16px 14px;
+  .sb4-logo {
+    padding: 20px 16px 16px;
     display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid ${COLORS.border};
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     flex-shrink: 0;
   }
-  .sb-logo-mark {
-    width: 24px; height: 24px;
-    border: 1px solid ${COLORS.neonPurple};
-    border-radius: ${RADIUS.sm};
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+  .sb4-logo-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: ${COLORS.neonPurple}; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .sb-logo-name {
-    font-size: 14px; font-weight: 500;
-    color: ${COLORS.textPrimary};
-    letter-spacing: -0.2px;
-  }
-  .sb-close {
-    margin-left: auto; width: 22px; height: 22px;
-    background: transparent; border: 1px solid ${COLORS.border};
-    border-radius: ${RADIUS.sm};
-    color: ${COLORS.textMuted}; font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-family: inherit; transition: all 100ms;
-  }
-  .sb-close:hover { color: ${COLORS.textPrimary}; border-color: ${COLORS.borderHi}; }
-  @media (min-width:1024px) { .sb-close { display:none; } }
+  .sb4-logo-text { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+  .sb4-logo-sub  { font-size: 10px; color: rgba(255,255,255,0.30); font-weight: 400; display:block; }
 
   /* Nav */
-  .sb-nav { flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:1px; }
+  .sb4-nav { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .sb4-nav::-webkit-scrollbar { display: none; }
 
-  .sb-group {
-    font-size: 10px; font-weight: 500;
-    color: ${COLORS.textMuted};
+  /* Grup */
+  .sb4-group { margin-bottom: 6px; }
+  .sb4-group-label {
+    font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.20);
     text-transform: uppercase; letter-spacing: 0.14em;
-    padding: 10px 8px 4px;
+    padding: 6px 8px 4px; display: block;
   }
 
-  .sb-sep { height:1px; background:${COLORS.border}; margin:4px 0; }
-
-  .sb-btn {
-    display: flex; align-items: center; gap: 9px;
-    padding: 7px 8px 7px 6px;
-    border-radius: ${RADIUS.md};
-    font-size: 13px; font-weight: 400;
-    color: ${COLORS.textMuted};
-    background: transparent; border: none;
-    cursor: pointer; width: 100%; text-align: left;
-    transition: color 100ms, background 100ms;
-    font-family: ${FONTS.sans};
-    position: relative;
+  /* Item */
+  .sb4-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 7px;
+    border: none; background: transparent; width: 100%;
+    cursor: pointer; text-align: left;
+    transition: background 80ms;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
   }
-  .sb-btn:hover { color: ${COLORS.textSecondary}; background: ${COLORS.elevated}; }
-  .sb-btn.active {
-    color: ${COLORS.textPrimary};
-    background: ${COLORS.elevated};
-    border-left: 2px solid ${COLORS.neonPurple};
-    padding-left: 4px;
+  .sb4-item:hover { background: rgba(255,255,255,0.05); }
+  .sb4-item.active { background: rgba(255,255,255,0.07); }
+  .sb4-item-ico { color: rgba(255,255,255,0.35); flex-shrink:0; transition: color 100ms; display:flex; }
+  .sb4-item.active .sb4-item-ico { color: ${COLORS.neonPurple}; }
+  .sb4-item:hover .sb4-item-ico { color: rgba(255,255,255,0.60); }
+  .sb4-item-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); transition: color 100ms; }
+  .sb4-item.active .sb4-item-label { color: #fff; font-weight: 600; }
+  .sb4-item:hover .sb4-item-label { color: rgba(255,255,255,0.80); }
+  .sb4-item-bar {
+    position: absolute; left: 0; top: 25%; bottom: 25%;
+    width: 2px; border-radius: 0 2px 2px 0;
+    background: ${COLORS.neonPurple}; opacity: 0; transition: opacity 100ms;
   }
-  .sb-btn-ico { flex-shrink:0; opacity:0.35; display:flex; align-items:center; transition:opacity 100ms; }
-  .sb-btn:hover .sb-btn-ico { opacity:0.70; }
-  .sb-btn.active .sb-btn-ico { opacity:1; color:${COLORS.neonPurple}; }
+  .sb4-item.active .sb4-item-bar { opacity: 1; }
 
-  /* Badge alertes */
-  .sb-badge {
-    margin-left: auto;
-    min-width: 16px; height: 16px;
-    border-radius: 2px;
-    background: ${COLORS.bgAmber};
-    border: 1px solid ${COLORS.borderAmber};
-    color: ${COLORS.neonAmber};
-    font-size: 9px; font-weight: 500;
-    display: flex; align-items: center; justify-content: center;
-    padding: 0 4px;
-    font-family: ${FONTS.mono};
+  /* Badge */
+  .sb4-badge {
+    margin-left: auto; min-width: 16px; height: 16px;
+    border-radius: 8px; background: ${COLORS.neonRed};
+    color: #fff; font-size: 9px; font-weight: 700;
+    font-family: ${FONTS.mono}; display: flex;
+    align-items: center; justify-content: center; padding: 0 4px;
   }
 
-  /* Footer */
-  .sb-foot {
-    padding: 8px 8px 14px;
-    border-top: 1px solid ${COLORS.border};
+  /* Peu */
+  .sb4-footer {
+    padding: 12px 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
     flex-shrink: 0;
   }
-  .sb-user {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px;
-    border-radius: ${RADIUS.md};
-    background: ${COLORS.elevated};
-    border: 1px solid ${COLORS.border};
-    margin-bottom: 4px;
-    cursor: default;
+  .sb4-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 7px; cursor: pointer;
+    transition: background 80ms; border:none; background:transparent; width:100%;
   }
-  .sb-av {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: ${COLORS.bgPurple};
-    border: 1px solid ${COLORS.borderPurple};
-    color: ${COLORS.neonPurple};
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 600;
-    flex-shrink: 0; overflow: hidden;
-    font-family: ${FONTS.mono};
+  .sb4-user:hover { background: rgba(255,255,255,0.05); }
+  .sb4-user-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.5); display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 500; overflow:hidden; flex-shrink:0;
   }
-  .sb-av img { width:100%; height:100%; object-fit:cover; }
-  .sb-uname { font-size:12px; font-weight:500; color:${COLORS.textSecondary}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sb-uemail { font-size:10px; color:${COLORS.textMuted}; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:${FONTS.mono}; }
-  .sb-logout {
-    display: flex; align-items: center; gap: 7px;
-    width: 100%; padding: 6px 8px;
-    border-radius: ${RADIUS.md}; border: none;
-    background: transparent;
+  .sb4-user-av img { width:100%; height:100%; object-fit:cover; }
+  .sb4-user-name { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.60); }
+  .sb4-user-role { font-size: 10px; color: rgba(255,255,255,0.25); }
+  .sb4-logout {
+    display:flex; align-items:center; gap:6px; padding: 8px 10px;
+    border-radius: 6px; border: none; background: transparent;
+    width: 100%; cursor: pointer; margin-top: 4px;
+    transition: background 80ms; color: rgba(255,255,255,0.25);
     font-family: ${FONTS.sans}; font-size: 12px;
-    color: ${COLORS.textMuted};
-    cursor: pointer; transition: all 100ms; text-align: left;
   }
-  .sb-logout:hover { color: ${COLORS.neonRed}; background: rgba(255,59,59,0.05); }
+  .sb4-logout:hover { background: rgba(255,59,59,0.08); color: ${COLORS.neonRed}; }
 `
 
-export default function Sidebar({ active, onChange, user, onLogout, isOpen=false, onClose, activeAlertsCount=0 }) {
+// Icones SVG mínimes
+const I = {
+  home:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  inv:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+  sav:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
+  crypto:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5h3a1.5 1.5 0 0 1 0 3h-3v3h4a1.5 1.5 0 0 0 0-3"/><line x1="9.5" y1="8" x2="9.5" y2="16"/></svg>,
+  com:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>,
+  div:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+  chart:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><pie cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10H12V2z"/></svg>,
+  bench:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  proj:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+  move:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  goal:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+  news:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M18 18h-8M18 10h-8"/></svg>,
+  alert:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+  reb:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
+  rep:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+  logout:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+}
+
+const NAV_GROUPS = [
+  {
+    label: 'Principal',
+    items: [
+      { id: 'dashboard',  label: 'Inici',        icon: I.home   },
+      { id: 'investments',label: 'Inversions',    icon: I.inv    },
+      { id: 'savings',    label: 'Estalvis',      icon: I.sav    },
+      { id: 'crypto',     label: 'Crypto',        icon: I.crypto },
+      { id: 'commodities',label: 'Mat. primeres', icon: I.com    },
+      { id: 'dividends',  label: 'Dividends',     icon: I.div    },
+    ],
+  },
+  {
+    label: 'Anàlisi',
+    items: [
+      { id: 'chart',      label: 'Distribució',   icon: I.chart  },
+      { id: 'benchmark',  label: 'Benchmark',     icon: I.bench  },
+      { id: 'projections',label: 'Projeccions',   icon: I.proj   },
+      { id: 'timeline',   label: 'Evolució',      icon: I.move   },
+    ],
+  },
+  {
+    label: 'Eines',
+    items: [
+      { id: 'goals',      label: 'Objectius',     icon: I.goal   },
+      { id: 'news',       label: 'Notícies',      icon: I.news   },
+      { id: 'movements',  label: 'Moviments',     icon: I.move   },
+      { id: 'rebalancing',label: 'Rebalanceig',   icon: I.reb    },
+      { id: 'alerts',     label: 'Alertes',       icon: I.alert, badge: true },
+      { id: 'report',     label: 'Informe PDF',   icon: I.rep    },
+    ],
+  },
+]
+
+export default function Sidebar({ active, onChange, user, onLogout, isOpen, onClose, activeAlertsCount = 0 }) {
   const initials = user?.displayName
-    ? user.displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+    ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
-
-  const handleNav = id => { onChange(id); onClose?.() }
-
-  const NavBtn = ({ item }) => (
-    <button className={`sb-btn${active===item.id?' active':''}`} onClick={()=>handleNav(item.id)}>
-      <span className="sb-btn-ico">{item.icon}</span>
-      {item.label}
-      {item.id==='alerts' && activeAlertsCount>0 && (
-        <span className="sb-badge">{activeAlertsCount>9?'9+':activeAlertsCount}</span>
-      )}
-    </button>
-  )
 
   return (
     <>
-      <style>{`${SHARED_STYLES}${sbStyles}`}</style>
-      <div className={`sb-overlay${isOpen?' on':''}`} onClick={onClose} />
-      <aside className={`sb${isOpen?' open':''}`}>
+      <style>{styles}</style>
+      {/* Overlay mòbil */}
+      <div className={`sb4-overlay${isOpen ? ' show' : ''}`} onClick={onClose}/>
 
-        <div className="sb-logo">
-          <div className="sb-logo-mark">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonPurple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+      <aside className={`sb4${isOpen ? ' open' : ''}`}>
+        {/* Logo */}
+        <div className="sb4-logo">
+          <div className="sb4-logo-mark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
             </svg>
           </div>
-          <span className="sb-logo-name">Cartera</span>
-          <button className="sb-close" onClick={onClose}>×</button>
+          <div>
+            <span className="sb4-logo-text">Cartera</span>
+            <span className="sb4-logo-sub">Gestor financer</span>
+          </div>
         </div>
 
-        <nav className="sb-nav">
-          <div className="sb-group">Principal</div>
-          {NAV_MAIN.map(item => <NavBtn key={item.id} item={item} />)}
-
-          <div className="sb-sep" style={{marginTop:8}} />
-          <div className="sb-group">Anàlisi</div>
-          {NAV_ANALYSIS.map(item => <NavBtn key={item.id} item={item} />)}
-
-          <div className="sb-sep" style={{marginTop:8}} />
-          <div className="sb-group">Eines</div>
-          {NAV_TOOLS.map(item => <NavBtn key={item.id} item={item} />)}
+        {/* Nav */}
+        <nav className="sb4-nav">
+          {NAV_GROUPS.map(group => (
+            <div key={group.label} className="sb4-group">
+              <span className="sb4-group-label">{group.label}</span>
+              {group.items.map(item => (
+                <button
+                  key={item.id}
+                  className={`sb4-item${active === item.id ? ' active' : ''}`}
+                  onClick={() => { onChange(item.id); onClose?.() }}
+                >
+                  <div className="sb4-item-bar"/>
+                  <span className="sb4-item-ico">{item.icon}</span>
+                  <span className="sb4-item-label">{item.label}</span>
+                  {item.badge && activeAlertsCount > 0 && (
+                    <span className="sb4-badge">{activeAlertsCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
         </nav>
 
-        {user && (
-          <div className="sb-foot">
-            <div className="sb-user">
-              <div className="sb-av">
-                {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : initials}
-              </div>
-              <div style={{minWidth:0,flex:1}}>
-                <div className="sb-uname">{user.displayName?.split(' ')[0] || 'Usuari'}</div>
-                <div className="sb-uemail">{user.email}</div>
-              </div>
+        {/* Peu */}
+        <div className="sb4-footer">
+          <div className="sb4-user">
+            <div className="sb4-user-av">
+              {user?.photoURL
+                ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"/>
+                : initials
+              }
             </div>
-            <button className="sb-logout" onClick={onLogout}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              Tancar sessió
-            </button>
+            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <p className="sb4-user-name">{user?.displayName || user?.email?.split('@')[0] || 'Usuari'}</p>
+              <p className="sb4-user-role">Compte personal</p>
+            </div>
           </div>
-        )}
+          <button className="sb4-logout" onClick={onLogout}>
+            {I.logout} Tancar sessió
+          </button>
+        </div>
       </aside>
     </>
   )
