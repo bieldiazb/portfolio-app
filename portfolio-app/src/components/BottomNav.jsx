@@ -70,7 +70,7 @@ const styles = `
     -webkit-backdrop-filter: blur(16px);
     display: flex; align-items: stretch;
     padding-bottom: env(safe-area-inset-bottom);
-    height: calc(60px + env(safe-area-inset-bottom));
+    height: calc(75px + env(safe-area-inset-bottom));
   }
   @media (min-width: 1024px) { .bnav { display: none; } }
 

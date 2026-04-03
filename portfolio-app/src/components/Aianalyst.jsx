@@ -65,7 +65,7 @@ const styles = `
   /* Botó flotant */
   .ai-fab {
     position: fixed;
-    bottom: 80px; right: 30px;
+    bottom: 92px; right: 30px;
     width: 52px; height: 52px;
     border-radius: 50%;
     background: ${COLORS.neonPurple};
