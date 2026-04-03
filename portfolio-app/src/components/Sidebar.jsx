@@ -33,7 +33,7 @@ const styles = `
   }
   .sb4-logo-mark {
     width: 28px; height: 28px; border-radius: 7px;
-    background: ${COLORS.neonPurple}; display: flex;
+    background: #fff; display: flex;
     align-items: center; justify-content: center; flex-shrink: 0;
   }
   .sb4-logo-text { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
@@ -185,9 +185,10 @@ export default function Sidebar({ active, onChange, user, onLogout, isOpen, onCl
         {/* Logo */}
         <div className="sb4-logo">
           <div className="sb4-logo-mark">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            {/* <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-            </svg>
+            </svg> */}
+            <img src="/logo_black.png" alt="Cartera" style={{ width: 20, height: 20 }}/>
           </div>
           <div>
             <span className="sb4-logo-text">Cartera</span>

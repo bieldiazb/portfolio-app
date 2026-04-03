@@ -57,7 +57,7 @@ const appStyles = `
   .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Geist',sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
-  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgba(123,97,255,0.8); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgb(255, 255, 255); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
   .mob-menu-btn:hover { background: rgba(255,255,255,0.05); }
   .mob-hdr-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.82); letter-spacing: -0.3px; }
@@ -358,9 +358,10 @@ export default function App() {
         <div className="mob-hdr">
           <div className="mob-hdr-left">
             <div className="mob-hdr-logo">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {/* <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-              </svg>
+              </svg> */}
+            <img src="/logo_black.png" alt="Cartera" style={{ width: 20, height: 20 }}/>
             </div>
             <span className="mob-hdr-title">Cartera</span>
           </div>
