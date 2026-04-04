@@ -209,10 +209,21 @@ function AssetDividendInfo({ inv, info, dividends }) {
   const estPerPay = perPay && qty > 0 ? +(perPay * qty).toFixed(2) : null
   const totalRec  = dividends.filter(d => d.assetId === inv.id).reduce((s,d) => s + d.amount, 0)
 
-  // Proper ex-date i pay-date — usem les dates REALS de Yahoo (quoteSummary)
-  // nextExDate i nextPayDate venen directament de calendarEvents (100% exactes)
-  const nextPayDate = info.nextPayDate || (info.allDates || []).find(d => d.date >= today)?.date
-  const nextExDate  = info.nextExDate  || (info.allDates || []).find(d => d.date >= today)?.exDate
+  const today2 = new Date().toISOString().split('T')[0]
+
+  // Dates CONFIRMAT PER YAHOO (últim dividend pagat)
+  const lastConfirmedExDate  = info.lastExDate  || null
+  const lastConfirmedPayDate = info.lastPayDate || null
+
+  // Dates PROJECTADES (proper futur basat en historial)
+  const nextEntry   = (info.allDates || []).find(d => d.date > today2)
+  const nextPayDate = nextEntry?.date   || null
+  const nextExDate  = nextEntry?.exDate || null
+
+  // Mostrem sempre la data més recent/rellevant
+  const showExDate  = nextExDate  || lastConfirmedExDate
+  const showPayDate = nextPayDate || lastConfirmedPayDate
+  const isProjected = !!(nextPayDate) // si és projectada (no confirmada)
 
   const dPay = nextPayDate ? daysUntil(nextPayDate) : null
   const dEx  = nextExDate  ? daysUntil(nextExDate)  : null
@@ -252,21 +263,25 @@ function AssetDividendInfo({ inv, info, dividends }) {
 
       {/* Dates ex-dividend i pay */}
       <div className="dv-asset-dates">
-        {nextExDate && (
+        {showExDate && (
           <div className="dv-date-pill ex">
-            <span className="dv-date-pill-type">Ex-Dividend</span>
-            <span className="dv-date-pill-date">{fmtDateShort(nextExDate)}</span>
+            <span className="dv-date-pill-type">
+              Ex-Dividend{isProjected ? ' ~' : ' ✓'}
+            </span>
+            <span className="dv-date-pill-date">{fmtDateShort(showExDate)}</span>
             <span className="dv-date-pill-days">
-              {dEx === 0 ? '⚠ avui' : dEx < 0 ? `fa ${Math.abs(dEx)}d` : `en ${dEx}d`}
+              {(() => { const d=daysUntil(showExDate); return d===0?'⚠ avui':d<0?`fa ${Math.abs(d)}d`:`en ${d}d` })()}
             </span>
           </div>
         )}
-        {nextPayDate && (
+        {showPayDate && (
           <div className="dv-date-pill pay">
-            <span className="dv-date-pill-type">Pay Date</span>
-            <span className="dv-date-pill-date">{fmtDateShort(nextPayDate)}</span>
+            <span className="dv-date-pill-type">
+              Pay Date{isProjected ? ' ~' : ' ✓'}
+            </span>
+            <span className="dv-date-pill-date">{fmtDateShort(showPayDate)}</span>
             <span className="dv-date-pill-days">
-              {dPay === 0 ? '⚠ avui' : dPay < 0 ? `fa ${Math.abs(dPay)}d` : `en ${dPay}d`}
+              {(() => { const d=daysUntil(showPayDate); return d===0?'⚠ avui':d<0?`fa ${Math.abs(d)}d`:`en ${d}d` })()}
             </span>
           </div>
         )}
@@ -282,7 +297,7 @@ function AssetDividendInfo({ inv, info, dividends }) {
           </div>
         )}
         {/* Earnings call */}
-        {info.earningsStart && (
+        {(info.earningsStart) && (
           <div className="dv-date-pill" style={{ background:'rgba(123,97,255,0.08)', border:`1px solid rgba(123,97,255,0.25)` }}>
             <span className="dv-date-pill-type" style={{ color:'#7b61ff' }}>Earnings</span>
             <span className="dv-date-pill-date">{fmtDateShort(info.earningsStart)}</span>
