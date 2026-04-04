@@ -63,7 +63,10 @@ const styles = `
   /* ex-date → taronja */
   .dv-cal-cell.ex      { color:${COLORS.neonAmber}; background:${COLORS.bgAmber}; border:1px solid ${COLORS.borderAmber}; cursor:pointer; font-weight:700; }
   .dv-cal-cell.ex:hover { background:rgba(255,149,0,0.14); }
-  /* pagament registrat → cian */
+  /* pagament passat (historial) → cian fort */
+  .dv-cal-cell.past    { color:${COLORS.neonCyan}; background:rgba(0,212,255,0.12); border:1px solid rgba(0,212,255,0.30); cursor:pointer; font-weight:600; }
+  .dv-cal-cell.past:hover { background:rgba(0,212,255,0.18); }
+  /* pagament registrat manualment → cian clar */
   .dv-cal-cell.rec     { color:${COLORS.neonCyan}; background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.20); cursor:pointer; }
   .dv-cal-cell-num { font-size:11px; font-weight:500; line-height:1; }
   .dv-cal-dot { width:3px; height:3px; border-radius:50%; background:currentColor; margin-top:2px; }
@@ -345,17 +348,17 @@ function CalendarSection({ dividends, upcomingData, loading }) {
     return map
   }, [dividends, year, month])
 
-  // Pay dates projectats
+  // Pay dates (projectats i passats de l'historial)
   const payByDay = useMemo(() => {
     const map = {}
     Object.values(upcomingData).forEach(({ inv, info }) => {
       if (!info?.allDates) return
-      info.allDates.forEach(({ date: dateStr }) => {
+      info.allDates.forEach(({ date: dateStr, isPast }) => {
         const dt = new Date(dateStr + 'T12:00:00')
         if (dt.getFullYear() === year && dt.getMonth() === month) {
           const day = dt.getDate()
           if (!map[day]) map[day] = []
-          map[day].push({ inv, info, type: 'pay' })
+          map[day].push({ inv, info, type: isPast ? 'past' : 'pay', isPast })
         }
       })
     })
@@ -420,9 +423,11 @@ function CalendarSection({ dividends, upcomingData, loading }) {
             const isHov    = hovered === i
             const hasEvent = hasRec || hasPay || hasEx
 
+            const hasPast = cell.pay?.some(p => p.isPast) && !cell.pay?.some(p => !p.isPast)
             let cls = 'dv-cal-cell'
             if (hasRec)        cls += ' rec'
-            else if (hasPay)   cls += ' pay'
+            else if (hasPay && !hasPast)  cls += ' pay'
+            else if (hasPay && hasPast)   cls += ' past'
             else if (hasEx)    cls += ' ex'
             else if (isToday)  cls += ' today'
 
@@ -444,19 +449,21 @@ function CalendarSection({ dividends, upcomingData, loading }) {
                         <p className="dv-cal-pop-amt">{fmtEur(r.data.amount)}</p>
                       </div>
                     ))}
-                    {hasPay && cell.pay.map(({ inv, info }, j) => {
+                    {hasPay && cell.pay.map(({ inv, info, isPast }, j) => {
                       const qty    = inv.totalQty || inv.qty || 0
                       const freq   = info.frequency || 4
                       const rate   = info.dividendRate || info.trailingRate
-                      const perPay = rate ? +(rate / freq).toFixed(4) : null
-                      const est    = perPay && qty > 0 ? perPay * qty : null
+                      const perPay = info.perPayment || (rate ? +(rate / freq).toFixed(4) : null)
+                      const est    = perPay && qty > 0 ? +(perPay * qty).toFixed(2) : null
                       return (
                         <div key={j} className="dv-cal-pop-item">
-                          <span className="dv-cal-pop-type pay">💸 Pay Date</span>
+                          <span className="dv-cal-pop-type" style={{ background: isPast ? 'rgba(0,212,255,0.10)' : COLORS.bgGreen, color: isPast ? COLORS.neonCyan : COLORS.neonGreen }}>
+                            {isPast ? '📋 Passat' : '💸 Pay Date'}
+                          </span>
                           <p className="dv-cal-pop-name">{inv.name}</p>
                           <div className="dv-cal-pop-row">
                             <p className="dv-cal-pop-meta">{inv.ticker}</p>
-                            {est && <p className="dv-cal-pop-amt">~{fmtEur(est)}</p>}
+                            {est && <p className="dv-cal-pop-amt">{isPast ? '' : '~'}{fmtEur(est)}</p>}
                           </div>
                         </div>
                       )
@@ -484,6 +491,10 @@ function CalendarSection({ dividends, upcomingData, loading }) {
         <div className="dv-cal-legend-item">
           <div className="dv-cal-legend-dot" style={{ background: COLORS.bgGreen, border: `1px solid ${COLORS.borderGreen}` }}/>
           Pay date (pagament)
+        </div>
+        <div className="dv-cal-legend-item">
+          <div className="dv-cal-legend-dot" style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.30)' }}/>
+          Dividend passat (historial)
         </div>
         <div className="dv-cal-legend-item">
           <div className="dv-cal-legend-dot" style={{ background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.20)' }}/>

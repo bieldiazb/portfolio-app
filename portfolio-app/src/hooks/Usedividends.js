@@ -81,7 +81,7 @@ export async function fetchDividendInfo(ticker) {
     // ── 1. Finnhub: dividends + earnings en paral·lel ─────────────────────────
     const [divResult, earnResult] = await Promise.allSettled([
       // dividend2 retorna historial complet amb ex-date i payment date
-      fhGet('/stock/dividend2', { symbol: fhSymbol }),
+      fhGet('/stock/dividend', { symbol: fhSymbol, from: '2020-01-01', to: new Date().toISOString().split("T")[0] }),
       // earnings calendar
       fhGet('/calendar/earnings', {
         symbol: fhSymbol,
@@ -97,19 +97,27 @@ export async function fetchDividendInfo(ticker) {
     let histDivs    = []
 
     if (fhDivData?.data?.length) {
+      // Finnhub /stock/dividend (free) retorna:
+      // { data: [{ date (=ex-date), amount, adjustedAmount, currency }] }
+      // NO té paymentDate → el calculem com ex-date + offset típic
+      const offset = isEuropean ? 13 : 25
       histDivs = fhDivData.data
-        .filter(d => d.paymentDate || d.exDate)
-        .map(d => ({
-          exDate:  d.exDate     || null,
-          payDate: d.paymentDate || d.exDate,  // usem exDate si no hi ha payDate
-          amount:  parseFloat(d.adjustedAmount || d.amount) || 0,
-          currency: d.currency || 'USD',
-        }))
+        .filter(d => d.date)
+        .map(d => {
+          const exDt  = new Date(d.date + 'T12:00:00')
+          const payDt = new Date(exDt); payDt.setDate(payDt.getDate() + offset)
+          return {
+            exDate:  d.date,
+            payDate: payDt.toISOString().split('T')[0],
+            amount:  parseFloat(d.adjustedAmount || d.amount) || 0,
+            currency: d.currency || (isEuropean ? 'EUR' : 'USD'),
+          }
+        })
         .filter(d => d.payDate)
-        .sort((a, b) => b.payDate.localeCompare(a.payDate))
+        .sort((a, b) => b.exDate.localeCompare(a.exDate))
     }
 
-    console.log(`[Div] ${ticker} Finnhub divs:${histDivs.length}`)
+    console.log(`[Div] ${ticker} (fh:${fhSymbol}) Finnhub divs:${histDivs.length}`)
 
     // Per ETFs europeus Finnhub pot no tenir dades → fallback Yahoo
     if (!histDivs.length && isEuropean) {
@@ -207,6 +215,7 @@ export async function fetchDividendInfo(ticker) {
     const refDate = new Date(refDt.getFullYear(), refDt.getMonth(), realDay)
       .toISOString().split('T')[0]
 
+    // Dates projectades futures
     const allFuture = generateDividendDates(refDate, frequency, 2)
       .filter(d => d.date > today)
       .map(({ date, isExact }) => {
@@ -214,6 +223,16 @@ export async function fetchDividendInfo(ticker) {
         const e = new Date(p); e.setDate(e.getDate()-exPayOffset)
         return { date, exDate: e.toISOString().split('T')[0], isExact }
       })
+
+    // Dates passades reals (de l'historial Finnhub) — per mostrar al calendari
+    const allPast = histDivs
+      .filter(d => d.payDate <= today)
+      .slice(0, 8)
+      .map(d => ({ date: d.payDate, exDate: d.exDate, isExact: true, isPast: true }))
+
+    // Combinem passades + futures per al calendari
+    const allDatesForCal = [...allPast, ...allFuture]
+      .sort((a, b) => a.date.localeCompare(b.date))
 
     // Si Finnhub té el proper dividend confirmat, l'afegim amb prioritat
     if (nextPayDate && nextPayDate > today) {
@@ -252,7 +271,7 @@ export async function fetchDividendInfo(ticker) {
       exPayOffsetDays: exPayOffset,
       perPayment,
       realDay,
-      allDates: allFuture,
+      allDates: allDatesForCal,
       histDivs: histDivs.slice(0, 12),
       refPayDate: refDate,
       source: isEuropean && !fhDivData?.data?.length ? 'yahoo+finnhub' : 'finnhub',
