@@ -47,6 +47,8 @@ export const COLORS = {
 export const FONTS = {
   sans: "'Geist',sans-serif",
   mono: "'Geist Mono','SF Mono','Menlo','Consolas',monospace",
+  test: "'Montserrat',sans-serif",
+  num: "'DM Sans',monospace",
 }
 
 // ── Spacing ───────────────────────────────────────────────────────────────────

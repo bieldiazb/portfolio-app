@@ -45,6 +45,20 @@
   status = 200
   force = true
 
+# Financial Modeling Prep — Netlify Function (injecta FMP_API_KEY del servidor)
+# IMPORTANT: usem :splat per passar el path sencer a la function
+[[redirects]]
+  from = "/fmp"
+  to = "/.netlify/functions/fmp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/fmp/*"
+  to = "/.netlify/functions/fmp"
+  status = 200
+  force = true
+
 # SPA fallback
 [[redirects]]
   from = "/*"
