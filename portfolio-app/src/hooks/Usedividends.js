@@ -60,29 +60,40 @@ export async function fetchDividendInfo(ticker) {
   try {
     // ── 1. FMP: historial de dividends ────────────────────────────────────────
     // Retorna: date (ex-date), paymentDate, dividend (import/acció), adjDividend
-    const [divHistory, earningsHistory, profile] = await Promise.allSettled([
-      fmpGet(`/v3/historical-price-full/stock_dividend/${fmpTicker}`),
-      fmpGet(`/v3/historical/earning_calendar/${fmpTicker}`),
-      fmpGet(`/v3/profile/${fmpTicker}`),
+    // ── Endpoints GRATUÏTS de FMP ─────────────────────────────────────────────
+    // /v3/stock_dividend_history → historial dividends (gratuït)
+    // /v3/earning_calendar?symbol=X&from=&to= → earnings (gratuït)
+    // /v3/quote → preu i info bàsica (gratuït)
+    const today     = new Date().toISOString().split('T')[0]
+    const oneYrAgo  = new Date(Date.now() - 365*5*86400000).toISOString().split('T')[0]
+    const oneYrFwd  = new Date(Date.now() + 365*86400000).toISOString().split('T')[0]
+
+    const [divHistory, earningsHistory, quoteData] = await Promise.allSettled([
+      fmpGet(`/v3/stock_dividend_history/${fmpTicker}`),
+      fmpGet(`/v3/earning_calendar`, { symbol: fmpTicker, from: today, to: oneYrFwd }),
+      fmpGet(`/v3/quote/${fmpTicker}`),
     ])
 
     const divData      = divHistory.status      === 'fulfilled' ? divHistory.value      : null
     const earningsData = earningsHistory.status === 'fulfilled' ? earningsHistory.value : null
-    const profileData  = profile.status         === 'fulfilled' ? profile.value?.[0]   : null
+    const quoteArr     = quoteData.status       === 'fulfilled' ? quoteData.value       : null
+    const profileData  = Array.isArray(quoteArr) ? quoteArr[0] : null
 
-    // Historial de dividends (ordenat del més recent al més antic)
-    const histDivs = (divData?.historical || [])
-      .filter(d => d.date && d.paymentDate)
-      .slice(0, 20)  // últims 20 pagaments
+    // Historial de dividends — /v3/stock_dividend_history retorna:
+    // { symbol, historical: [{date (ex-date), paymentDate, dividend, adjDividend, ...}] }
+    const rawHist = divData?.historical || divData || []
+    const histDivs = (Array.isArray(rawHist) ? rawHist : [])
+      .filter(d => d.date)
+      .slice(0, 20)
       .map(d => ({
-        exDate:      d.date,                  // data ex-dividend real
-        date:        d.paymentDate,           // pay date real
-        amount:      d.dividend || d.adjDividend || 0,
-        label:       d.label || '',
+        exDate:  d.date,                           // ex-dividend date real ✓
+        date:    d.paymentDate || d.date,           // pay date real ✓
+        amount:  d.dividend   || d.adjDividend || 0,
+        label:   d.label      || '',
       }))
 
     // ── 2. Ex-date i pay date PROPER (el primer histDiv és el més recent) ─────
-    const today     = new Date().toISOString().split('T')[0]
+    // const today     = new Date().toISOString().split('T')[0]
     const nextDiv   = histDivs.find(d => d.date >= today)    // proper pagament futur
     const lastDiv   = histDivs.find(d => d.date < today)     // últim pagament passat
 
@@ -111,14 +122,18 @@ export async function fetchDividendInfo(ticker) {
     const perPayment  = lastAmount       || null
 
     // Yield anual
+    // /v3/quote retorna: price, eps, pe, earningsAnnouncement, etc.
     const currentPrice = profileData?.price || null
     const dividendRate = perPayment ? +(perPayment * frequency).toFixed(4) : null
     const dividendYield = currentPrice && dividendRate ? +(dividendRate / currentPrice) : null
 
     // ── 5. Earnings ───────────────────────────────────────────────────────────
     // FMP historical/earning_calendar retorna llista ordenada per data
-    const allEarnings = Array.isArray(earningsData) ? earningsData : []
-    const futureEarnings = allEarnings.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+    // /v3/earning_calendar retorna array: [{date, symbol, eps, epsEstimated, revenue, revenueEstimated, time}]
+    const allEarnings = Array.isArray(earningsData) ? earningsData : (earningsData?.earningsCalendar || [])
+    const futureEarnings = allEarnings
+      .filter(e => e.date && e.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date))
     const nextEarnings   = futureEarnings[0] || null
 
     const earningsStart  = nextEarnings?.date    || null
