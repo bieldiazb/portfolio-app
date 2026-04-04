@@ -66,6 +66,13 @@
   status = 200
   force = true
 
+# Finnhub — proxy (injecta FINNHUB_API_KEY) — 60 crides/minut gratuïtes
+[[redirects]]
+  from = "/fh"
+  to = "/.netlify/functions/finnhub"
+  status = 200
+  force = true
+
 # SPA fallback
 [[redirects]]
   from = "/*"
