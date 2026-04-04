@@ -1,4 +1,8 @@
 // ─── hooks/useDividends.js ────────────────────────────────────────────────────
+// Endpoints Yahoo que funcionen SENSE autenticació:
+//   /v8/finance/chart  → exDividendDate, dividendDate, events.dividends
+//   /v7/finance/quote  → earningsTimestampStart/End, epsForward, exDividendDate
+
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../firebase'
 import {
@@ -7,22 +11,24 @@ import {
 } from 'firebase/firestore'
 
 function tsToDate(ts) {
-  if (!ts) return null
+  if (!ts || typeof ts !== 'number') return null
   try { return new Date(ts * 1000).toISOString().split('T')[0] }
   catch { return null }
 }
 
 export function generateDividendDates(refDate, frequency, yearsAhead = 1) {
   if (!refDate || !frequency) return []
-  const monthGap  = Math.round(12 / frequency)
-  const refDt     = new Date(refDate + 'T12:00:00')
-  const refDay    = refDt.getDate()
-  const now       = new Date()
-  const yearStart = new Date(now.getFullYear(), 0, 1)
-  const limit     = new Date(now.getFullYear() + yearsAhead, 11, 31)
+  const monthGap = Math.round(12 / frequency)
+  const refDt    = new Date(refDate + 'T12:00:00')
+  const refDay   = refDt.getDate()
+  const now      = new Date()
+  const limit    = new Date(now.getFullYear() + yearsAhead, 11, 31)
+  const yearStart= new Date(now.getFullYear(), 0, 1)
+
   let cur = new Date(refDt)
   while (cur > yearStart)
     cur = new Date(cur.getFullYear(), cur.getMonth() - monthGap, refDay)
+
   const dates = []
   cur = new Date(cur.getFullYear(), cur.getMonth() + monthGap, refDay)
   while (cur <= limit) {
@@ -37,15 +43,21 @@ export async function fetchDividendInfo(ticker) {
   const today = new Date().toISOString().split('T')[0]
 
   try {
-    // ── Dues crides en paral·lel ─────────────────────────────────────────────
-    const [chartRes, summaryRes] = await Promise.all([
-      fetch(`/yahoo/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1mo&range=5y&events=dividends`,
-            { signal: AbortSignal.timeout(10000) }),
-      fetch(`/yahoo/v10/finance/quoteSummary/${encodeURIComponent(ticker)}?modules=calendarEvents,summaryDetail`,
-            { signal: AbortSignal.timeout(10000) }),
+    // ── Dues crides en paral·lel (ambdós sense auth) ─────────────────────────
+    const [chartRes, quoteRes] = await Promise.all([
+      // Chart: historial dividends + meta (ex-date, pay-date, dividend rate)
+      fetch(
+        `/yahoo/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1mo&range=5y&events=dividends`,
+        { signal: AbortSignal.timeout(10000) }
+      ),
+      // Quote v7: earnings timestamps + eps forward (sense auth ✓)
+      fetch(
+        `/yahoo/v7/finance/quote?symbols=${encodeURIComponent(ticker)}&fields=earningsTimestampStart,earningsTimestampEnd,earningsTimestamp,epsForward,epsTrailingTwelveMonths,exDividendDate,dividendDate`,
+        { signal: AbortSignal.timeout(10000) }
+      ),
     ])
 
-    // ── Chart → historial pay dates reals ────────────────────────────────────
+    // ── Chart: historial + meta ───────────────────────────────────────────────
     let histDivs = [], dividendRate = null, dividendYield = null
     let metaExDate = null, metaPayDate = null
 
@@ -53,63 +65,78 @@ export async function fetchDividendInfo(ticker) {
       const j = await chartRes.json()
       const r = j?.chart?.result?.[0]
       if (r) {
-        const m   = r.meta || {}
+        const m = r.meta || {}
         dividendRate  = m.dividendRate  || null
         dividendYield = m.dividendYield || null
-        // meta pot tenir exDividendDate i currentDividendDate
-        if (m.exDividendDate)     metaExDate  = tsToDate(m.exDividendDate)
-        if (m.currentDividendDate) metaPayDate = tsToDate(m.currentDividendDate)
+
+        // meta.exDividendDate = últim ex-date confirmat (timestamp)
+        // meta.currentDividendDate = últim pay-date confirmat (timestamp)
+        metaExDate  = tsToDate(m.exDividendDate)
+        metaPayDate = tsToDate(m.currentDividendDate) || tsToDate(m.dividendDate)
 
         const raw = r.events?.dividends ? Object.values(r.events.dividends) : []
         histDivs = raw
           .map(d => ({ date: tsToDate(d.date), amount: d.amount, ts: d.date }))
           .filter(d => d.date)
           .sort((a, b) => b.ts - a.ts)
+
+        console.log(`[Div] ${ticker} meta exDate:${metaExDate} payDate:${metaPayDate} histDivs:${histDivs.length}`)
       }
+    } else {
+      console.warn(`[Div] ${ticker} chart error:`, chartRes.status)
     }
 
-    // ── quoteSummary → earnings + ex/pay date confirmat ──────────────────────
-    let earningsStart = null, epsEstimate = null
-    let calExDate = null, calPayDate = null
+    // ── Quote v7: earnings + ex-date alternatiu ───────────────────────────────
+    let earningsStart = null, earningsEnd = null, epsEstimate = null
+    let quoteExDate = null, quotePayDate = null
 
-    if (summaryRes.ok) {
-      const j   = await summaryRes.json()
-      const r   = j?.quoteSummary?.result?.[0] || {}
-      const cal = r.calendarEvents || {}
-      const sd  = r.summaryDetail  || {}
+    if (quoteRes.ok) {
+      const j    = await quoteRes.json()
+      const q    = j?.quoteResponse?.result?.[0] || {}
 
-      // Ex-date i pay-date de calendarEvents (últim dividend confirmat per Yahoo)
-      // Nota: Yahoo dona l'últim pagament, no el futur
-      if (cal.exDividendDate?.raw)  calExDate  = tsToDate(cal.exDividendDate.raw)
-      if (cal.dividendDate?.raw)    calPayDate = tsToDate(cal.dividendDate.raw)
+      console.log(`[Div] ${ticker} quote:`, JSON.stringify({
+        earningsTimestampStart: q.earningsTimestampStart,
+        earningsTimestampEnd:   q.earningsTimestampEnd,
+        earningsTimestamp:      q.earningsTimestamp,
+        exDividendDate:         q.exDividendDate,
+        dividendDate:           q.dividendDate,
+        epsForward:             q.epsForward,
+      }))
 
-      // EARNINGS: earningsDate és array [{raw: timestamp, fmt: "Apr 23, 2026"}]
-      // NO filtrem per today — mostrem sempre el proper earnings call
-      const eDates = (cal?.earnings?.earningsDate || [])
-        .map(d => {
-          const ts = typeof d === 'object' ? (d.raw ?? null) : d
-          return typeof ts === 'number' ? tsToDate(ts) : null
-        })
-        .filter(Boolean)
-        .sort()
-      earningsStart = eDates[0] || null
-      epsEstimate   = typeof cal?.earnings?.earningsAverage?.raw === 'number'
-                      ? cal.earnings.earningsAverage.raw : null
+      // Earnings: earningsTimestampStart/End = rang estimat, earningsTimestamp = últim
+      const esStart = q.earningsTimestampStart
+      const esEnd   = q.earningsTimestampEnd
+      const eTs     = q.earningsTimestamp
 
-      if (!dividendRate)  dividendRate  = sd?.dividendRate?.raw  || null
-      if (!dividendYield) dividendYield = sd?.dividendYield?.raw || null
+      // Preferim earningsTimestampStart si és futur, sinó earningsTimestamp
+      const startDate = tsToDate(esStart) || tsToDate(eTs)
+      const endDate   = tsToDate(esEnd)
+
+      earningsStart = startDate || null
+      earningsEnd   = endDate   || null
+      epsEstimate   = q.epsForward || null
+
+      // Ex-date i pay-date del quote (alternativa al chart meta)
+      quoteExDate  = tsToDate(q.exDividendDate)
+      quotePayDate = tsToDate(q.dividendDate)
+
+      console.log(`[Div] ${ticker} earnings:${earningsStart}~${earningsEnd} eps:${epsEstimate}`)
+    } else {
+      console.warn(`[Div] ${ticker} quote v7 error:`, quoteRes.status)
     }
 
-    // Combinem: preferim calendarEvents, fallback a meta del chart
-    const lastKnownExDate  = calExDate  || metaExDate  || null
-    const lastKnownPayDate = calPayDate || metaPayDate || null
+    // Combinem ex-date/pay-date: quote té prioritat sobre chart meta
+    const lastKnownExDate  = quoteExDate  || metaExDate  || null
+    const lastKnownPayDate = quotePayDate || metaPayDate || null
 
-    // ── Actiu sense dividends ─────────────────────────────────────────────────
+    console.log(`[Div] ${ticker} lastExDate:${lastKnownExDate} lastPayDate:${lastKnownPayDate}`)
+
+    // ── Sense historial = no paga dividends (ex: VUAA acc) ───────────────────
     if (!histDivs.length) {
       return {
         nextExDate: null, nextPayDate: null,
         lastExDate: lastKnownExDate, lastPayDate: lastKnownPayDate,
-        earningsStart, epsEstimate,
+        earningsStart, earningsEnd, epsEstimate,
         dividendRate: null, dividendYield: null,
         frequency: 0, allDates: [], histDivs: [],
         perPayment: null, noDividends: true,
@@ -126,56 +153,52 @@ export async function fetchDividendInfo(ticker) {
       if (m > 0 && m <= 14) gaps.push(m)
     }
     if (gaps.length) {
-      const avg = gaps.reduce((a,b)=>a+b,0) / gaps.length
+      const avg = gaps.reduce((a,b)=>a+b,0)/gaps.length
       frequency = avg<=1.5?12 : avg<=2.5?6 : avg<=4.5?4 : avg<=7?2 : 1
     }
 
-    // ── Dia del mes real (moda dels últims pagaments) ─────────────────────────
-    const days = histDivs.slice(0, 8).map(d => new Date(d.date + 'T12:00:00').getDate())
-    const dayCount = {}
-    days.forEach(d => { dayCount[d] = (dayCount[d]||0)+1 })
-    const realDay = parseInt(Object.entries(dayCount).sort((a,b)=>b[1]-a[1])[0]?.[0]||'1')
+    // ── Dia del mes real ──────────────────────────────────────────────────────
+    const days = histDivs.slice(0, 8).map(d => new Date(d.date+'T12:00:00').getDate())
+    const dc   = {}; days.forEach(d => { dc[d]=(dc[d]||0)+1 })
+    const realDay = parseInt(Object.entries(dc).sort((a,b)=>b[1]-a[1])[0]?.[0]||'1')
 
-    // ── Offset ex→pay REAL des de les dates de Yahoo ──────────────────────────
-    let exPayOffset = ticker.includes('.') ? 15 : 26  // fallback
+    // ── Offset ex→pay ─────────────────────────────────────────────────────────
+    let exPayOffset = ticker.includes('.') ? 15 : 26
     if (lastKnownExDate && lastKnownPayDate) {
-      const diff = Math.round((new Date(lastKnownPayDate) - new Date(lastKnownExDate)) / 86400000)
+      const diff = Math.round((new Date(lastKnownPayDate)-new Date(lastKnownExDate))/86400000)
       if (diff > 0 && diff < 60) exPayOffset = diff
     }
 
-    // ── Import per pagament ───────────────────────────────────────────────────
-    const lastPaidDiv = histDivs.find(d => d.date < today)
-    const perPayment  = lastPaidDiv?.amount || histDivs[0]?.amount || null
-
-    // ── Projecta dates futures des del darrer pay date real ───────────────────
+    // ── Darrer pay date real ──────────────────────────────────────────────────
+    const lastPaidDiv     = histDivs.find(d => d.date < today)
     const lastRealPayDate = lastPaidDiv?.date || histDivs[0]?.date
+    const perPayment      = lastPaidDiv?.amount || histDivs[0]?.amount || null
+
     if (!lastRealPayDate) return null
 
-    // Ajustem la referència al dia del mes real
-    const refDt   = new Date(lastRealPayDate + 'T12:00:00')
+    // ── Projecta des del darrer pay date real mantenint el dia del mes ────────
+    const refDt   = new Date(lastRealPayDate+'T12:00:00')
     const refDate = new Date(refDt.getFullYear(), refDt.getMonth(), realDay)
       .toISOString().split('T')[0]
 
-    const payDates    = generateDividendDates(refDate, frequency, 2)
-    const futureDates = payDates.filter(d => d.date > today)
+    const allFuture = generateDividendDates(refDate, frequency, 2)
+      .filter(d => d.date > today)
+      .map(({ date, isExact }) => {
+        const p = new Date(date+'T12:00:00')
+        const e = new Date(p); e.setDate(e.getDate()-exPayOffset)
+        return { date, exDate: e.toISOString().split('T')[0], isExact }
+      })
 
-    const allDates = futureDates.map(({ date, isExact }) => {
-      const payDt = new Date(date + 'T12:00:00')
-      const exDt  = new Date(payDt); exDt.setDate(exDt.getDate() - exPayOffset)
-      return { date, exDate: exDt.toISOString().split('T')[0], isExact }
-    })
-
-    const nextEntry   = allDates[0] || null
-    const nextPayDate = nextEntry?.date   || null
-    const nextExDate  = nextEntry?.exDate || null
+    const nextPayDate = allFuture[0]?.date   || null
+    const nextExDate  = allFuture[0]?.exDate || null
 
     return {
-      nextExDate,          // proper ex-date PROJECTAT (basat en historial)
-      nextPayDate,         // proper pay date PROJECTAT
-      lastExDate:  lastKnownExDate,   // últim ex-date CONFIRMAT per Yahoo
-      lastPayDate: lastKnownPayDate,  // últim pay date CONFIRMAT per Yahoo
-      earningsStart,       // proper earnings call (Yahoo quoteSummary)
-      earningsEnd:   null,
+      nextExDate,           // proper ex-date PROJECTAT
+      nextPayDate,          // proper pay date PROJECTAT
+      lastExDate:  lastKnownExDate,   // últim ex-date CONFIRMAT
+      lastPayDate: lastKnownPayDate,  // últim pay date CONFIRMAT
+      earningsStart,        // earnings call (v7/quote)
+      earningsEnd,
       epsEstimate,
       dividendRate,
       dividendYield,
@@ -185,10 +208,10 @@ export async function fetchDividendInfo(ticker) {
       exPayOffsetDays: exPayOffset,
       perPayment,
       realDay,
-      allDates,
-      histDivs: histDivs.slice(0, 12).map(d => ({ ...d, exDate: null })),
+      allDates: allFuture,
+      histDivs: histDivs.slice(0,12).map(d => ({...d, exDate:null})),
       refPayDate: refDate,
-      source: 'yahoo-historial',
+      source: 'yahoo-chart+quote',
     }
 
   } catch (err) {
