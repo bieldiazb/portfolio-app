@@ -1,6 +1,9 @@
 // ─── hooks/useDividends.js ────────────────────────────────────────────────────
-// Dividends: Yahoo /v8/finance/chart (únic endpoint que funciona sense auth)
-// Earnings:  Finnhub /calendar/earnings (gratuït, 60 crides/minut)
+// IMPORTANT: Yahoo chart events.dividends → EX-DATES (no pay dates!)
+// Ex-date LMT: Mar 2 → Pay date: Mar 27 (+25 dies) ✓ confirmat per l'usuari
+//
+// Dividends: Yahoo /v8/finance/chart (ex-dates reals)
+// Earnings:  Finnhub /calendar/earnings (gratuït)
 
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../firebase'
@@ -11,7 +14,8 @@ import {
 
 function tsToDate(ts) {
   if (!ts || typeof ts !== 'number') return null
-  try { return new Date(ts * 1000).toISOString().split('T')[0] }
+  // Afegim 12h per evitar problemes de timezone (UTC vs local)
+  try { return new Date((ts + 43200) * 1000).toISOString().split('T')[0] }
   catch { return null }
 }
 
@@ -37,14 +41,12 @@ export function generateDividendDates(refDate, frequency, yearsAhead = 1) {
 }
 
 export async function fetchDividendInfo(ticker) {
-  const today     = new Date().toISOString().split('T')[0]
-  const isEur     = ticker.includes('.')
-  // Finnhub usa ticker sense extensió (LMT, EUNL, VUAA...)
-  const fhSymbol  = ticker.split('.')[0]
+  const today    = new Date().toISOString().split('T')[0]
+  const isEur    = ticker.includes('.')
+  const fhSymbol = ticker.split('.')[0]
 
-  // ── 1. Yahoo chart — historial PAY dates reals ──────────────────────────────
-  // Únic endpoint Yahoo que NO requereix auth i funciona sempre
-  let histDivs = [], dividendRate = null, dividendYield = null
+  // ── 1. Yahoo chart → EX-DATES reals ──────────────────────────────────────
+  let exDates = [], dividendRate = null, dividendYield = null
 
   try {
     const res = await fetch(
@@ -57,18 +59,20 @@ export async function fetchDividendInfo(ticker) {
       const meta = r?.meta || {}
       dividendRate  = meta.dividendRate  || null
       dividendYield = meta.dividendYield || null
-
       const raw = r?.events?.dividends ? Object.values(r.events.dividends) : []
-      histDivs = raw
-        .map(d => ({ payDate: tsToDate(d.date), amount: d.amount, ts: d.date }))
-        .filter(d => d.payDate)
+      // Yahoo events.dividends → EX-DATES (confirmat: LMT ex=Mar2, pay=Mar27)
+      exDates = raw
+        .map(d => ({ exDate: tsToDate(d.date), amount: d.amount, ts: d.date }))
+        .filter(d => d.exDate)
         .sort((a, b) => b.ts - a.ts)
     }
-  } catch {}
+  } catch (e) {
+    console.warn(`[Div] ${ticker} Yahoo error:`, e.message)
+  }
 
-  console.log(`[Div] ${ticker} Yahoo histDivs:${histDivs.length}`)
+  console.log(`[Div] ${ticker} Yahoo exDates:${exDates.length}`)
 
-  // ── 2. Finnhub — earnings calendar (gratuït ✓) ──────────────────────────────
+  // ── 2. Finnhub → Earnings (gratuït ✓) ────────────────────────────────────
   let earningsStart = null, epsEstimate = null
 
   try {
@@ -80,15 +84,15 @@ export async function fetchDividendInfo(ticker) {
       const list = (j?.earningsCalendar || [])
         .filter(e => e.date && e.date >= today)
         .sort((a, b) => a.date.localeCompare(b.date))
-      earningsStart = list[0]?.date                                           || null
+      earningsStart = list[0]?.date        || null
       epsEstimate   = list[0]?.epsEstimate != null ? parseFloat(list[0].epsEstimate) : null
     }
   } catch {}
 
   console.log(`[Div] ${ticker} earnings:${earningsStart} eps:${epsEstimate}`)
 
-  // ── Sense dividends → retornem igualment (VUAA acumulació) ──────────────────
-  if (!histDivs.length) {
+  // ── Sense dividends ───────────────────────────────────────────────────────
+  if (!exDates.length) {
     return {
       nextExDate: null, nextPayDate: null,
       lastExDate: null, lastPayDate: null,
@@ -100,60 +104,74 @@ export async function fetchDividendInfo(ticker) {
     }
   }
 
-  // ── 3. Freqüència real ───────────────────────────────────────────────────────
+  // ── 3. Freqüència des dels ex-dates ───────────────────────────────────────
   let frequency = 4
   const gaps = []
-  for (let i = 0; i < Math.min(histDivs.length - 1, 10); i++) {
-    const a = new Date(histDivs[i].payDate), b = new Date(histDivs[i+1].payDate)
+  for (let i = 0; i < Math.min(exDates.length - 1, 10); i++) {
+    const a = new Date(exDates[i].exDate), b = new Date(exDates[i+1].exDate)
     const m = (a.getFullYear()-b.getFullYear())*12 + (a.getMonth()-b.getMonth())
     if (m > 0 && m <= 14) gaps.push(m)
   }
   if (gaps.length) {
-    const avg = gaps.reduce((a,b)=>a+b,0) / gaps.length
+    const avg = gaps.reduce((a,b)=>a+b,0)/gaps.length
     frequency = avg<=1.5?12 : avg<=2.5?6 : avg<=4.5?4 : avg<=7?2 : 1
   }
 
-  // ── 4. Dia del mes real (moda) ───────────────────────────────────────────────
-  // LMT paga el 27, EUNL el 15...
-  const days = histDivs.slice(0, 10).map(d => new Date(d.payDate+'T12:00:00').getDate())
-  const dc   = {}; days.forEach(d => { dc[d]=(dc[d]||0)+1 })
-  const realDay = parseInt(Object.entries(dc).sort((a,b)=>b[1]-a[1])[0]?.[0] || '15')
+  // ── 4. Dia del mes real de l'EX-DATE (moda) ───────────────────────────────
+  // LMT ex-dates: 2, 2, 2, 2... → realDay = 2
+  // EUNL ex-dates: variable però al voltant de 10-15
+  const exDays = exDates.slice(0, 10).map(d => new Date(d.exDate+'T12:00:00').getDate())
+  const dc     = {}; exDays.forEach(d => { dc[d]=(dc[d]||0)+1 })
+  const realExDay = parseInt(Object.entries(dc).sort((a,b)=>b[1]-a[1])[0]?.[0]||'1')
 
-  // ── 5. Offset ex→pay (fix per mercat) ───────────────────────────────────────
+  // ── 5. Offset ex→pay real (fix per mercat) ────────────────────────────────
+  // LMT: ex=Mar2, pay=Mar27 → offset=25 dies (confirmat per usuari)
+  // ETFs europeus: ex≈dia15, pay≈dia22-30 → offset≈13-15 dies
   const exPayOffset = isEur ? 13 : 25
 
-  // ── 6. Darrer pay date real i import ────────────────────────────────────────
-  const lastPaid    = histDivs.find(d => d.payDate < today)
-  const perPayment  = lastPaid?.amount || histDivs[0]?.amount || null
-
-  // ── 7. Ex-dates calculats des dels pay dates ─────────────────────────────────
-  // Yahoo dona PAY dates. Ex-date = pay date - offset
-  const histWithEx = histDivs.map(d => {
-    const p = new Date(d.payDate+'T12:00:00')
-    const e = new Date(p); e.setDate(e.getDate() - exPayOffset)
-    return { ...d, exDate: e.toISOString().split('T')[0] }
+  // ── 6. Calculem pay dates des dels ex-dates ───────────────────────────────
+  const histDivs = exDates.map(d => {
+    const exDt  = new Date(d.exDate+'T12:00:00')
+    const payDt = new Date(exDt); payDt.setDate(payDt.getDate() + exPayOffset)
+    return {
+      exDate:  d.exDate,
+      payDate: payDt.toISOString().split('T')[0],
+      amount:  d.amount,
+    }
   })
 
-  // ── 8. Projecta dates futures ────────────────────────────────────────────────
-  const lastRealPayDate = lastPaid?.payDate || histDivs[0]?.payDate
-  if (!lastRealPayDate) return null
+  // ── 7. Import per pagament ────────────────────────────────────────────────
+  const lastPaid   = histDivs.find(d => d.payDate < today)
+  const perPayment = lastPaid?.amount || histDivs[0]?.amount || null
 
-  const refDt   = new Date(lastRealPayDate+'T12:00:00')
-  const refDate = new Date(refDt.getFullYear(), refDt.getMonth(), realDay)
+  // ── 8. Projecta des de l'últim ex-date real ───────────────────────────────
+  // Usem l'ex-date com a referència (mantenim el dia del mes de l'ex-date)
+  const lastRealExDate = exDates.find(d => d.exDate < today)?.exDate || exDates[0]?.exDate
+  if (!lastRealExDate) return null
+
+  const refDt     = new Date(lastRealExDate+'T12:00:00')
+  const refExDate = new Date(refDt.getFullYear(), refDt.getMonth(), realExDay)
     .toISOString().split('T')[0]
 
-  const futureDates = generateDividendDates(refDate, frequency, 2)
+  // Genera ex-dates futures i calcula pay dates corresponents
+  const futureExDates = generateDividendDates(refExDate, frequency, 2)
     .filter(d => d.date > today)
-    .map(({ date, isExact }) => {
-      const p = new Date(date+'T12:00:00')
-      const e = new Date(p); e.setDate(e.getDate()-exPayOffset)
-      return { date, exDate: e.toISOString().split('T')[0], isExact, isPast: false }
-    })
 
-  // Dates passades reals (últims 12 mesos per al calendari)
+  const futureDates = futureExDates.map(({ date: exDate, isExact }) => {
+    const exDt  = new Date(exDate+'T12:00:00')
+    const payDt = new Date(exDt); payDt.setDate(payDt.getDate() + exPayOffset)
+    return {
+      date:    payDt.toISOString().split('T')[0],  // pay date
+      exDate,                                         // ex-date
+      isExact,
+      isPast: false,
+    }
+  })
+
+  // Dates passades de l'historial (últims 12 mesos per al calendari)
   const oneYearAgo = new Date(Date.now()-365*86400000).toISOString().split('T')[0]
-  const pastDates  = histWithEx
-    .filter(d => d.payDate >= oneYearAgo && d.payDate <= today)
+  const pastDates  = histDivs
+    .filter(d => d.payDate >= oneYearAgo && d.payDate < today)
     .map(d => ({ date: d.payDate, exDate: d.exDate, isExact: true, isPast: true }))
 
   const allDates = [...pastDates, ...futureDates]
@@ -162,13 +180,13 @@ export async function fetchDividendInfo(ticker) {
   const nextPayDate = futureDates[0]?.date   || null
   const nextExDate  = futureDates[0]?.exDate || null
 
-  console.log(`[Div] ${ticker} freq:${frequency} day:${realDay} offset:${exPayOffset} next:${nextPayDate}`)
+  console.log(`[Div] ${ticker} freq:${frequency} exDay:${realExDay} offset:${exPayOffset} nextEx:${nextExDate} nextPay:${nextPayDate}`)
 
   return {
     nextExDate,
     nextPayDate,
-    lastExDate:  histWithEx[0]?.exDate   || null,
-    lastPayDate: lastPaid?.payDate        || null,
+    lastExDate:  histDivs[0]?.exDate  || null,
+    lastPayDate: lastPaid?.payDate     || null,
     earningsStart,
     earningsEnd:   null,
     epsEstimate,
@@ -179,11 +197,11 @@ export async function fetchDividendInfo(ticker) {
     frequency,
     exPayOffsetDays: exPayOffset,
     perPayment,
-    realDay,
+    realExDay,
     allDates,
-    histDivs: histWithEx.slice(0, 12),
-    refPayDate: refDate,
-    source: 'yahoo-chart+finnhub-earnings',
+    histDivs: histDivs.slice(0, 12),  // sempre array ✓
+    refExDate,
+    source: 'yahoo-exdates+finnhub-earnings',
   }
 }
 

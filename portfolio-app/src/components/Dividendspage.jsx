@@ -201,7 +201,15 @@ function fmtDateShort(dateStr) {
 
 // ── Secció per actiu (nova) ───────────────────────────────────────────────────
 function AssetDividendInfo({ inv, info, dividends }) {
-  if (!info) return null
+  if (!info || typeof info !== 'object') return null
+  // Assegurem que tots els arrays existeixin
+  const safeInfo = {
+    histDivs: [], allDates: [], noDividends: false,
+    ...info,
+    histDivs: Array.isArray(info.histDivs) ? info.histDivs : [],
+    allDates:  Array.isArray(info.allDates)  ? info.allDates  : [],
+  }
+  info = safeInfo
 
   const today     = new Date().toISOString().split('T')[0]
   const qty       = inv.totalQty || inv.qty || 0
@@ -214,25 +222,24 @@ function AssetDividendInfo({ inv, info, dividends }) {
 
   const today2 = new Date().toISOString().split('T')[0]
 
-  // Dates CONFIRMAT PER YAHOO (últim dividend pagat)
+  // Dates confirmades (últim ex/pay date de Yahoo)
   const lastConfirmedExDate  = info.lastExDate  || null
   const lastConfirmedPayDate = info.lastPayDate || null
 
-  // Dates PROJECTADES (proper futur basat en historial)
-  const nextEntry   = (info.allDates || []).find(d => d.date > today2)
-  const nextPayDate = nextEntry?.date   || null
-  const nextExDate  = nextEntry?.exDate || null
+  // Proper ex-date i pay-date projectats
+  const nextExDate  = info.nextExDate  || null
+  const nextPayDate = info.nextPayDate || null
 
-  // Mostrem sempre la data més recent/rellevant
+  // Mostrem la data futura si existeix, sinó la última confirmada
   const showExDate  = nextExDate  || lastConfirmedExDate
   const showPayDate = nextPayDate || lastConfirmedPayDate
-  const isProjected = !!(nextPayDate) // si és projectada (no confirmada)
+  const isProjected = !!(nextExDate || nextPayDate)
 
   const dPay = nextPayDate ? daysUntil(nextPayDate) : null
   const dEx  = nextExDate  ? daysUntil(nextExDate)  : null
 
   // Historial últims pagaments
-  const recentHist = (info.histDivs || []).slice(0, 4)
+  const recentHist = Array.isArray(info.histDivs) ? info.histDivs.filter(h => h?.exDate || h?.payDate || h?.date).slice(0, 4) : []
 
   return (
     <div className="dv-asset-card">
@@ -294,7 +301,7 @@ function AssetDividendInfo({ inv, info, dividends }) {
             <p style={{ fontSize: 10, color: COLORS.textMuted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.10em', fontWeight: 500 }}>Últims</p>
             {recentHist.map((h, i) => (
               <p key={i} style={{ fontSize: 10, fontFamily: FONTS.mono, color: COLORS.textMuted, marginBottom: 2 }}>
-                {h.date.slice(0,7)} · ${h.amount.toFixed(4)}
+                {(h.payDate || h.exDate || h.date || '').slice(0,7)} · ${(typeof h.amount === 'number' ? h.amount : 0).toFixed(4)}
               </p>
             ))}
           </div>
@@ -519,20 +526,15 @@ function UpcomingList({ upcomingData }) {
       const perPay = rate ? +(rate / freq).toFixed(4) : null
       const est    = perPay && qty > 0 ? +(perPay * qty).toFixed(2) : null
 
-      // Usem dates REALS de Yahoo si disponibles, sinó projectades
-      const realPayDate = info.nextPayDate
-      const realExDate  = info.nextExDate
-      const projDate    = info.allDates.find(d => d.date >= today)
-
-      const usePayDate = realPayDate && realPayDate >= today ? realPayDate : projDate?.date
-      const useExDate  = realExDate  && realExDate  >= today ? realExDate  : projDate?.exDate
+      // Proper pay date i ex-date
+      const usePayDate = info.nextPayDate || (info.allDates||[]).find(d => d.date >= today && !d.isPast)?.date
+      const useExDate  = info.nextExDate  || (info.allDates||[]).find(d => d.date >= today && !d.isPast)?.exDate
 
       if (!usePayDate) return
 
       const dPay = daysUntil(usePayDate)
       const dEx  = useExDate ? daysUntil(useExDate) : null
-
-      const nextDate = { date: usePayDate, exDate: useExDate, isExact: !!realPayDate }
+      const nextDate = { date: usePayDate, exDate: useExDate, isExact: true }
       list.push({ inv, info, nextDate, dPay, dEx, perPay, est, freq })
     })
     return list.sort((a, b) => a.nextDate.date.localeCompare(b.nextDate.date))
