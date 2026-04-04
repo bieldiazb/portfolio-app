@@ -59,6 +59,13 @@
   status = 200
   force = true
 
+# Alpha Vantage — proxy (injecta ALPHA_VANTAGE_KEY)
+[[redirects]]
+  from = "/av"
+  to = "/.netlify/functions/alphavantage"
+  status = 200
+  force = true
+
 # SPA fallback
 [[redirects]]
   from = "/*"
