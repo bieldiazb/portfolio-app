@@ -25,7 +25,7 @@ const modalStyles = `
     background: #131313;
     border: 1px solid rgba(255,255,255,0.09);
     border-radius: 16px 16px 0 0;
-    width: 100%; padding: 20px 16px 36px;
+    width: 100%; padding: 20px 16px 100px;
     max-height: 92dvh; overflow-y: auto;
     box-shadow: 0 -20px 60px rgba(0,0,0,0.70);
     animation: aimSlide 220ms cubic-bezier(0.34,1.2,0.64,1);

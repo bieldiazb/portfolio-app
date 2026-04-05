@@ -303,7 +303,7 @@ export default function LoginScreen({ onLogin, error }) {
             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
             <polyline points="16 7 22 7 22 13"/>
           </svg> */}
-          <img src="/logo_black.png" alt="Cartera" style={{ width: 20, height: 20 }}/>
+          <img src="/logo_black.png" alt="Cartera" style={{ width: 22, height: 22 }}/>
         </div>
         <span className="lg-logo-name">Cartera</span>
         <span className="lg-logo-tag">Beta</span>

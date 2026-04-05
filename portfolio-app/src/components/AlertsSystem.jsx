@@ -151,7 +151,7 @@ const styles = `
   .als-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); animation:alsFadeIn 150ms ease; }
   @keyframes alsFadeIn { from{opacity:0} to{opacity:1} }
   @media (min-width:640px) { .als-overlay { align-items:center; padding:16px; } }
-  .als-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 36px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:alsSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
+  .als-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:alsSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
   @keyframes alsSlide { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
   @media (min-width:640px) { .als-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
   .als-modal-drag { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.10); margin:0 auto 18px; display:block; }

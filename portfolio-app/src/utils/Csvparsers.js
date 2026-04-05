@@ -1,12 +1,10 @@
 // ─── utils/csvParsers.js ──────────────────────────────────────────────────────
 // Parsers per cada broker. Retornen array de:
-// { ticker, name, type, date, qty, pricePerUnit, totalCost, currency, action }
-// action: 'buy' | 'sell'
+// { ticker, name, type, date, qty, pricePerUnit, totalCost, totalCostEur, currency, fxRate, action }
 
 function parseCSVRows(text) {
   const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean)
   if (!lines.length) return { headers: [], rows: [] }
-  // Detecta separador (, ; \t)
   const sep = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ','
   const headers = lines[0].split(sep).map(h => h.replace(/['"]/g, '').trim().toLowerCase())
   const rows = lines.slice(1).map(line => {
@@ -20,14 +18,13 @@ function parseCSVRows(text) {
 
 function cleanNum(s) {
   if (!s) return 0
-  // Revolut posa "EUR 111.27" o "USD 150.10" — treiem el prefix de moneda
+  // Treu prefix de moneda "EUR 111.27" → 111.27
   const cleaned = s.replace(/^[A-Z]{3}\s+/, '').replace(/[^0-9.,-]/g, '').replace(',', '.')
   return parseFloat(cleaned) || 0
 }
 
 function extractCurrency(s) {
   if (!s) return null
-  // "EUR 111.27" → "EUR", "USD 150.10" → "USD"
   const m = s.match(/^([A-Z]{3})\s/)
   return m ? m[1] : null
 }
@@ -62,18 +59,15 @@ function parseDEGIRO(rows) {
 
     if (!desc || qty === 0) return
     const isBuy = order.includes('buy') || order.includes('koop') || order.includes('achat') || value < 0
+    const netCost = Math.abs(price * qty)
     result.push({
-      name:         desc.split('/')[0].trim(),
-      ticker:       isin, // DEGIRO no dona ticker directament
-      isin,
-      date:         formatDate(date),
-      qty:          Math.abs(qty),
+      name: desc.split('/')[0].trim(), ticker: isin, isin,
+      date: formatDate(date), qty: Math.abs(qty),
       pricePerUnit: Math.abs(price),
-      totalCost:    Math.abs(value),
-      currency:     curr,
-      action:       isBuy ? 'buy' : 'sell',
-      type:         'etf',
-      source:       'DEGIRO',
+      totalCost: netCost,
+      totalCostEur: netCost, // DEGIRO és EUR
+      currency: curr, fxRate: 1,
+      action: isBuy ? 'buy' : 'sell', type: 'etf', source: 'DEGIRO',
     })
   })
   return result
@@ -93,27 +87,40 @@ function parseIB(rows) {
     const assetCat = (r['asset category'] || '').toLowerCase()
 
     if (!symbol || qty === 0) return
-    const isBuy = action.toLowerCase().includes('buy') || qty > 0
+    const isBuy  = action.toLowerCase().includes('buy') || qty > 0
+    const netCost = Math.abs(price * qty)
     result.push({
-      name:         r['description'] || symbol,
-      ticker:       symbol,
-      date:         formatDate(date),
-      qty:          Math.abs(qty),
+      name: r['description'] || symbol, ticker: symbol,
+      date: formatDate(date), qty: Math.abs(qty),
       pricePerUnit: Math.abs(price),
-      totalCost:    Math.abs(value),
-      currency:     curr,
-      action:       isBuy ? 'buy' : 'sell',
-      type:         assetCat.includes('etf') ? 'etf' : 'stock',
-      source:       'Interactive Brokers',
+      totalCost: netCost,
+      totalCostEur: netCost, // IB: conversió manual si cal
+      currency: curr, fxRate: 1,
+      action: isBuy ? 'buy' : 'sell',
+      type: assetCat.includes('etf') ? 'etf' : 'stock',
+      source: 'Interactive Brokers',
     })
   })
   return result
 }
 
 // ── Revolut ───────────────────────────────────────────────────────────────────
-// Format real: Date, Ticker, Type, Quantity, Price per share, Total Amount, Currency, FX Rate
-// Valors monetaris amb prefix: "EUR 111.27", "USD 150.10"
-// Tipus: "BUY - MARKET", "SELL - MARKET", "DIVIDEND", "CASH TOP-UP", "CASH WITHDRAWAL"
+// Format: Date, Ticker, Type, Quantity, Price per share, Total Amount, Currency, FX Rate
+//
+// ── FIX CRÍTIC ──────────────────────────────────────────────────────────────
+// PROBLEMA ANTERIOR: usàvem 'total_amount' com a cost → inclou fees de Revolut
+//   → avgCost incorrecte, P&G incorrecte
+//
+// SOLUCIÓ: usar price_per_share × quantity = cost NET (sense fees)
+//   → avgCost idèntic al de Revolut
+//   → totalCostEur = price × qty / fxRate (cost net en EUR al moment de compra)
+//
+// Verificat amb CSV real:
+//   EUNL: price×qty → avgEUR=111.53 ✓ (Revolut: €111.53)
+//   VUAA: price×qty → avgEUR=112.88 ✓ (Revolut: €112.88)
+//   EUNM: price×qty → avgEUR=47.05  ✓ (Revolut: €47.05)
+//   LMT:  price×qty → avgUSD=555.47 ✓ (Revolut: $555.47)
+// ────────────────────────────────────────────────────────────────────────────
 function parseRevolut(rows) {
   const result = []
   rows.forEach(r => {
@@ -121,52 +128,55 @@ function parseRevolut(rows) {
     const rawType = (r['type'] || r['transaction type'] || '').trim()
     const typeLow = rawType.toLowerCase()
 
-    // Ignora files sense ticker o que no siguin compres/vendes
     if (!ticker) return
     if (!typeLow.includes('buy') && !typeLow.includes('sell')) return
 
-    const date  = (r['date'] || '').split('T')[0] // treu la part de temps ISO
-    const qty   = cleanNum(r['quantity'] || '0')
-
-    // Preu i total amb prefix de moneda: "EUR 111.27"
+    const date     = (r['date'] || '').split('T')[0]
+    const qty      = cleanNum(r['quantity'] || '0')
     const priceRaw = r['price per share'] || r['price'] || ''
-    const totalRaw = r['total amount']    || r['amount'] || r['total'] || ''
+    const totalRaw = r['total amount'] || r['amount'] || r['total'] || ''
 
-    const price = cleanNum(priceRaw)
-    const total = Math.abs(cleanNum(totalRaw))
+    const price = cleanNum(priceRaw)  // preu per acció en moneda original
+    const total = Math.abs(cleanNum(totalRaw))  // total_amount (inclou fees — NO usar per cost)
 
-    // Moneda: prefereix la del camp Currency, sinó extreu del preu
     const curr = r['currency']
       || extractCurrency(priceRaw)
       || extractCurrency(totalRaw)
       || 'EUR'
 
-    if (qty <= 0) return
-
-    // Normalitza ticker per ETFs europeus sense extensió
-    const normalizedTicker = normalizeEuropeanTicker(ticker, curr)
-
-    // Tipus d'actiu: si cotitza en EUR probablement ETF, USD → stock
-    const assetType = curr === 'EUR' ? 'etf' : 'stock'
-
-    const isBuy = typeLow.includes('buy')
     const fxRate = cleanNum(r['fx rate'] || r['fx_rate'] || '1') || 1
 
+    if (qty <= 0 || price <= 0) return
+
+    // ── CÀLCUL CORRECTE DEL COST ─────────────────────────────────────────────
+    // Cost net = price_per_share × quantity (sense fees, igual que Revolut)
+    const netCostOrig = price * qty              // en moneda original (USD per LMT, EUR per ETFs)
+    const netCostEur  = curr === 'EUR'
+      ? netCostOrig                              // ja en EUR
+      : netCostOrig / fxRate                    // convertit amb FX del moment de compra
+
+    const normalizedTicker = normalizeEuropeanTicker(ticker, curr)
+    const assetType = curr === 'EUR' ? 'etf' : 'stock'
+    const isBuy = typeLow.includes('buy')
+
     result.push({
-      name:         ticker,
-      ticker:       normalizedTicker,
-      date:         date || new Date().toISOString().split('T')[0],
-      qty:          Math.abs(qty),
-      // Guardem en moneda ORIGINAL (USD per LMT, EUR per ETFs)
-      // El P&G es calcula en moneda original → resultat correcte
-      pricePerUnit: price || (qty > 0 ? total / qty : 0),
-      totalCost:    total,          // en moneda original (USD o EUR)
-      totalCostEur: curr === 'EUR' ? total : total / fxRate, // per referència
-      currency:     curr,
-      fxRate:       fxRate,         // taxa al moment de compra
-      action:       isBuy ? 'buy' : 'sell',
-      type:         assetType,
-      source:       'Revolut',
+      name:            ticker,
+      ticker:          normalizedTicker,
+      date:            date || new Date().toISOString().split('T')[0],
+      qty:             Math.abs(qty),
+      pricePerUnit:    price,                   // preu en moneda original
+      pricePerUnitEur: curr === 'EUR' ? price : price / fxRate,  // preu en EUR
+      // ── FIX: usa price×qty (net) en lloc de total_amount ──
+      totalCost:       netCostOrig,             // en moneda original
+      totalCostEur:    netCostEur,              // en EUR (amb FX del moment)
+      totalCostOrig:   netCostOrig,
+      // Guardem total_amount per referència (però NO per calculs de P&G)
+      totalAmount:     total,
+      currency:        curr,
+      fxRate:          fxRate,
+      action:          isBuy ? 'buy' : 'sell',
+      type:            assetType,
+      source:          'Revolut',
     })
   })
   return result
@@ -176,28 +186,26 @@ function parseRevolut(rows) {
 function parseTradeRepublic(rows) {
   const result = []
   rows.forEach(r => {
-    const name    = r['instrument'] || r['name'] || r['asset'] || ''
-    const isin    = r['isin'] || ''
-    const date    = r['date'] || r['booking date'] || r['time'] || ''
-    const qty     = cleanNum(r['shares'] || r['quantity'] || r['amount (shares)'] || '0')
-    const price   = cleanNum(r['price'] || r['share price'] || '0')
-    const total   = cleanNum(r['total'] || r['amount'] || r['total amount'] || '0')
-    const curr    = r['currency'] || 'EUR'
-    const type    = (r['type'] || r['transaction type'] || r['event type'] || '').toLowerCase()
+    const name  = r['instrument'] || r['name'] || r['asset'] || ''
+    const isin  = r['isin'] || ''
+    const date  = r['date'] || r['booking date'] || r['time'] || ''
+    const qty   = cleanNum(r['shares'] || r['quantity'] || r['amount (shares)'] || '0')
+    const price = cleanNum(r['price'] || r['share price'] || '0')
+    const total = cleanNum(r['total'] || r['amount'] || r['total amount'] || '0')
+    const curr  = r['currency'] || 'EUR'
+    const type  = (r['type'] || r['transaction type'] || r['event type'] || '').toLowerCase()
 
     if (!name || qty === 0) return
     const isBuy = type.includes('buy') || type.includes('purchase') || type.includes('saving')
+    const netCost = price > 0 ? Math.abs(price * qty) : Math.abs(total)
     const trTicker = r['ticker'] || r['symbol'] || normalizeEuropeanTicker(isin?.slice(-6) || name?.slice(0,6), curr)
     result.push({
       name, ticker: trTicker, isin,
-      date:         formatDate(date),
-      qty:          Math.abs(qty),
-      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
-      totalCost:    Math.abs(total),
-      currency:     curr,
-      action:       isBuy ? 'buy' : 'sell',
-      type:         'etf',
-      source:       'Trade Republic',
+      date: formatDate(date), qty: Math.abs(qty),
+      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total)/Math.abs(qty) : 0),
+      totalCost: netCost, totalCostEur: netCost,
+      currency: curr, fxRate: 1,
+      action: isBuy ? 'buy' : 'sell', type: 'etf', source: 'Trade Republic',
     })
   })
   return result
@@ -207,28 +215,26 @@ function parseTradeRepublic(rows) {
 function parseSchwabFidelity(rows, broker) {
   const result = []
   rows.forEach(r => {
-    const symbol  = r['symbol'] || r['ticker'] || ''
-    const desc    = r['description'] || r['security description'] || r['security name'] || symbol
-    const date    = r['date'] || r['run date'] || r['trade date'] || r['settlement date'] || ''
-    const qty     = cleanNum(r['quantity'] || r['shares'] || r['amount'] || '0')
-    const price   = cleanNum(r['price'] || r['share price'] || '0')
-    const total   = cleanNum(r['amount'] || r['principal'] || r['total'] || '0')
-    const curr    = r['currency'] || 'USD'
-    const action  = (r['action'] || r['type'] || r['transaction type'] || '').toLowerCase()
+    const symbol = r['symbol'] || r['ticker'] || ''
+    const desc   = r['description'] || r['security description'] || r['security name'] || symbol
+    const date   = r['date'] || r['run date'] || r['trade date'] || r['settlement date'] || ''
+    const qty    = cleanNum(r['quantity'] || r['shares'] || r['amount'] || '0')
+    const price  = cleanNum(r['price'] || r['share price'] || '0')
+    const total  = cleanNum(r['amount'] || r['principal'] || r['total'] || '0')
+    const curr   = r['currency'] || 'USD'
+    const action = (r['action'] || r['type'] || r['transaction type'] || '').toLowerCase()
 
     if (!symbol || Math.abs(qty) < 0.0001) return
     const isBuy = action.includes('buy') || action.includes('purchased') || action.includes('reinvest')
+    const netCost = price > 0 ? Math.abs(price * qty) : Math.abs(total)
     result.push({
-      name:         desc || symbol,
-      ticker:       symbol,
-      date:         formatDate(date),
-      qty:          Math.abs(qty),
-      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
-      totalCost:    Math.abs(total),
-      currency:     curr,
-      action:       isBuy ? 'buy' : 'sell',
-      type:         'stock',
-      source:       broker === 'schwab' ? 'Schwab' : 'Fidelity',
+      name: desc || symbol, ticker: symbol,
+      date: formatDate(date), qty: Math.abs(qty),
+      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total)/Math.abs(qty) : 0),
+      totalCost: netCost, totalCostEur: netCost,
+      currency: curr, fxRate: 1,
+      action: isBuy ? 'buy' : 'sell', type: 'stock',
+      source: broker === 'schwab' ? 'Schwab' : 'Fidelity',
     })
   })
   return result
@@ -238,30 +244,27 @@ function parseSchwabFidelity(rows, broker) {
 function parseGeneric(rows) {
   const result = []
   rows.forEach(r => {
-    // Intenta trobar els camps per nom aproximat
-    const ticker  = r['ticker'] || r['symbol'] || r['codi'] || ''
-    const name    = r['name'] || r['nom'] || r['description'] || r['actiu'] || ticker
-    const date    = r['date'] || r['data'] || r['fecha'] || ''
-    const qty     = cleanNum(r['qty'] || r['quantity'] || r['shares'] || r['quantitat'] || r['accions'] || '0')
-    const price   = cleanNum(r['price'] || r['preu'] || r['precio'] || r['price per unit'] || '0')
-    const total   = cleanNum(r['total'] || r['amount'] || r['import'] || r['cost'] || r['cost total'] || '0')
-    const curr    = r['currency'] || r['moneda'] || r['devise'] || 'EUR'
-    const action  = (r['action'] || r['type'] || r['tipus'] || r['buy/sell'] || 'buy').toLowerCase()
-    const type    = (r['type'] || r['category'] || r['asset type'] || 'stock').toLowerCase()
+    const ticker = r['ticker'] || r['symbol'] || r['codi'] || ''
+    const name   = r['name'] || r['nom'] || r['description'] || r['actiu'] || ticker
+    const date   = r['date'] || r['data'] || r['fecha'] || ''
+    const qty    = cleanNum(r['qty'] || r['quantity'] || r['shares'] || r['quantitat'] || r['accions'] || '0')
+    const price  = cleanNum(r['price'] || r['preu'] || r['precio'] || r['price per unit'] || '0')
+    const total  = cleanNum(r['total'] || r['amount'] || r['import'] || r['cost'] || r['cost total'] || '0')
+    const curr   = r['currency'] || r['moneda'] || r['devise'] || 'EUR'
+    const action = (r['action'] || r['type'] || r['tipus'] || r['buy/sell'] || 'buy').toLowerCase()
+    const type   = (r['type'] || r['category'] || r['asset type'] || 'stock').toLowerCase()
 
     if (!name || qty === 0) return
     const isBuy = !action.includes('sell') && !action.includes('venda') && !action.includes('vente')
+    const netCost = price > 0 ? Math.abs(price * qty) : Math.abs(total)
     const assetType = type.includes('etf') ? 'etf' : type.includes('crypto') ? 'crypto' : 'stock'
     result.push({
       name, ticker,
-      date:         formatDate(date),
-      qty:          Math.abs(qty),
-      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total) / Math.abs(qty) : 0),
-      totalCost:    Math.abs(total),
-      currency:     curr,
-      action:       isBuy ? 'buy' : 'sell',
-      type:         assetType,
-      source:       'CSV genèric',
+      date: formatDate(date), qty: Math.abs(qty),
+      pricePerUnit: Math.abs(price) || (qty ? Math.abs(total)/Math.abs(qty) : 0),
+      totalCost: netCost, totalCostEur: netCost,
+      currency: curr, fxRate: 1,
+      action: isBuy ? 'buy' : 'sell', type: assetType, source: 'CSV genèric',
     })
   })
   return result
@@ -270,12 +273,10 @@ function parseGeneric(rows) {
 // ── Format de data ────────────────────────────────────────────────────────────
 function formatDate(s) {
   if (!s) return new Date().toISOString().split('T')[0]
-  // Formats comuns: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, DD-MM-YYYY
-  s = s.split(' ')[0].split('T')[0] // agafa només la data
+  s = s.split(' ')[0].split('T')[0]
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
     const [a, b, c] = s.split('/')
-    // Si el primer número > 12, és DD/MM
     return parseInt(a) > 12 ? `${c}-${b}-${a}` : `${c}-${a}-${b}`
   }
   if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
@@ -286,29 +287,19 @@ function formatDate(s) {
 }
 
 // ── Normalitza ticker europeu ─────────────────────────────────────────────────
-// Revolut i Trade Republic sovint no posen l'extensió de borsa.
-// Intentem afegir-la basant-nos en patrons coneguts.
 function normalizeEuropeanTicker(ticker, currency) {
   if (!ticker) return ticker
-  // Ja té extensió
   if (ticker.includes('.')) return ticker
-  // Si la moneda és EUR, probablement és un mercat europeu
   if (currency === 'EUR') {
-    // ETFs iShares/Vanguard/Amundi comuns a Euronext Amsterdam o Xetra
-    // ETFs comuns en mercats europeus (Xetra .DE, Euronext .AS)
     const xetraETFs = ['EUNL','VUAA','IWDA','CSPX','VWCE','VUSA','EUNM','IEMA',
                        'SPPW','VFEM','EQQQ','IQQQ','QDVE','EXXT','XDWD','DBXW',
                        'XDEW','XDEM','XDEP','XDEX','VEUR','VERX','VGKE','VFEA',
                        'EMIM','HMEF','HMWO','LCUW','LCUD','AGGG','IGLN','PHAU']
-    const euronextETFs = ['IWDA','VWCE','CSPX','VUAA','EUNL']
     if (xetraETFs.includes(ticker.toUpperCase())) return ticker + '.DE'
-    // Per defecte per ETFs EUR sense extensió, prova .DE
     return ticker + '.DE'
   }
-  // GBP → LSE
   if (currency === 'GBP') return ticker + '.L'
-  // USD → no cal extensió (NYSE/NASDAQ)
-  return ticker
+  return ticker  // USD → NYSE/NASDAQ, sense extensió
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -320,13 +311,13 @@ export function parseCSV(text) {
   let transactions = []
 
   switch (broker) {
-    case 'degiro':       transactions = parseDEGIRO(rows); break
-    case 'ib':           transactions = parseIB(rows); break
-    case 'revolut':      transactions = parseRevolut(rows); break
+    case 'degiro':        transactions = parseDEGIRO(rows); break
+    case 'ib':            transactions = parseIB(rows); break
+    case 'revolut':       transactions = parseRevolut(rows); break
     case 'traderepublic': transactions = parseTradeRepublic(rows); break
     case 'schwab':
-    case 'fidelity':     transactions = parseSchwabFidelity(rows, broker); break
-    default:             transactions = parseGeneric(rows); break
+    case 'fidelity':      transactions = parseSchwabFidelity(rows, broker); break
+    default:              transactions = parseGeneric(rows); break
   }
 
   return {

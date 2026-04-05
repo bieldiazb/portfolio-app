@@ -115,7 +115,7 @@ const styles = `
   /* ── Modal ── */
   .gl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); }
   @media (min-width:640px) { .gl-overlay { align-items:center; padding:16px; } }
-  .gl-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 36px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:glSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
+  .gl-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:glSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
   @keyframes glSlide { from { transform:translateY(24px); opacity:0 } to { transform:translateY(0); opacity:1 } }
   @media (min-width:640px) { .gl-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
   .gl-modal-drag { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.10); margin:0 auto 18px; display:block; }

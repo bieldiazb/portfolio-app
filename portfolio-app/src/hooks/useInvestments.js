@@ -5,21 +5,6 @@ import {
   onSnapshot, query, orderBy, serverTimestamp, updateDoc,
 } from 'firebase/firestore'
 
-// ─── useInvestments ───────────────────────────────────────────────────────────
-// Dos listeners independents (igual que useSavings):
-//   1. Listener d'inversions → metadades (nom, ticker, type)
-//   2. Per cada inversió, listener de txs → qty total, cost mitjà, historial
-//
-// Cada tx:
-//   { qty, pricePerUnit, totalCost, type: 'buy'|'sell'|'capital', note, date, createdAt }
-//
-// Camps calculats per inversió:
-//   totalQty     = suma de qty (buy +, sell -)
-//   totalCost    = suma de totalCost (buy +, sell -)
-//   avgCost      = totalCost / totalQty
-//   currentValue = totalQty * currentPrice (o totalCost si no hi ha preu)
-//   gain         = currentValue - totalCost
-
 export function useInvestments(uid) {
   const invRef   = useRef({})
   const txUnsubs = useRef({})
@@ -39,7 +24,6 @@ export function useInvestments(uid) {
     const unsubInv = onSnapshot(q, snap => {
       const ids = new Set(snap.docs.map(d => d.id))
 
-      // Neteja eliminades
       Object.keys(invRef.current).forEach(id => {
         if (!ids.has(id)) {
           delete invRef.current[id]
@@ -53,27 +37,38 @@ export function useInvestments(uid) {
         const meta = d.data()
 
         if (!invRef.current[id]) {
-          invRef.current[id] = { id, ...meta, txs: [], totalQty: 0, totalCost: 0, avgCost: 0, currentPrice: meta.currentPrice ?? null }
+          invRef.current[id] = { id, ...meta, txs: [], totalQty: 0, totalCost: 0, totalCostEur: 0, avgCost: 0, currentPrice: meta.currentPrice ?? null }
         } else {
-          // Actualitza metadades mantenint txs i currentPrice
           invRef.current[id] = { ...invRef.current[id], ...meta }
         }
 
-        // Listener txs
         if (!txUnsubs.current[id]) {
           const txQ = query(collection(db, 'users', uid, 'investments', id, 'txs'), orderBy('date', 'asc'))
           txUnsubs.current[id] = onSnapshot(txQ, txSnap => {
             const txs = txSnap.docs.map(t => ({ id: t.id, ...t.data() }))
 
-            // Calcula totals
             let totalQty     = 0
-            let totalCost    = 0   // en moneda original (USD per LMT, EUR per ETFs)
-            let totalCostEur = 0   // sempre en EUR (per totals globals)
+            let totalCost    = 0   // moneda original
+            let totalCostEur = 0   // sempre EUR — per P&G globals
+
             txs.forEach(tx => {
               if (tx.type === 'buy') {
                 totalQty     += tx.qty || 0
-                totalCost    += tx.totalCost || 0
-                totalCostEur += tx.totalCostEur || tx.totalCost || 0
+                totalCost    += tx.totalCost    || 0
+
+                // FIX: suporta txs antigues (sense totalCostEur) i noves
+                let eurAmt
+                if (tx.totalCostEur != null && tx.totalCostEur > 0) {
+                  // Tx nova: totalCostEur guardat correctament amb FX del moment
+                  eurAmt = tx.totalCostEur
+                } else if (tx.currency && tx.currency !== 'EUR' && tx.fxRate > 0) {
+                  // Tx antiga en USD/GBP/etc: reconstrueix amb FX guardat
+                  eurAmt = tx.totalCost / tx.fxRate
+                } else {
+                  // Tx en EUR o sense info: usa totalCost directament
+                  eurAmt = tx.totalCost || 0
+                }
+                totalCostEur += eurAmt
               } else if (tx.type === 'sell') {
                 const avgBefore    = totalQty > 0 ? totalCost    / totalQty : 0
                 const avgEurBefore = totalQty > 0 ? totalCostEur / totalQty : 0
@@ -81,14 +76,19 @@ export function useInvestments(uid) {
                 totalCost    -= (tx.qty || 0) * avgBefore
                 totalCostEur -= (tx.qty || 0) * avgEurBefore
               } else if (tx.type === 'capital') {
-                totalCost    += tx.totalCost || 0
+                totalCost    += tx.totalCost    || 0
                 totalCostEur += tx.totalCostEur || tx.totalCost || 0
               }
             })
-            const avgCost = totalQty > 0 ? totalCost / totalQty : 0
+
+            const avgCost    = totalQty > 0 ? totalCost    / totalQty : 0
+            const avgCostEur = totalQty > 0 ? totalCostEur / totalQty : 0
 
             if (invRef.current[id]) {
-              invRef.current[id] = { ...invRef.current[id], txs, totalQty, totalCost, totalCostEur, avgCost }
+              invRef.current[id] = {
+                ...invRef.current[id],
+                txs, totalQty, totalCost, totalCostEur, avgCost, avgCostEur,
+              }
               publish()
             }
           })
@@ -105,8 +105,6 @@ export function useInvestments(uid) {
       invRef.current   = {}
     }
   }, [uid, publish])
-
-  // ── Accions ─────────────────────────────────────────────────────────────────
 
   const addInvestment = useCallback(async ({ name, ticker, type, notes, currency }) => {
     if (!uid) return null
@@ -135,16 +133,32 @@ export function useInvestments(uid) {
     await deleteDoc(doc(db, 'users', uid, 'investments', invId))
   }, [uid])
 
-  const addTransaction = useCallback(async (invId, { qty, pricePerUnit, totalCost, type, note, date }) => {
+  // ── FIX: addTransaction ara guarda totalCostEur ──────────────────────────────
+  // Quan ve d'un import CSV de Revolut (o similar), totalCostEur ja ve calculat
+  // amb el FX del moment de compra → es guarda directament sense recalcular.
+  // Per transaccions manuals en EUR, totalCostEur = totalCost.
+  const addTransaction = useCallback(async (invId, {
+    qty, pricePerUnit, pricePerUnitOrig,
+    totalCost, totalCostEur, totalCostOrig,
+    type, note, date, currency, fxRate,
+  }) => {
     if (!uid) return
     await addDoc(collection(db, 'users', uid, 'investments', invId, 'txs'), {
-      qty: qty || 0,
-      pricePerUnit: pricePerUnit || 0,
-      totalCost: totalCost || 0,
-      type, // 'buy' | 'sell' | 'capital'
-      note: note || '',
-      date: date || new Date().toISOString().split('T')[0],
-      createdAt: serverTimestamp(),
+      qty:              qty || 0,
+      pricePerUnit:     pricePerUnit || 0,
+      pricePerUnitOrig: pricePerUnitOrig || pricePerUnit || 0,
+      // totalCostEur: import en EUR al moment de la compra (amb FX correcte)
+      // Per ETFs en EUR: totalCostEur = totalCost
+      // Per LMT en USD: totalCostEur = totalCost / fxRate (calculat al parser)
+      totalCost:        totalCost || 0,
+      totalCostEur:     totalCostEur ?? totalCost ?? 0,
+      totalCostOrig:    totalCostOrig || totalCost || 0,
+      currency:         currency || 'EUR',
+      fxRate:           fxRate || 1,
+      type,
+      note:             note || '',
+      date:             date || new Date().toISOString().split('T')[0],
+      createdAt:        serverTimestamp(),
     })
   }, [uid])
 

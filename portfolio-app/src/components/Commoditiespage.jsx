@@ -111,7 +111,7 @@ const styles = `
 
   .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
   @media (min-width:640px) { .cm-overlay { align-items:center; padding:16px; } }
-  .cm-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 36px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
+  .cm-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 100px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
   @media (min-width:640px) { .cm-modal { border-radius:10px; max-width:420px; padding:24px 20px; } }
   .cm-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
   @media (min-width:640px) { .cm-modal-drag { display:none; } }
