@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
-import { fmtEur, fmtPct } from '../utils/format'
+import { fmtEur } from '../utils/format'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
+
 
 const PERIODS = [
   { id:'1W',  label:'1S',  days:7    },
@@ -11,61 +12,108 @@ const PERIODS = [
   { id:'ALL', label:'Tot', days:9999 },
 ]
 
+const CAT_COLORS = {
+  inv:    COLORS.neonCyan,
+  sav:    COLORS.neonGreen,
+  crypto: COLORS.neonAmber,
+  com:    '#c8961a',
+}
+
 const styles = `
   .nwt { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
-  .nwt-title { font-size:16px; font-weight:500; color:${COLORS.textPrimary}; letter-spacing:-0.2px; margin-bottom:3px; }
-  .nwt-sub   { font-size:12px; color:${COLORS.textMuted}; }
+  /* ── Hero card amb gràfic integrat ── */
+  .nwt-hero {
+    background:linear-gradient(160deg,#0d0d0d 0%,#131313 100%);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:14px; overflow:hidden; position:relative;
+  }
+  .nwt-hero::after {
+    content:''; position:absolute; top:-80px; right:-80px;
+    width:260px; height:260px; border-radius:50%;
+    background:radial-gradient(circle,rgba(0,255,136,0.05) 0%,transparent 65%);
+    pointer-events:none;
+  }
 
-  /* Panel */
-  .nwt-panel { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:6px; padding:20px 18px 16px; }
-  .nwt-hdr   { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+  /* Info superior */
+  .nwt-top { padding:22px 20px 0; position:relative; z-index:1; }
+  .nwt-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
 
-  /* Valor gran */
-  .nwt-amount { display:flex; align-items:baseline; gap:4px; margin-bottom:7px; }
-  .nwt-cur    { font-size:14px; color:${COLORS.textMuted}; font-family:${FONTS.mono}; padding-bottom:4px; }
-  .nwt-total  { font-size:clamp(30px,5vw,40px); font-weight:300; font-family:${FONTS.mono}; color:${COLORS.textPrimary}; letter-spacing:-2px; line-height:1; font-variant-numeric:tabular-nums; }
-  .nwt-dec    { font-size:55%; color:${COLORS.textMuted}; letter-spacing:-0.5px; }
+  /* Valor principal */
+  .nwt-amount { display:flex; align-items:flex-end; gap:4px; margin-bottom:10px; line-height:1; }
+  .nwt-symbol { padding-left:4px; font-size:30px;  color:rgba(255,255,255,0.7); font-family:${FONTS.num}; font-weight:600; }
+  .nwt-int { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
+  .nwt-dec { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; }
 
-  .nwt-change { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; font-family:${FONTS.mono}; padding:3px 8px; border-radius:3px; }
-  .nwt-change.pos { color:${COLORS.neonGreen}; background:${COLORS.bgGreen}; border:1px solid ${COLORS.borderGreen}; }
-  .nwt-change.neg { color:${COLORS.neonRed};   background:${COLORS.bgRed};   border:1px solid ${COLORS.borderRed};   }
+  /* Badge canvi */
+  .nwt-change-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .nwt-change { display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:600; font-family:${FONTS.num}; padding:5px 12px; border-radius:20px; }
+  .nwt-change.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.22); }
+  .nwt-change.neg { color:${COLORS.neonRed};   background:rgba(255,59,59,0.09);  border:1px solid rgba(255,59,59,0.20);  }
+  .nwt-change-hint { font-size:11px; color:rgba(255,255,255,0.22); font-family:${FONTS.num}; }
 
-  /* Period tabs */
-  .nwt-tabs { display:flex; gap:1px; background:${COLORS.border}; border-radius:4px; overflow:hidden; flex-shrink:0; align-self:flex-start; }
-  .nwt-tab  { padding:5px 11px; border:none; background:${COLORS.surface}; font-family:${FONTS.mono}; font-size:11px; font-weight:500; color:${COLORS.textMuted}; cursor:pointer; transition:all 100ms; }
-  .nwt-tab:hover { color:${COLORS.textSecondary}; background:${COLORS.elevated}; }
-  .nwt-tab.on  { background:${COLORS.elevated}; color:${COLORS.textPrimary}; }
+  /* Period pills */
+  .nwt-periods { display:flex; gap:4px; margin-bottom:18px; }
+  .nwt-period { padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.07); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); cursor:pointer; transition:all 100ms; }
+  .nwt-period:hover { color:rgba(255,255,255,0.65); border-color:rgba(255,255,255,0.15); }
+  .nwt-period.on { background:rgba(0,255,136,0.09); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
 
-  /* Empty */
-  .nwt-empty { padding:40px 0; text-align:center; }
-  .nwt-empty-main { font-size:13px; color:${COLORS.textMuted}; font-weight:500; margin-bottom:4px; }
-  .nwt-empty-sub  { font-size:11px; color:${COLORS.textMuted}; opacity:0.6; }
+  /* Gràfic sense marges als costats */
+  .nwt-chart { margin:0; }
 
-  /* Stats */
-  .nwt-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); padding-top:14px; margin-top:14px; border-top:1px solid ${COLORS.border}; gap:0; }
-  .nwt-stat  { position:relative; padding-right:14px; margin-bottom:4px; }
-  .nwt-stat:not(:last-child)::after { content:''; position:absolute; right:7px; top:0; height:100%; width:1px; background:${COLORS.border}; }
-  .nwt-stat-l { font-size:9px; font-weight:500; color:${COLORS.textMuted}; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.10em; }
-  .nwt-stat-v { font-size:12px; font-family:${FONTS.mono}; letter-spacing:-0.3px; font-weight:500; font-variant-numeric:tabular-nums; }
-  .nwt-stat-v.pos { color:${COLORS.neonGreen}; }
-  .nwt-stat-v.neg { color:${COLORS.neonRed}; }
-  .nwt-stat-v.neu { color:${COLORS.textSecondary}; }
+  /* Stats integrades sota el gràfic */
+  .nwt-stats-bar {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    padding:14px 20px 18px; gap:0;
+    border-top:1px solid rgba(255,255,255,0.05);
+  }
+  .nwt-sbar { position:relative; }
+  .nwt-sbar:not(:last-child)::after {
+    content:''; position:absolute; right:0; top:15%; height:70%;
+    width:1px; background:rgba(255,255,255,0.05);
+  }
+  .nwt-sbar-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.22); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:5px; }
+  .nwt-sbar-v { font-size:16px; font-weight:600; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  .nwt-sbar-v.pos { color:${COLORS.neonGreen}; }
+  .nwt-sbar-v.neg { color:${COLORS.neonRed}; }
+  .nwt-sbar-v.neu { color:rgba(255,255,255,0.65); }
+  .nwt-sbar-sub { font-size:10px; color:rgba(255,255,255,0.18); font-family:${FONTS.num}; }
 
-  /* Breakdown */
-  .nwt-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:${COLORS.border}; border-radius:6px; overflow:hidden; }
-  .nwt-bk { background:${COLORS.surface}; padding:14px 12px; }
-  .nwt-bk-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; }
-  .nwt-bk-v { font-size:14px; font-weight:500; font-family:${FONTS.mono}; color:${COLORS.textPrimary}; font-variant-numeric:tabular-nums; letter-spacing:-0.3px; margin-bottom:2px; }
-  .nwt-bk-p { font-size:10px; color:${COLORS.textMuted}; font-family:${FONTS.mono}; }
+  /* Empty state */
+  .nwt-empty { padding:48px 20px; text-align:center; }
+  .nwt-empty-icon { font-size:36px; margin-bottom:12px; }
+  .nwt-empty-main { font-size:14px; color:rgba(255,255,255,0.35); font-weight:500; margin-bottom:6px; }
+  .nwt-empty-sub { font-size:12px; color:rgba(255,255,255,0.18); line-height:1.7; }
+
+  /* ── Breakdown categories ── */
+  .nwt-cats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .nwt-cat { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 12px 12px; }
+  .nwt-cat-dot { width:6px; height:6px; border-radius:50%; margin-bottom:10px; }
+  .nwt-cat-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.28); margin-bottom:6px; }
+  .nwt-cat-v { font-size:16px; font-weight:600; font-family:${FONTS.num}; color:#fff; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .nwt-cat-p { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.22); }
+
+  /* ── Historial mensual ── */
+  .nwt-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
+  .nwt-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+
+  .nwt-month-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .nwt-month-row:last-child { border-bottom:none; }
+  .nwt-month-label { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.30); width:64px; flex-shrink:0; text-transform:capitalize; }
+  .nwt-month-bar-wrap { flex:1; height:4px; background:rgba(255,255,255,0.04); border-radius:2px; overflow:hidden; }
+  .nwt-month-bar { height:100%; border-radius:2px; }
+  .nwt-month-end { font-size:13px; font-family:${FONTS.num}; font-weight:400; color:rgba(255,255,255,0.65); font-variant-numeric:tabular-nums; min-width:80px; text-align:right; }
+  .nwt-month-chg { font-size:11px; font-family:${FONTS.num}; font-weight:500; min-width:52px; text-align:right; font-variant-numeric:tabular-nums; }
+  .nwt-month-chg.pos { color:${COLORS.neonGreen}; }
+  .nwt-month-chg.neg { color:${COLORS.neonRed}; }
 `
 
 const NwtTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   return (
-    <div style={{ background:COLORS.elevated, border:`1px solid ${COLORS.borderMid}`, borderRadius:5, padding:'8px 11px', fontFamily:FONTS.sans }}>
-      <p style={{ fontSize:10, color:COLORS.textMuted, marginBottom:4 }}>{label}</p>
-      <p style={{ fontSize:14, fontWeight:500, color:COLORS.textPrimary, fontFamily:FONTS.mono, letterSpacing:'-0.4px' }}>{fmtEur(payload[0]?.value||0)}</p>
+    <div style={{background:'#1c1c1c',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:8,padding:'9px 13px',fontFamily:FONTS.sans,boxShadow:'0 8px 24px rgba(0,0,0,0.5)'}}>
+      <p style={{fontSize:10,color:'rgba(255,255,255,0.28)',marginBottom:4}}>{label}</p>
+      <p style={{fontSize:18,fontWeight:300,fontFamily:FONTS.num,color:'#fff',letterSpacing:'-0.8px',fontVariantNumeric:'tabular-nums'}}>{fmtEur(payload[0]?.value||0)}</p>
     </div>
   )
 }
@@ -74,146 +122,211 @@ export default function NetWorthTimeline({ snapshots=[], currentTotal, totalCost
   const [period, setPeriod] = useState('1Y')
 
   const filtered = useMemo(() => {
-    const days = PERIODS.find(p=>p.id===period)?.days??365
+    const days = PERIODS.find(p=>p.id===period)?.days ?? 365
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-days)
-    return [...snapshots].filter(s=>new Date(s.date)>=cutoff).sort((a,b)=>new Date(a.date)-new Date(b.date))
-      .map(s=>({...s,label:new Date(s.date).toLocaleDateString('ca-ES',{day:'2-digit',month:'short'})}))
-  }, [snapshots,period])
+    return [...snapshots]
+      .filter(s => new Date(s.date) >= cutoff)
+      .sort((a,b) => new Date(a.date)-new Date(b.date))
+      .map(s => ({
+        ...s,
+        label: new Date(s.date).toLocaleDateString('ca-ES', {day:'2-digit',month:'short'}),
+      }))
+  }, [snapshots, period])
 
-  const first     = filtered[0]?.total||currentTotal
-  const change    = currentTotal-first
-  const changePct = first>0?(change/first)*100:0
-  const isPos     = change>=0
+  const chartData    = filtered.length > 0 ? filtered : [{ label:'Avui', total:currentTotal }]
+  const first        = filtered[0]?.total || currentTotal
+  const change       = currentTotal - first
+  const changePct    = first > 0 ? (change/first)*100 : 0
+  const isPos        = change >= 0
+  const minVal       = Math.min(...chartData.map(s=>s.total)) * 0.97
+  const maxVal       = Math.max(...chartData.map(s=>s.total)) * 1.03
+  const allTimeHigh  = Math.max(...snapshots.map(s=>s.total), currentTotal)
+  const totalGain    = currentTotal - (totalCost||0)
+  const totalGainPct = totalCost>0 ? (totalGain/totalCost)*100 : 0
 
-  const allTimeHigh  = Math.max(...snapshots.map(s=>s.total),currentTotal)
-  const totalGain    = currentTotal-totalCost
-  const totalGainPct = totalCost>0?(totalGain/totalCost)*100:0
-
-  const monthlyChanges = useMemo(() => {
-    if (snapshots.length<2) return {best:null,worst:null}
-    const byMonth={}
-    ;[...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(s=>{
-      const key=s.date.slice(0,7)
-      if (!byMonth[key]) byMonth[key]={first:s.total,last:s.total}
-      byMonth[key].last=s.total
+  // Millor mes
+  const bestMonth = useMemo(() => {
+    if (snapshots.length < 2) return null
+    const byMonth = {}
+    ;[...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(s => {
+      const k = s.date.slice(0,7)
+      if (!byMonth[k]) byMonth[k] = { first:s.total, last:s.total }
+      byMonth[k].last = s.total
     })
-    const changes=Object.entries(byMonth).map(([,{first,last}])=>({change:last-first}))
-    if (!changes.length) return {best:null,worst:null}
-    return {best:changes.reduce((a,b)=>b.change>a.change?b:a),worst:changes.reduce((a,b)=>b.change<a.change?b:a)}
+    const entries = Object.entries(byMonth).map(([k,{first,last}])=>({ month:k, change:last-first }))
+    return entries.length ? entries.reduce((a,b)=>b.change>a.change?b:a) : null
   }, [snapshots])
 
-  const volatility = useMemo(() => {
-    if (filtered.length<5) return null
-    const returns=filtered.slice(1).map((s,i)=>(s.total-filtered[i].total)/filtered[i].total)
-    const mean=returns.reduce((a,b)=>a+b,0)/returns.length
-    const variance=returns.reduce((a,b)=>a+Math.pow(b-mean,2),0)/returns.length
-    return (Math.sqrt(variance)*Math.sqrt(252)*100).toFixed(1)
-  }, [filtered])
+  // Historial mensual (últims 6 mesos)
+  const monthlyHistory = useMemo(() => {
+    const byMonth = {}
+    ;[...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(s => {
+      const k = s.date.slice(0,7)
+      if (!byMonth[k]) byMonth[k] = { first:s.total, last:s.total }
+      byMonth[k].last = s.total
+    })
+    return Object.entries(byMonth)
+      .map(([month,{first,last}]) => ({ month, end:last, change:last-first, pct:(last-first)/first*100 }))
+      .sort((a,b) => b.month.localeCompare(a.month))
+      .slice(0, 8)
+  }, [snapshots])
 
-  const lastSnap  = [...snapshots].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
-  const chartData = filtered.length>0?filtered:[{label:'Avui',total:currentTotal}]
-  const minVal    = Math.min(...chartData.map(s=>s.total))*0.97
-  const maxVal    = Math.max(...chartData.map(s=>s.total))*1.02
-  const [intPart,decPart] = fmtEur(currentTotal).replace('€','').trim().split(',')
+  const maxAbsChange = Math.max(...monthlyHistory.map(m=>Math.abs(m.change)), 1)
+  const lastSnap = [...snapshots].sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
+
+  // Format valor gran separat
+  const totalStr = fmtEur(currentTotal).replace('€','').trim()
+  const [intPart, decPart='00'] = totalStr.split(',')
 
   return (
     <div className="nwt">
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
-      <div>
-        <h2 className="nwt-title">Evolució del patrimoni</h2>
-        <p className="nwt-sub">Historial diari del valor total del portfoli</p>
-      </div>
+      {/* ── Hero ── */}
+      <div className="nwt-hero">
+        <div className="nwt-top">
+          <p className="nwt-label">Patrimoni net total</p>
 
-      <div className="nwt-panel">
-        <div className="nwt-hdr">
-          <div>
-            <div className="nwt-amount">
-              <span className="nwt-cur">€</span>
-              <span className="nwt-total">{intPart}<span className="nwt-dec">,{decPart}</span></span>
-            </div>
+          <div className="nwt-amount">
+            <span className="nwt-int">{intPart}</span>
+            <span className="nwt-dec">,{decPart}</span>
+            <span className="nwt-symbol">€</span>
+          </div>
+
+          <div className="nwt-change-row">
             <span className={`nwt-change ${isPos?'pos':'neg'}`}>
-              {isPos?'▲':'▼'} {fmtEur(Math.abs(change))} · {isPos?'+':''}{changePct.toFixed(2)}%
+              {isPos?'▲ +':'▼ '}{fmtEur(Math.abs(change))} ({isPos?'+':''}{changePct.toFixed(2)}%)
+            </span>
+            <span className="nwt-change-hint">
+              {period==='ALL'?'des de l\'inici':`en el darrer ${PERIODS.find(p=>p.id===period)?.label}`}
             </span>
           </div>
-          <div className="nwt-tabs">
+
+          <div className="nwt-periods">
             {PERIODS.map(p=>(
-              <button key={p.id} className={`nwt-tab${period===p.id?' on':''}`} onClick={()=>setPeriod(p.id)}>{p.label}</button>
+              <button key={p.id} className={`nwt-period${period===p.id?' on':''}`} onClick={()=>setPeriod(p.id)}>{p.label}</button>
             ))}
           </div>
         </div>
 
-        {snapshots.length<2 ? (
-          <div className="nwt-empty">
-            <p className="nwt-empty-main">Les dades s'acumulen automàticament cada dia</p>
-            <p className="nwt-empty-sub">El gràfic apareixerà demà amb el primer punt d'historial</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={chartData} margin={{top:4,right:0,left:0,bottom:0}}>
-              <defs>
-                <linearGradient id="nwtG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={isPos?'rgba(0,255,136,0.15)':'rgba(255,59,59,0.12)'}/>
-                  <stop offset="100%" stopColor="rgba(0,0,0,0)"/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="label" tick={{fontSize:10,fontFamily:FONTS.mono,fill:COLORS.textMuted}} axisLine={false} tickLine={false} interval={Math.max(0,Math.floor(chartData.length/5)-1)} />
-              <YAxis domain={[minVal,maxVal]} tick={{fontSize:10,fontFamily:FONTS.mono,fill:COLORS.textMuted}} axisLine={false} tickLine={false} width={44} tickFormatter={v=>`${(v/1000).toFixed(0)}k`} />
-              <ReferenceLine y={first} stroke={COLORS.border} strokeDasharray="3 3" strokeWidth={1} />
-              <Tooltip content={<NwtTooltip/>} cursor={{stroke:COLORS.borderMid,strokeWidth:1}} />
-              <Area type="monotone" dataKey="total" stroke={isPos?COLORS.neonGreen:COLORS.neonRed} strokeWidth={1.5} fill="url(#nwtG)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+        {/* Gràfic */}
+        <div className="nwt-chart">
+          {snapshots.length < 2 ? (
+            <div className="nwt-empty">
+              <div className="nwt-empty-icon">📈</div>
+              <p className="nwt-empty-main">El gràfic s'anirà construint</p>
+              <p className="nwt-empty-sub">Les dades es guarden automàticament.<br/>Demà veuràs el primer punt de l'historial.</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={chartData} margin={{top:8,right:0,left:0,bottom:0}}>
+                <defs>
+                  <linearGradient id="nwtGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor={isPos?'rgba(0,255,136,0.20)':'rgba(255,59,59,0.16)'}/>
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)"/>
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="label"
+                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.20)'}}
+                  axisLine={false} tickLine={false}
+                  interval={Math.max(0,Math.floor(chartData.length/5)-1)}
+                />
+                <YAxis
+                  domain={[minVal,maxVal]}
+                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.20)'}}
+                  axisLine={false} tickLine={false} width={38}
+                  tickFormatter={v=>`${(v/1000).toFixed(0)}k`}
+                />
+                <ReferenceLine y={first} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 4" strokeWidth={1}/>
+                <Tooltip content={<NwtTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
+                <Area
+                  type="monotone" dataKey="total"
+                  stroke={isPos?COLORS.neonGreen:COLORS.neonRed}
+                  strokeWidth={2} fill="url(#nwtGrad)" dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
 
-        <div className="nwt-stats">
-          <div className="nwt-stat">
-            <p className="nwt-stat-l">Màxim històric</p>
-            <p className="nwt-stat-v neu">{fmtEur(allTimeHigh)}</p>
+        {/* Stats sota el gràfic dins el hero */}
+        <div className="nwt-stats-bar">
+          <div className="nwt-sbar">
+            <p className="nwt-sbar-l">Guany total</p>
+            <p className={`nwt-sbar-v ${totalGain>=0?'pos':'neg'}`}>
+              {totalGain>=0?'+':''}{fmtEur(totalGain)}
+            </p>
+            <p className="nwt-sbar-sub">{totalGainPct>=0?'+':''}{totalGainPct.toFixed(1)}% ROI</p>
           </div>
-          <div className="nwt-stat">
-            <p className="nwt-stat-l">Guany total</p>
-            <p className={`nwt-stat-v ${totalGain>=0?'pos':'neg'}`}>{totalGain>=0?'+':''}{fmtEur(totalGain)}</p>
+          <div className="nwt-sbar" style={{paddingLeft:12}}>
+            <p className="nwt-sbar-l">Màx. histò.</p>
+            <p className="nwt-sbar-v neu">{fmtEur(allTimeHigh)}</p>
+            <p className="nwt-sbar-sub">{currentTotal>=allTimeHigh?'🏆 ATH ara':'—'}</p>
           </div>
-          {monthlyChanges.best && (
-            <div className="nwt-stat">
-              <p className="nwt-stat-l">Millor mes</p>
-              <p className="nwt-stat-v pos">+{fmtEur(monthlyChanges.best.change)}</p>
-            </div>
-          )}
-          {monthlyChanges.worst && (
-            <div className="nwt-stat">
-              <p className="nwt-stat-l">Pitjor mes</p>
-              <p className="nwt-stat-v neg">{fmtEur(monthlyChanges.worst.change)}</p>
-            </div>
-          )}
-          {volatility && (
-            <div className="nwt-stat">
-              <p className="nwt-stat-l">Volatilitat</p>
-              <p className="nwt-stat-v neu">{volatility}%</p>
-            </div>
-          )}
+          <div className="nwt-sbar" style={{paddingLeft:12}}>
+            <p className="nwt-sbar-l">Millor mes</p>
+            <p className="nwt-sbar-v pos">
+              {bestMonth?`+${fmtEur(bestMonth.change)}`:'—'}
+            </p>
+            <p className="nwt-sbar-sub">{bestMonth?.month||''}</p>
+          </div>
         </div>
       </div>
 
+      {/* ── Breakdown per categoria ── */}
       {lastSnap && (
-        <div className="nwt-breakdown">
+        <div className="nwt-cats">
           {[
-            {label:'Inversions',val:lastSnap.invValue,   color:COLORS.neonCyan  },
-            {label:'Estalvis',  val:lastSnap.savValue,   color:COLORS.neonGreen },
-            {label:'Crypto',    val:lastSnap.cryptoValue,color:COLORS.neonAmber },
+            { label:'Inversions', val:lastSnap.invValue,    color:CAT_COLORS.inv    },
+            { label:'Estalvis',   val:lastSnap.savValue,    color:CAT_COLORS.sav    },
+            { label:'Crypto',     val:lastSnap.cryptoValue, color:CAT_COLORS.crypto },
           ].map(({label,val,color})=>{
-            const pct=currentTotal>0?(val/currentTotal)*100:0
+            const v   = val || 0
+            const pct = currentTotal>0 ? (v/currentTotal)*100 : 0
             return (
-              <div key={label} className="nwt-bk">
-                <p className="nwt-bk-l" style={{color}}>{label}</p>
-                <p className="nwt-bk-v">{fmtEur(val||0)}</p>
-                <p className="nwt-bk-p">{pct.toFixed(1)}%</p>
+              <div key={label} className="nwt-cat">
+                <div className="nwt-cat-dot" style={{background:color}}/>
+                <p className="nwt-cat-l">{label}</p>
+                <p className="nwt-cat-v">{fmtEur(v)}</p>
+                <p className="nwt-cat-p">{pct.toFixed(1)}%</p>
               </div>
             )
           })}
         </div>
       )}
+
+      {/* ── Historial mensual ── */}
+      {monthlyHistory.length > 0 && (
+        <div className="nwt-panel">
+          <p className="nwt-panel-title">Rendiment mensual</p>
+          {monthlyHistory.map((m,i)=>{
+            const isP = m.change >= 0
+            const [y, mo] = m.month.split('-')
+            const monthLabel = new Date(parseInt(y),parseInt(mo)-1,1)
+              .toLocaleDateString('ca-ES',{month:'short',year:'2-digit'})
+            const barW = Math.abs(m.change)/maxAbsChange*100
+            return (
+              <div key={i} className="nwt-month-row">
+                <span className="nwt-month-label">{monthLabel}</span>
+                <div className="nwt-month-bar-wrap">
+                  <div className="nwt-month-bar" style={{
+                    width:`${barW}%`,
+                    background: isP?COLORS.neonGreen:COLORS.neonRed,
+                    opacity: 0.55 + (barW/100)*0.35,
+                  }}/>
+                </div>
+                <span className="nwt-month-end">{fmtEur(m.end)}</span>
+                <span className={`nwt-month-chg ${isP?'pos':'neg'}`}>
+                  {isP?'+':''}{m.pct.toFixed(1)}%
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <div style={{height:16}}/>
     </div>
   )
 }

@@ -1,75 +1,89 @@
 import { useState } from 'react'
-import { COLORS, FONTS} from './../components/design-tokens'
+import { COLORS, FONTS } from './../components/design-tokens'
 
 const dialogStyles = `
   .cd-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.80);
     z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
-    animation: cdFadeIn 120ms ease;
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: cdFadeIn 150ms ease;
+    backdrop-filter: blur(4px);
+  }
+  @media (min-width: 640px) {
+    .cd-overlay { align-items: center; padding: 16px; }
   }
   @keyframes cdFadeIn { from { opacity:0 } to { opacity:1 } }
 
   .cd-box {
     font-family: ${FONTS.sans};
-    background: ${COLORS.surface};
-    border: 1px solid ${COLORS.border};
-    border-radius: 6px;
-    width: 100%; max-width: 360px;
-    padding: 22px 20px 20px;
-    animation: cdPop 160ms cubic-bezier(0.34,1.4,0.64,1);
+    background: #131313;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px 14px 0 0;
+    width: 100%; padding: 20px 20px 36px;
+    animation: cdSlide 200ms cubic-bezier(0.34,1.2,0.64,1);
+    box-shadow: 0 -16px 48px rgba(0,0,0,0.60);
   }
-  @keyframes cdPop {
-    from { transform: scale(0.96); opacity:0 }
-    to   { transform: scale(1);    opacity:1 }
+  @media (min-width: 640px) {
+    .cd-box { border-radius: 14px; max-width: 360px; padding: 24px 22px; }
+  }
+  @keyframes cdSlide {
+    from { transform: translateY(20px); opacity:0 }
+    to   { transform: translateY(0);    opacity:1 }
   }
 
+  /* drag handle — mòbil */
+  .cd-drag {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.10);
+    margin: 0 auto 18px; display: block;
+  }
+  @media (min-width: 640px) { .cd-drag { display: none; } }
+
   .cd-icon {
-    width: 36px; height: 36px; border-radius: 4px;
-    background: ${COLORS.bgRed};
-    border: 1px solid ${COLORS.borderRed};
+    width: 42px; height: 42px; border-radius: 10px;
+    background: rgba(255,59,59,0.10);
+    border: 1px solid rgba(255,59,59,0.22);
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 14px;
   }
 
   .cd-title {
-    font-size: 14px; font-weight: 600;
-    color: ${COLORS.textPrimary};
-    letter-spacing: -0.2px; margin-bottom: 6px;
+    font-size: 15px; font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.2px; margin-bottom: 7px;
   }
   .cd-sub {
-    font-size: 12px;
-    color: ${COLORS.textMuted};
-    line-height: 1.6; margin-bottom: 20px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.40);
+    line-height: 1.65; margin-bottom: 22px;
   }
   .cd-name {
-    color: ${COLORS.textSecondary};
+    color: rgba(255,255,255,0.75);
     font-weight: 500;
-    font-family: ${FONTS.mono};
   }
 
   .cd-btns { display:flex; gap:8px; }
 
   .cd-cancel {
-    flex: 1; padding: 10px;
-    border: 1px solid ${COLORS.border};
-    background: transparent; border-radius: 4px;
-    font-family: ${FONTS.sans}; font-size: 13px;
-    color: ${COLORS.textSecondary}; cursor: pointer;
+    flex: 1; padding: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent; border-radius: 8px;
+    font-family: ${FONTS.sans}; font-size: 14px;
+    color: rgba(255,255,255,0.50); cursor: pointer;
     transition: all 100ms; -webkit-tap-highlight-color: transparent;
   }
-  .cd-cancel:hover { border-color: ${COLORS.borderHi}; color: ${COLORS.textPrimary}; }
+  .cd-cancel:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.80); }
 
   .cd-delete {
-    flex: 1; padding: 10px; border: none;
-    background: ${COLORS.neonRed}; border-radius: 4px;
-    font-family: ${FONTS.sans}; font-size: 13px; font-weight: 600;
+    flex: 1; padding: 12px; border: none;
+    background: ${COLORS.neonRed}; border-radius: 8px;
+    font-family: ${FONTS.sans}; font-size: 14px; font-weight: 600;
     color: #fff; cursor: pointer; transition: opacity 100ms;
     -webkit-tap-highlight-color: transparent;
   }
   .cd-delete:hover { opacity: 0.85; }
+  .cd-delete:active { opacity: 0.75; transform: scale(0.98); }
 `
 
 export function ConfirmDialog({ state, onClose }) {
@@ -79,8 +93,9 @@ export function ConfirmDialog({ state, onClose }) {
       <style>{dialogStyles}</style>
       <div className="cd-overlay" onClick={onClose}>
         <div className="cd-box" onClick={e => e.stopPropagation()}>
+          <div className="cd-drag"/>
           <div className="cd-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke={COLORS.neonRed} strokeWidth="1.8"
               strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/>

@@ -22,7 +22,7 @@ const styles = `
     pointer-events: none;
   }
   .dash-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .dash-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:-0px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .dash-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .dash-hero-total span { font-size:30px; opacity:0.7; }
   .dash-hero-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .dash-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }

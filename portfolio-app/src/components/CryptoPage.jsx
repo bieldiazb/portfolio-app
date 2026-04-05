@@ -38,9 +38,9 @@ const styles = `
 
   .cr-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
   .cr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(255,149,0,0.07) 0%,transparent 70%); pointer-events:none; }
-  .cr-hero-label { font-size:10px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
-  .cr-hero-total { font-size:34px; font-weight:300; color:#fff; letter-spacing:-1.5px; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:10px; }
-  .cr-hero-total span { font-size:18px; opacity:0.4; }
+  .cr-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .cr-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .cr-hero-total span { font-size:30px; opacity:0.7; }
   .cr-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .cr-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
   .cr-hero-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }

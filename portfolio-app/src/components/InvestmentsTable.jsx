@@ -25,9 +25,9 @@ const styles = `
     background: radial-gradient(circle, rgba(123,97,255,0.07) 0%, transparent 70%);
     pointer-events:none;
   }
-  .inv-hero-label { font-size:10px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
-  .inv-hero-total { font-size:34px; font-weight:300; color:#fff; letter-spacing:-1.5px; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:10px; }
-  .inv-hero-total span { font-size:18px; opacity:0.4; }
+  .inv-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .inv-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .inv-hero-total span { font-size:30px; opacity:0.7; }
   .inv-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .inv-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
   .inv-hero-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
