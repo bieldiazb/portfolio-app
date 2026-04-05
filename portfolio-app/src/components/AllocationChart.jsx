@@ -85,8 +85,8 @@ const AlTooltip = ({ active, payload, total }) => {
   return (
     <div style={{background:'#1a1a1a',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:6,padding:'9px 12px',fontFamily:FONTS.sans}}>
       <p style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.55)',marginBottom:5}}>{d.name}</p>
-      <p style={{fontSize:16,fontWeight:300,fontFamily:NUM,color:'#fff',letterSpacing:'-0.5px',fontVariantNumeric:'tabular-nums',marginBottom:2}}>{fmtEur(d.value)}</p>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',fontFamily:NUM}}>{pct}% del total</p>
+      <p style={{fontSize:16,fontWeight:300,fontFamily:FONTS.num,color:'#fff',letterSpacing:'-0.5px',fontVariantNumeric:'tabular-nums',marginBottom:2}}>{fmtEur(d.value)}</p>
+      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',fontFamily:FONTS.num}}>{pct}% del total</p>
     </div>
   )
 }
