@@ -612,3 +612,14 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
     </div>
   )
 }
+
+// ── Funcions exportades per al Dashboard i App.jsx ──────────────────────────
+// currentPrice és sempre en EUR (guardat per usePriceFetcher)
+export function calcInvValue(inv) {
+  const qty = inv.totalQty || 0
+  if (inv.currentPrice != null && qty > 0) return +(qty * inv.currentPrice).toFixed(2)
+  return inv.totalCostEur || inv.totalCost || 0
+}
+export function calcInvCost(inv) {
+  return inv.totalCostEur || inv.totalCost || 0
+}

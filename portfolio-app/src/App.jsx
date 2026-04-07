@@ -50,25 +50,14 @@ export const PAGES = {
   goals:       'Objectius',
 }
 
-// Seccions que tenen el seu propi hero/header → NO mostrar MetricsBar
-// Ara TOTES les seccions gestionen les seves pròpies mètriques
-const NO_METRICS = new Set([
-  'dashboard', 'movements', 'timeline', 'benchmark', 'rebalancing',
-  'alerts', 'report', 'news',
-  // Seccions amb hero propi:
-  'investments', 'savings', 'crypto', 'dividends', 'commodities',
-  'goals', 'projections', 'chart',
-])
-
 const appStyles = `
   .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Geist',sans-serif; flex-shrink: 0; }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
-  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgb(255, 255, 255); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgb(255,255,255); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
   .mob-menu-btn:hover { background: rgba(255,255,255,0.05); }
   .mob-hdr-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.82); letter-spacing: -0.3px; }
-  .mob-hdr-page  { font-size: 13px; color: rgba(255,255,255,0.28); }
   .mob-av { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; overflow: hidden; cursor: pointer; transition: background 100ms; }
   .mob-av:hover { background: rgba(255,255,255,0.10); }
   .mob-av img { width: 100%; height: 100%; object-fit: cover; }
@@ -79,18 +68,20 @@ const appStyles = `
   @media (min-width: 1024px) { .swipe-hint { display: none; } }
 `
 
-const invVal = (inv, fxRates = {}) => {
+// ── Funció canònica de valor per inversió ────────────────────────────────────
+// IDÈNTICA al calcVal d'InvestmentsTable.jsx (doc 17)
+// origCurr !== EUR → usa originalPrice × fxRates (taxa live)
+// sinó              → usa currentPrice (en EUR, guardat per usePriceFetcher)
+function calcInvVal(inv, fxRates = {}) {
   const origCurr = inv.originalCurrency || inv.currency || 'EUR'
-  const qty      = inv.totalQty || 0
-  if (qty === 0) {
-    if (inv.currentPrice != null) return inv.currentPrice
-    return inv.totalCostEur || inv.totalCost || 0
-  }
+  const qty = inv.totalQty || 0
   if (origCurr !== 'EUR' && inv.originalPrice != null && qty > 0 && fxRates[origCurr])
     return +(qty * inv.originalPrice * fxRates[origCurr]).toFixed(2)
   if (inv.currentPrice != null && qty > 0) return +(qty * inv.currentPrice).toFixed(2)
   return inv.totalCostEur || inv.totalCost || 0
 }
+
+// Helpers per crypto i commodities
 const cryVal = c => {
   const qty = c.totalQty ?? c.qty ?? 0
   if (qty > 0 && c.currentPrice != null) return +(qty * c.currentPrice).toFixed(2)
@@ -105,8 +96,12 @@ const comVal = c => {
 
 export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab]     = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // ── FIX: fxRates carregats a App.jsx ─────────────────────────────────────
+  // Idèntic al useEffect d'InvestmentsTable → tots dos usen el MATEIX FX
+  const [fxRates, setFxRates] = useState({})
 
   const {
     investments, addInvestment, removeInvestment,
@@ -129,71 +124,84 @@ export default function App() {
   const { dividends, addDividend, removeDividend, byMonth, totalThisYear, totalAll: totalDivAll } = useDividends(user?.uid)
   const { goals: financialGoals, addGoal, removeGoal } = useGoals(user?.uid)
 
-  const [fxRates, setFxRates] = useState({})
-  useEffect(() => {
-    const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
-    pairs.forEach(curr => {
-      fetch(`/yahoo/v8/finance/chart/${curr}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
-        .then(r => r.json())
-        .then(d => {
-          const rate = d?.chart?.result?.[0]?.meta?.regularMarketPrice
-          if (rate && rate > 0) setFxRates(prev => ({ ...prev, [curr]: rate }))
-        }).catch(() => {})
-    })
-  }, [investments.length]) // eslint-disable-line
-
   const { loading: priceLoading, status, setStatus, fetchOne, fetchWithCurrency } = usePriceFetcher()
   const { snapshots, saveSnapshot }      = useNetWorthSnapshots(user?.uid)
   const { goals: rebalGoals, saveGoals } = useRebalancingGoals(user?.uid)
   const { alerts, addAlert, removeAlert, checkAlerts } = useAlerts(user?.uid)
 
+  // ── Compatibilitat legacy ─────────────────────────────────────────────────
   const investmentsCompat = investments.map(inv => ({
-    ...inv, qty: inv.totalQty || 0, initialValue: inv.totalCost || 0,
+    ...inv, qty: inv.totalQty || 0, initialValue: inv.totalCostEur || inv.totalCost || 0,
   }))
   const savingsCompat = accounts.map(a => ({
     id: a.id, name: a.name, amount: a.balance, rate: a.rate || 0,
   }))
 
-  const totalInv     = investments.reduce((s, inv) => s + invVal(inv, fxRates), 0)
-  const totalCom     = commodities.reduce((s, c) => s + comVal(c), 0)
-  const totalSav     = accounts.reduce((s, a) => s + a.balance, 0)
-  const totalCry     = cryptos.reduce((s, c) => s + cryVal(c), 0)
-  const totalInvCost = investments.reduce((s, inv) => s + (inv.totalCostEur || inv.totalCost || 0), 0)
-                     + cryptos.reduce((s, c) => s + (c.totalCost || c.initialValue || 0), 0)
-                     + commodities.reduce((s, c) => s + (c.totalCost || 0), 0)
-  const totalAll  = totalInv + totalSav + totalCry + totalCom
-  const pg        = (totalInv + totalCry) - totalInvCost
-  const pgPct     = totalInvCost > 0 ? (pg / totalInvCost) * 100 : 0
-  const totalCost = totalInvCost + totalSav
+  // ── Carrega fxRates per monedes no-EUR (idèntic a InvestmentsTable) ───────
+  useEffect(() => {
+    if (!investments.length) return
+    const pairs = [...new Set(
+      investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR')
+    )]
+    pairs.forEach(curr => {
+      fetch(`/yahoo/v8/finance/chart/${curr}EUR=X?interval=1d&range=1d`, { signal: AbortSignal.timeout(6000) })
+        .then(r => r.json()).then(d => {
+          const r = d?.chart?.result?.[0]?.meta?.regularMarketPrice
+          if (r > 0) setFxRates(p => ({ ...p, [curr]: r }))
+        }).catch(() => {})
+    })
+  }, [investments.length]) // eslint-disable-line
 
+  // ── TOTALS ─────────────────────────────────────────────────────────────────
+  // calcInvVal usa la mateixa lògica que InvestmentsTable (fxRates en temps real)
+  // → Dashboard i InvestmentsTable mostren EXACTAMENT els mateixos valors
+  const totalInv     = investments.reduce((s,i) => s + calcInvVal(i, fxRates), 0)
+  const totalInvCost = investments.reduce((s,i) => s + (i.totalCostEur || i.totalCost || 0), 0)
+  const totalSav     = accounts.reduce((s,a) => s + a.balance, 0)
+  const totalCry     = cryptos.reduce((s,c) => s + cryVal(c), 0)
+  const totalCom     = commodities.reduce((s,c) => s + comVal(c), 0)
+  const totalAll     = totalInv + totalSav + totalCry + totalCom
+  const cryCost      = cryptos.reduce((s,c) => s + (c.totalCost || c.initialValue || 0), 0)
+  const comCost      = commodities.reduce((s,c) => s + (c.totalCost || 0), 0)
+  const pg           = (totalInv + totalCry) - (totalInvCost + cryCost)
+  const pgPct        = (totalInvCost + cryCost) > 0 ? (pg / (totalInvCost + cryCost)) * 100 : 0
+  const totalCost    = totalInvCost + cryCost + comCost + totalSav
+
+  // currentPcts per alertes de rebalanceig
   const currentPcts = (() => {
     const vals = { etf: 0, estalvi: 0, crypto: 0, robo: 0 }
     investments.forEach(inv => {
-      const v = invVal(inv, fxRates)
-      if (['etf', 'stock'].includes(inv.type))            vals.etf     += v
-      else if (inv.type === 'robo')                        vals.robo    += v
-      else if (['estalvi', 'efectiu'].includes(inv.type)) vals.estalvi += v
+      const v = calcInvVal(inv, fxRates)
+      if (['etf','stock'].includes(inv.type))            vals.etf     += v
+      else if (inv.type === 'robo')                      vals.robo    += v
+      else if (['estalvi','efectiu'].includes(inv.type)) vals.estalvi += v
     })
     vals.estalvi += totalSav
     cryptos.forEach(c => { vals.crypto += cryVal(c) })
-    const total = Object.values(vals).reduce((a, b) => a + b, 0)
+    const total = Object.values(vals).reduce((a,b) => a+b, 0)
     const pcts  = {}
-    Object.entries(vals).forEach(([k, v]) => { pcts[k] = total > 0 ? (v / total) * 100 : 0 })
+    Object.entries(vals).forEach(([k,v]) => { pcts[k] = total > 0 ? (v/total)*100 : 0 })
     return pcts
   })()
 
+  // ── Fetch preus inversions ────────────────────────────────────────────────
   useEffect(() => {
     if (!investments.length) return
     investments.forEach(async inv => {
-      if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) return
+      if (!inv.ticker || ['efectiu','estalvi','robo'].includes(inv.type)) return
       try {
         const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
-        if (orig?.price != null) updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
-        else { const price = await fetchOne(inv.ticker); if (price != null) updateCurrentPrice(inv.id, price) }
+        if (orig?.price != null)
+          updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
+        else {
+          const price = await fetchOne(inv.ticker)
+          if (price != null) updateCurrentPrice(inv.id, price)
+        }
       } catch {}
     })
   }, [investments.length]) // eslint-disable-line
 
+  // ── Fetch preus crypto ────────────────────────────────────────────────────
   useEffect(() => {
     if (!cryptos.length) return
     refreshCryptoPrices()
@@ -201,6 +209,7 @@ export default function App() {
     return () => clearInterval(interval)
   }, [cryptos.length]) // eslint-disable-line
 
+  // ── Snapshot + alertes ────────────────────────────────────────────────────
   useEffect(() => {
     if (totalAll > 0 && user) {
       saveSnapshot(totalAll, totalInv + totalCom, totalSav, totalCry)
@@ -232,7 +241,7 @@ export default function App() {
 
   const handleAddInvestment = useCallback(async ({ name, ticker, type }) => {
     await addInvestment({ name, ticker, type })
-    if (ticker && !['efectiu', 'estalvi', 'robo'].includes(type)) {
+    if (ticker && !['efectiu','estalvi','robo'].includes(type)) {
       setStatus('obtenint preu per ' + ticker + '...')
       try {
         const price = await fetchOne(ticker)
@@ -284,12 +293,17 @@ export default function App() {
       if (!invId) continue
       for (const tx of asset.txs) {
         await addInvTx(invId, {
-          qty: tx.qty, pricePerUnit: tx.pricePerUnit || 0,
-          totalCost: tx.totalCost || 0, totalCostEur: tx.totalCostEur || tx.totalCost || 0,
-          currency: tx.currency || 'EUR', fxRate: tx.fxRate || 1,
-          type: tx.action || 'buy', date: tx.date || new Date().toISOString().split('T')[0],
-          note: `Importat des de ${broker}`,
-          originalCurrency: tx.currency || 'EUR', originalPrice: tx.pricePerUnit || 0,
+          qty:              tx.qty,
+          pricePerUnit:     tx.pricePerUnitEur || tx.pricePerUnit || 0,
+          pricePerUnitOrig: tx.pricePerUnit || 0,
+          totalCost:        tx.totalCost    || 0,
+          totalCostEur:     tx.totalCostEur || tx.totalCost || 0,
+          totalCostOrig:    tx.totalCost    || 0,
+          currency:         tx.currency     || 'EUR',
+          fxRate:           tx.fxRate       || 1,
+          type:             tx.action       || 'buy',
+          date:             tx.date         || new Date().toISOString().split('T')[0],
+          note:             `Importat des de ${broker}`,
         })
       }
     }
@@ -297,66 +311,74 @@ export default function App() {
 
   const handleRefreshPrices = useCallback(async () => {
     for (const inv of investments) {
-      if (!inv.ticker || ['efectiu', 'estalvi', 'robo'].includes(inv.type)) continue
+      if (!inv.ticker || ['efectiu','estalvi','robo'].includes(inv.type)) continue
       try {
         const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
-        if (orig?.price != null) updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
-        else { const price = await fetchOne(inv.ticker); if (price != null) updateCurrentPrice(inv.id, price) }
+        if (orig?.price != null)
+          updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
+        else {
+          const price = await fetchOne(inv.ticker)
+          if (price != null) updateCurrentPrice(inv.id, price)
+        }
       } catch {}
     }
   }, [investments, fetchOne, updateCurrentPrice])
 
   const activeAlertsCount = alerts.filter(a => !a.triggered).length
   const initials = user?.displayName
-    ? user.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    ? user.displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
     : '?'
 
   if (authLoading) return (
     <div className="app-spinner">
       <style>{appStyles}</style>
-      <div className="app-spinner-ring" />
+      <div className="app-spinner-ring"/>
     </div>
   )
 
-  if (!user) return <LoginScreen onLogin={login} error={authError} />
+  if (!user) return <LoginScreen onLogin={login} error={authError}/>
 
   return (
     <>
       <style>{appStyles}</style>
       <Sidebar active={activeTab} onChange={id => { setActiveTab(id); setSidebarOpen(false) }}
         user={user} onLogout={logout} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}
-        activeAlertsCount={activeAlertsCount} />
+        activeAlertsCount={activeAlertsCount}/>
 
-      <div style={{ height: '100dvh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} className="lg:ml-[220px]">
-        <div className="swipe-hint" />
+      <div style={{ height:'100dvh', background:'#0a0a0a', display:'flex', flexDirection:'column', overflow:'hidden' }} className="lg:ml-[220px]">
+        <div className="swipe-hint"/>
 
-        {/* Header mòbil */}
         <div className="mob-hdr">
           <div className="mob-hdr-left">
             <div className="mob-hdr-logo">
-              <img src="/logo_black.png" alt="Cartera" style={{ width: 20, height: 20 }}/>
+              <img src="/logo_black.png" alt="Cartera" style={{width:20,height:20}}/>
             </div>
             <span className="mob-hdr-title">Cartera</span>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:12, fontFamily:'var(--font-mono,monospace)', color:'rgba(255,255,255,0.45)' }}>{PAGES[activeTab]}</span>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:12,fontFamily:'var(--font-mono,monospace)',color:'rgba(255,255,255,0.45)'}}>{PAGES[activeTab]}</span>
             <div className="mob-av" onClick={() => setSidebarOpen(true)}>
-              {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : initials}
+              {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"/> : initials}
             </div>
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          {/* MetricsBar eliminat — cada secció té el seu propi hero */}
-
-          <main style={{ flex: 1, padding: '22px 18px', paddingBottom: 'calc(22px + 60px + env(safe-area-inset-bottom))' }} className="lg:px-8 lg:py-7 lg:pb-7">
+        <div style={{flex:1,overflowY:'auto',overflowX:'hidden',display:'flex',flexDirection:'column'}}>
+          <main style={{flex:1,padding:'22px 18px',paddingBottom:'calc(22px + 60px + env(safe-area-inset-bottom))'}} className="lg:px-8 lg:py-7 lg:pb-7">
 
             {activeTab === 'dashboard' && (
               <DashboardPage
-                totalAll={totalAll} totalInvCost={totalInvCost} pg={pg} pgPct={pgPct}
-                totalSav={totalSav} totalCry={totalCry} totalInv={totalInv} totalCom={totalCom}
-                investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}
-                commodities={commodities} snapshots={snapshots} dividends={[]}
+                totalAll={totalAll} totalInvCost={totalInvCost}
+                pg={pg} pgPct={pgPct}
+                totalSav={totalSav} totalCry={totalCry}
+                totalInv={totalInv} totalCom={totalCom}
+                investments={investments}
+                savings={savingsCompat}
+                cryptos={cryptos}
+                commodities={commodities}
+                snapshots={snapshots}
+                dividends={dividends}
+                fxRates={fxRates}
                 onNavigate={id => setActiveTab(id)}
               />
             )}
@@ -373,69 +395,72 @@ export default function App() {
             {activeTab === 'savings' && (
               <SavingsList accounts={accounts} onAddAccount={addAccount}
                 onRemoveAccount={removeAccount} onAddTransaction={addSavTx}
-                onRemoveTransaction={removeSavTx} />
+                onRemoveTransaction={removeSavTx}/>
             )}
 
             {activeTab === 'crypto' && (
               <CryptoPage cryptos={cryptos} onAdd={addCrypto} onRemove={removeCrypto}
                 onUpdate={updateCrypto} onRefresh={refreshCryptoPrices}
-                onAddTransaction={addCryptoTx} onRemoveTransaction={removeCryptoTx} />
+                onAddTransaction={addCryptoTx} onRemoveTransaction={removeCryptoTx}/>
             )}
 
             {activeTab === 'movements' && (
-              <MovementsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} />
+              <MovementsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>
             )}
             {activeTab === 'timeline' && (
-              <NetWorthTimeline snapshots={snapshots} currentTotal={totalAll} totalCost={totalCost} />
+              <NetWorthTimeline snapshots={snapshots} currentTotal={totalAll} totalCost={totalCost}/>
             )}
             {activeTab === 'projections' && (
-              <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} />
+              <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>
             )}
             {activeTab === 'chart' && (
               <AllocationChart investments={investmentsCompat} savings={savingsCompat}
-                cryptos={cryptos} commodities={commodities} fxRates={fxRates} />
+                cryptos={cryptos} commodities={commodities}/>
             )}
-            {activeTab === 'benchmark' && <BenchmarkPage snapshots={snapshots} />}
+            {activeTab === 'benchmark' && (
+              <BenchmarkPage snapshots={snapshots} investments={investments}/>
+            )}
             {activeTab === 'rebalancing' && (
               <RebalancingPage investments={investmentsCompat} savings={savingsCompat}
-                cryptos={cryptos} goals={rebalGoals} onSaveGoals={saveGoals} />
+                cryptos={cryptos} goals={rebalGoals} onSaveGoals={saveGoals}/>
             )}
             {activeTab === 'alerts' && (
               <AlertsPage investments={investmentsCompat} cryptos={cryptos}
-                alerts={alerts} onAdd={addAlert} onRemove={removeAlert} />
+                alerts={alerts} onAdd={addAlert} onRemove={removeAlert}/>
             )}
             {activeTab === 'report' && (
-              <MonthlyReport investments={investmentsCompat} savings={savingsCompat}
-                cryptos={cryptos} snapshots={snapshots} />
+              <MonthlyReport investments={investments} savings={savingsCompat}
+                cryptos={cryptos} commodities={commodities}
+                snapshots={snapshots} userEmail={user?.email||''}/>
             )}
             {activeTab === 'goals' && (
               <GoalsPage goals={financialGoals} addGoal={addGoal} removeGoal={removeGoal}
                 currentTotal={totalAll} totalDividendsYear={totalDivAll}
-                investments={investmentsCompat} />
+                investments={investmentsCompat}/>
             )}
             {activeTab === 'news' && (
-              <NewsPage investments={investmentsCompat} cryptos={cryptos} commodities={commodities} />
+              <NewsPage investments={investmentsCompat} cryptos={cryptos} commodities={commodities}/>
             )}
             {activeTab === 'dividends' && (
               <DividendsPage dividends={dividends} addDividend={addDividend}
                 removeDividend={removeDividend} byMonth={byMonth}
                 totalThisYear={totalThisYear} totalAll={totalDivAll}
-                investments={investmentsCompat} />
+                investments={investmentsCompat}/>
             )}
             {activeTab === 'commodities' && (
               <CommoditiesPage commodities={commodities} onAdd={addCommodity}
                 onRemove={removeCommodity} onAddTransaction={addComTx}
-                onRemoveTransaction={removeComTx} onRefresh={refreshCom} />
+                onRemoveTransaction={removeComTx} onRefresh={refreshCom}/>
             )}
 
           </main>
         </div>
       </div>
 
-      <BottomNav activePage={activeTab} onNavigate={id => setActiveTab(id)} alertsCount={activeAlertsCount} />
+      <BottomNav activePage={activeTab} onNavigate={id => setActiveTab(id)} alertsCount={activeAlertsCount}/>
 
       <AIAnalyst investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}
-        commodities={commodities} totalAll={totalAll} totalCost={totalCost} pg={pg} pgPct={pgPct} />
+        commodities={commodities} totalAll={totalAll} totalCost={totalCost} pg={pg} pgPct={pgPct}/>
     </>
   )
 }
