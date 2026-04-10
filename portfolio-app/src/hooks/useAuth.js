@@ -7,6 +7,7 @@ const ALLOWED_EMAILS = new Set([
   'bieldiazbasullas@gmail.com',
   'info.liamoore@gmail.com',
   'bielsalashurdless@gmail.com',
+  'oriollladoreal@gmail.com'
 ])
 
 const isAllowed = (email) => ALLOWED_EMAILS.has(email)
