@@ -13,41 +13,31 @@ function fv(pv, pmt, r, n) {
   return pv * Math.pow(1 + m, n) + pmt * (Math.pow(1 + m, n) - 1) / m
 }
 
-// Intenta un proxy i parseja la resposta (allorigins retorna { contents } , altres retornen JSON directament)
-async function tryProxy(proxyUrl) {
+// Obté el CAGR dels últims 10 anys d'un ticker via Yahoo Finance.
+// En local: fetch directe (Vite dev server no té CORS).
+// En producció (Netlify): usa la nostra Netlify Function /.netlify/functions/yahoo-proxy.
+async function fetchHistoricalCAGR(ticker) {
   try {
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) })
-    if (!res.ok) return null
-    const text = await res.text()
-    try {
-      const wrapper = JSON.parse(text)
-      if (wrapper?.contents) return JSON.parse(wrapper.contents)
-      return wrapper
-    } catch { return null }
-  } catch { return null }
-}
-
-// Obté el CAGR dels últims `years` anys d'un ticker via Yahoo Finance
-// Prova múltiples proxies CORS en ordre fins que un funcioni
-async function fetchHistoricalCAGR(ticker, years = 10) {
-  try {
-    const now  = Math.floor(Date.now() / 1000)
-    const from = now - years * 365 * 24 * 3600
-    const yahooUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${from}&period2=${now}&interval=1mo&events=history`
-
-    const proxies = [
-      `https://corsproxy.io/?url=${encodeURIComponent(yahooUrl)}`,
-      `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
-      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
-    ]
-
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     let data = null
-    for (const proxyUrl of proxies) {
-      data = await tryProxy(proxyUrl)
-      if (data?.chart?.result?.[0]) break
-      data = null
+
+    if (isLocal) {
+      try {
+        const now  = Math.floor(Date.now() / 1000)
+        const from = now - 10 * 365 * 24 * 3600
+        const url  = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${from}&period2=${now}&interval=1mo&events=history`
+        const res  = await fetch(url, { signal: AbortSignal.timeout(6000) })
+        if (res.ok) data = await res.json()
+      } catch { /* fallback al proxy */ }
     }
-    if (!data) return null
+
+    // Producció (Netlify) o local sense dades → proxy propi
+    if (!data?.chart?.result?.[0]) {
+      const res = await fetch(`/.netlify/functions/yahoo-proxy?ticker=${encodeURIComponent(ticker)}`, {
+        signal: AbortSignal.timeout(10000),
+      })
+      if (res.ok) data = await res.json()
+    }
 
     const result = data?.chart?.result?.[0]
     if (!result) return null
@@ -193,11 +183,17 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   // rateOverrides: taxes manuals per actiu (l'usuari pot sobreescriure)
   const [rateOverrides, setRateOver]  = useState({})
 
-  const allAssets = [
+  const allAssets = useMemo(() => [
     ...investments.map(i  => ({ ...i, category: i.type })),
     ...savings.map(s      => ({ ...s, category: 'estalvi', currentPrice: null })),
     ...cryptos.map(c      => ({ ...c, category: 'crypto', initialValue: c.initialValue || 0 })),
-  ]
+  ], [investments, savings, cryptos])
+
+  // Clau estable per detectar canvis de tickers (no només longitud)
+  const tickerKey = allAssets
+    .filter(a => a.category === 'etf' || a.category === 'stock')
+    .map(a => `${a.id}:${a.ticker}`)
+    .join(',')
 
   // Carrega el CAGR històric per a cada ETF/acció
   useEffect(() => {
@@ -207,11 +203,12 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
       const key = a.id
       if (historicalRates[key] !== undefined) return // ja s'ha carregat o s'està carregant
       setHistRates(prev => ({ ...prev, [key]: null })) // null = carregant
-      fetchHistoricalCAGR(a.ticker, 10).then(cagr => {
+      fetchHistoricalCAGR(a.ticker).then(cagr => {
         setHistRates(prev => ({ ...prev, [key]: cagr ?? 'error' }))
       })
     })
-  }, [allAssets.length])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tickerKey])
 
   const getContrib = id => parseFloat(contributions[id] || 0)
 
@@ -248,7 +245,12 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   const calcTotal = (months) => {
     let total = 0, cost = 0
     allAssets.forEach(a => {
-      const pv  = a.category === 'estalvi' ? (a.balance || a.amount || 0) : (getEffectiveValue?.(a) || a.initialValue || 0)
+      // estalvi → saldo actual | inversions → valor de mercat actual (getEffectiveValue) | crypto → valor inicial
+      const pv  = a.category === 'estalvi'
+        ? (a.balance || 0)
+        : a.category === 'crypto'
+          ? (a.initialValue || 0)
+          : (getEffectiveValue?.(a) || a.totalCostEur || 0)
       const pmt = getContrib(a.id)
       total += fv(pv, pmt, getRate(a), months)
       cost  += pv + pmt * months
