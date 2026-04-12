@@ -13,21 +13,57 @@ function fv(pv, pmt, r, n) {
   return pv * Math.pow(1 + m, n) + pmt * (Math.pow(1 + m, n) - 1) / m
 }
 
+// Intenta un proxy i parseja la resposta (allorigins retorna { contents } , altres retornen JSON directament)
+async function tryProxy(proxyUrl) {
+  try {
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) return null
+    const text = await res.text()
+    try {
+      const wrapper = JSON.parse(text)
+      if (wrapper?.contents) return JSON.parse(wrapper.contents)
+      return wrapper
+    } catch { return null }
+  } catch { return null }
+}
+
 // Obté el CAGR dels últims `years` anys d'un ticker via Yahoo Finance
+// Prova múltiples proxies CORS en ordre fins que un funcioni
 async function fetchHistoricalCAGR(ticker, years = 10) {
   try {
     const now  = Math.floor(Date.now() / 1000)
     const from = now - years * 365 * 24 * 3600
-    const url  = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${from}&period2=${now}&interval=1mo&events=history`
-    const res  = await fetch(url, { headers: { 'Accept': 'application/json' } })
-    if (!res.ok) return null
-    const data = await res.json()
-    const closes = data?.chart?.result?.[0]?.indicators?.adjclose?.[0]?.adjclose
+    const yahooUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${from}&period2=${now}&interval=1mo&events=history`
+
+    const proxies = [
+      `https://corsproxy.io/?url=${encodeURIComponent(yahooUrl)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`,
+    ]
+
+    let data = null
+    for (const proxyUrl of proxies) {
+      data = await tryProxy(proxyUrl)
+      if (data?.chart?.result?.[0]) break
+      data = null
+    }
+    if (!data) return null
+
+    const result = data?.chart?.result?.[0]
+    if (!result) return null
+
+    // Alguns ETFs (renda fixa) no tenen adjclose — usem close com a fallback
+    const closes =
+      result?.indicators?.adjclose?.[0]?.adjclose ||
+      result?.indicators?.quote?.[0]?.close
+
     if (!closes || closes.length < 2) return null
-    const first = closes.find(v => v != null)
-    const last  = closes.filter(v => v != null).at(-1)
+    const valid = closes.filter(v => v != null && v > 0)
+    if (valid.length < 2) return null
+    const first = valid[0]
+    const last  = valid.at(-1)
     if (!first || !last || first <= 0) return null
-    const actualYears = closes.length / 12
+    const actualYears = valid.length / 12
     const cagr = (Math.pow(last / first, 1 / actualYears) - 1) * 100
     return Math.round(cagr * 10) / 10
   } catch {
