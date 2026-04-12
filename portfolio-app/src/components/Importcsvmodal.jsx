@@ -2,16 +2,20 @@ import { useState, useRef, useCallback } from 'react'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 import { fmtEur } from '../utils/format'
 import { parseCSV } from '../utils/Csvparsers'
+import { parsePDF } from '../utils/pdfParsers'
 
 const BROKER_HINTS = {
   'DEGIRO':              { cols:'Date, Product, ISIN, Quantity, Price, Value',                    color:COLORS.neonGreen  },
   'Interactive Brokers': { cols:'Symbol, Date/Time, Quantity, T. Price, Proceeds',                color:COLORS.neonCyan   },
   'Revolut':             { cols:'Date, Ticker, Type, Shares, Price per share, Total Amount',      color:COLORS.neonPurple },
-  'Trade Republic':      { cols:'Date, Instrument, ISIN, Shares, Price, Total',                   color:COLORS.neonAmber  },
+  'Trade Republic':      { cols:'PDF de confirmació d\'ordre o extracte mensual',                 color:COLORS.neonAmber  },
+  'Scalable Capital':    { cols:'PDF de confirmació d\'ordre',                                    color:'#ff9500'         },
   'Schwab':              { cols:'Date, Action, Symbol, Quantity, Price, Amount',                   color:COLORS.neonRed    },
   'Fidelity':            { cols:'Run Date, Action, Symbol, Quantity, Price, Amount',               color:'#ff9500'         },
   'Genèric':             { cols:'date, ticker/name, qty, price, total, action (buy/sell)',         color:COLORS.textMuted  },
 }
+
+const PDF_BROKERS = ['Trade Republic', 'Scalable Capital', 'DEGIRO']
 
 const STEPS = ['Fitxer', 'Revisió', 'Fet']
 
@@ -85,6 +89,17 @@ const styles = `
   .im-step-line { flex:1; height:1px; background:rgba(255,255,255,0.06); margin:0 8px; }
   .im-step-line.done { background:${COLORS.neonGreen}; opacity:0.4; }
 
+  /* ── Tabs CSV/PDF ── */
+  .im-tabs { display:flex; gap:1px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
+  .im-tab {
+    flex:1; padding:10px 8px; border:none; background:transparent;
+    font-family:${FONTS.sans}; font-size:12px; font-weight:500;
+    color:rgba(255,255,255,0.30); cursor:pointer; transition:all 120ms;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .im-tab.active { background:#1e1e1e; color:#fff; }
+  .im-tab-icon { font-size:14px; }
+
   /* ── Drop zone ── */
   .im-drop {
     border:1px dashed rgba(255,255,255,0.12); border-radius:12px;
@@ -93,6 +108,8 @@ const styles = `
   }
   .im-drop:hover { border-color:rgba(0,255,136,0.35); background:rgba(0,255,136,0.03); }
   .im-drop.over  { border-color:rgba(0,255,136,0.50); background:rgba(0,255,136,0.05); }
+  .im-drop.pdf-mode:hover { border-color:rgba(255,149,0,0.35); background:rgba(255,149,0,0.03); }
+  .im-drop.pdf-mode.over  { border-color:rgba(255,149,0,0.50); background:rgba(255,149,0,0.05); }
   .im-drop-icon { font-size:32px; margin-bottom:12px; }
   .im-drop-main { font-size:14px; font-weight:500; color:rgba(255,255,255,0.75); margin-bottom:5px; }
   .im-drop-sub  { font-size:12px; color:rgba(255,255,255,0.28); margin-bottom:14px; }
@@ -106,6 +123,30 @@ const styles = `
   }
   .im-drop-btn:hover { border-color:rgba(255,255,255,0.25); color:#fff; }
 
+  /* ── Loading ── */
+  .im-loading {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; padding:40px 20px; text-align:center;
+  }
+  .im-spinner {
+    width:32px; height:32px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.08);
+    border-top-color:${COLORS.neonAmber};
+    animation:spin 700ms linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .im-loading-txt { font-size:13px; color:rgba(255,255,255,0.40); }
+
+  /* ── PDF info box ── */
+  .im-pdf-info {
+    background:rgba(255,149,0,0.06); border:1px solid rgba(255,149,0,0.18);
+    border-radius:10px; padding:13px 14px;
+    font-size:11px; color:rgba(255,255,255,0.40); line-height:1.65;
+  }
+  .im-pdf-info strong { color:${COLORS.neonAmber}; }
+  .im-pdf-steps { margin-top:8px; padding-left:14px; }
+  .im-pdf-steps li { margin-bottom:3px; }
+
   /* ── Brokers suportats ── */
   .im-brokers-wrap { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px; }
   .im-brokers-lbl { font-size:9px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px; }
@@ -116,6 +157,7 @@ const styles = `
     border:1px solid rgba(255,255,255,0.08);
     color:rgba(255,255,255,0.35); background:rgba(255,255,255,0.04);
   }
+  .im-broker-chip.pdf { border-color:rgba(255,149,0,0.25); color:${COLORS.neonAmber}; background:rgba(255,149,0,0.06); }
 
   /* Hint genèric */
   .im-hint {
@@ -210,124 +252,207 @@ const styles = `
 
 export default function ImportCSVModal({ onClose, onImport }) {
   const [step, setStep]           = useState(0)
+  const [mode, setMode]           = useState('csv') // 'csv' | 'pdf'
   const [parsed, setParsed]       = useState(null)
   const [selected, setSelected]   = useState(new Set())
   const [dragging, setDragging]   = useState(false)
   const [importing, setImporting] = useState(false)
+  const [processing, setProcessing] = useState(false)
   const [done, setDone]           = useState(null)
   const [error, setError]         = useState('')
   const fileRef = useRef(null)
 
-  const processFile = useCallback((file) => {
-    if (!file || !file.name.endsWith('.csv')) { setError('Cal un fitxer .csv vàlid'); return }
-    setError('')
-    const reader = new FileReader()
-    reader.onload = e => {
-      const result = parseCSV(e.target.result)
-      if (!result.transactions.length) { setError('No s\'han trobat transaccions. Comprova el format del CSV.'); return }
-      setParsed(result)
-      setSelected(new Set(result.transactions.map((_,i)=>i)))
-      setStep(1)
+  const isPdf = mode === 'pdf'
+
+  const processFile = useCallback(async (file) => {
+    if (!file) return
+    const isPdfFile = file.name.toLowerCase().endsWith('.pdf')
+    const isCsvFile = file.name.toLowerCase().endsWith('.csv')
+
+    if (!isPdfFile && !isCsvFile) {
+      setError('Cal un fitxer .csv o .pdf vàlid')
+      return
     }
-    reader.readAsText(file, 'UTF-8')
+
+    setError('')
+    setProcessing(true)
+
+    try {
+      let result
+      if (isPdfFile) {
+        // Canvia mode a PDF automàticament si l'usuari arrossega un PDF en mode CSV
+        setMode('pdf')
+        result = await parsePDF(file)
+        if (result.error) { setError(result.error); setProcessing(false); return }
+      } else {
+        const text = await file.text()
+        result = parseCSV(text)
+      }
+
+      if (!result.transactions.length) {
+        setError(isPdfFile
+          ? 'No s\'han trobat transaccions al PDF. Prova amb un PDF de confirmació d\'ordre individual.'
+          : 'No s\'han trobat transaccions. Comprova el format del CSV.')
+        setProcessing(false)
+        return
+      }
+
+      setParsed(result)
+      setSelected(new Set(result.transactions.map((_, i) => i)))
+      setStep(1)
+    } catch (err) {
+      setError('Error processant el fitxer: ' + (err.message || 'error desconegut'))
+    }
+    setProcessing(false)
   }, [])
 
   const handleDrop  = e => { e.preventDefault(); setDragging(false); processFile(e.dataTransfer.files[0]) }
   const handleFile  = e => processFile(e.target.files[0])
-  const toggleRow   = i => setSelected(s=>{ const n=new Set(s); n.has(i)?n.delete(i):n.add(i); return n })
-  const toggleAll   = () => selected.size===parsed.transactions.length ? setSelected(new Set()) : setSelected(new Set(parsed.transactions.map((_,i)=>i)))
+  const toggleRow   = i => setSelected(s => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n })
+  const toggleAll   = () => selected.size === parsed.transactions.length
+    ? setSelected(new Set())
+    : setSelected(new Set(parsed.transactions.map((_, i) => i)))
 
   const handleImport = async () => {
-    if (!parsed||!selected.size) return
+    if (!parsed || !selected.size) return
     setImporting(true)
-    const toImport = parsed.transactions.filter((_,i)=>selected.has(i))
+    const toImport = parsed.transactions.filter((_, i) => selected.has(i))
     try {
       await onImport(toImport, parsed.broker)
-      setDone({count:toImport.length, broker:parsed.broker})
+      setDone({ count: toImport.length, broker: parsed.broker })
       setStep(2)
-    } catch(err) { setError('Error important: '+(err.message||'error desconegut')) }
+    } catch (err) {
+      setError('Error important: ' + (err.message || 'error desconegut'))
+    }
     setImporting(false)
   }
 
-  const brokerHint = parsed ? BROKER_HINTS[parsed.broker]||BROKER_HINTS['Genèric'] : null
+  const brokerHint   = parsed ? BROKER_HINTS[parsed.broker] || BROKER_HINTS['Genèric'] : null
+  const stepState    = i => i < step ? 'done' : i === step ? 'active' : 'pend'
+  const acceptTypes  = isPdf ? '.pdf' : '.csv'
 
-  const stepState = (i) => i < step ? 'done' : i === step ? 'active' : 'pend'
+  const reset = () => { setStep(0); setParsed(null); setError('') }
 
   return (
-    <div className="im-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+    <div className="im-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <style>{`${SHARED_STYLES}${styles}`}</style>
       <div className="im-modal">
         <div className="im-drag"/>
         <div className="im-hdr">
-          <h3 className="im-title">Importar CSV del broker</h3>
+          <h3 className="im-title">Importar del broker</h3>
           <button className="im-x" onClick={onClose}>×</button>
         </div>
 
         <div className="im-body">
           {/* Steps */}
           <div className="im-steps">
-            {STEPS.map((s,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',flex:i<STEPS.length-1?1:'auto'}}>
+            {STEPS.map((s, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', flex: i < STEPS.length - 1 ? 1 : 'auto' }}>
                 <div className={`im-step ${stepState(i)}`}>
-                  <div className="im-step-num">{i<step?'✓':i+1}</div>
+                  <div className="im-step-num">{i < step ? '✓' : i + 1}</div>
                   <span className="im-step-lbl">{s}</span>
                 </div>
-                {i<STEPS.length-1 && <div className={`im-step-line${i<step?' done':''}`}/>}
+                {i < STEPS.length - 1 && <div className={`im-step-line${i < step ? ' done' : ''}`}/>}
               </div>
             ))}
           </div>
 
           {/* ── STEP 0: Upload ── */}
-          {step===0 && (<>
-            <div
-              className={`im-drop${dragging?' over':''}`}
-              onClick={()=>fileRef.current?.click()}
-              onDragOver={e=>{e.preventDefault();setDragging(true)}}
-              onDragLeave={()=>setDragging(false)}
-              onDrop={handleDrop}
-            >
-              <div className="im-drop-icon">📂</div>
-              <p className="im-drop-main">Arrossega el CSV aquí</p>
-              <p className="im-drop-sub">o selecciona'l manualment</p>
-              <button className="im-drop-btn" onClick={e=>{e.stopPropagation();fileRef.current?.click()}}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Seleccionar fitxer .csv
+          {step === 0 && (<>
+            {/* Tabs CSV / PDF */}
+            <div className="im-tabs">
+              <button className={`im-tab${mode === 'csv' ? ' active' : ''}`} onClick={() => { setMode('csv'); setError('') }}>
+                <span className="im-tab-icon">📊</span> CSV / Excel
               </button>
-              <input ref={fileRef} type="file" accept=".csv" style={{display:'none'}} onChange={handleFile}/>
+              <button className={`im-tab${mode === 'pdf' ? ' active' : ''}`} onClick={() => { setMode('pdf'); setError('') }}>
+                <span className="im-tab-icon">📄</span> PDF (Trade Republic...)
+              </button>
             </div>
 
+            {/* Drop zone */}
+            {processing ? (
+              <div className="im-loading">
+                <div className="im-spinner"/>
+                <p className="im-loading-txt">{isPdf ? 'Extraient text del PDF...' : 'Processant CSV...'}</p>
+              </div>
+            ) : (
+              <div
+                className={`im-drop${dragging ? ' over' : ''}${isPdf ? ' pdf-mode' : ''}`}
+                onClick={() => fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+              >
+                <div className="im-drop-icon">{isPdf ? '📄' : '📂'}</div>
+                <p className="im-drop-main">
+                  {isPdf ? 'Arrossega el PDF aquí' : 'Arrossega el CSV aquí'}
+                </p>
+                <p className="im-drop-sub">o selecciona\'l manualment</p>
+                <button className="im-drop-btn" onClick={e => { e.stopPropagation(); fileRef.current?.click() }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Seleccionar fitxer {isPdf ? '.pdf' : '.csv'}
+                </button>
+                <input ref={fileRef} type="file" accept={acceptTypes} style={{ display:'none' }} onChange={handleFile}/>
+              </div>
+            )}
+
+            {/* Info específica per mode PDF */}
+            {isPdf && !processing && (
+              <div className="im-pdf-info">
+                <strong>Com exportar el PDF de Trade Republic:</strong>
+                <ol className="im-pdf-steps">
+                  <li>Obre Trade Republic → activitat</li>
+                  <li>Toca una transacció concreta</li>
+                  <li>Baixa fins a <strong style={{color:'rgba(255,255,255,0.55)'}}>«Documents»</strong></li>
+                  <li>Descarrega la <strong style={{color:'rgba(255,255,255,0.55)'}}>confirmació d'ordre</strong> (.pdf)</li>
+                  <li>Puja-la aquí — funciona un PDF per transacció</li>
+                </ol>
+              </div>
+            )}
+
+            {/* Brokers suportats */}
             <div className="im-brokers-wrap">
-              <p className="im-brokers-lbl">Brokers suportats</p>
+              <p className="im-brokers-lbl">{isPdf ? 'Brokers amb PDF suportat' : 'Brokers CSV suportats'}</p>
               <div className="im-brokers">
-                {Object.keys(BROKER_HINTS).map(b=>(
-                  <span key={b} className="im-broker-chip">{b}</span>
-                ))}
+                {Object.entries(BROKER_HINTS)
+                  .filter(([name]) => isPdf ? PDF_BROKERS.includes(name) : !PDF_BROKERS.slice(0,2).includes(name) || name === 'DEGIRO')
+                  .map(([name, hint]) => (
+                    <span key={name} className={`im-broker-chip${PDF_BROKERS.includes(name) && isPdf ? ' pdf' : ''}`}>{name}</span>
+                  ))}
               </div>
             </div>
 
-            <div className="im-hint">
-              <strong>Format genèric:</strong> Si el teu broker no és de la llista, exporta un CSV amb columnes:<br/>
-              <span style={{fontFamily:FONTS.mono,fontSize:10,color:'rgba(0,212,255,0.70)'}}>date, ticker, name, qty, price, total, action (buy/sell), type (etf/stock)</span>
-            </div>
+            {!isPdf && (
+              <div className="im-hint">
+                <strong>Format genèric:</strong> Si el teu broker no és de la llista, exporta un CSV amb columnes:<br/>
+                <span style={{ fontFamily:FONTS.mono, fontSize:10, color:'rgba(0,212,255,0.70)' }}>date, ticker, name, qty, price, total, action (buy/sell), type (etf/stock)</span>
+              </div>
+            )}
 
-            {error&&<div className="im-error">⚠ {error}</div>}
+            {error && <div className="im-error">⚠ {error}</div>}
           </>)}
 
           {/* ── STEP 1: Preview ── */}
-          {step===1&&parsed&&(<>
+          {step === 1 && parsed && (<>
             <div className="im-detected">
-              <span className="im-detected-badge" style={{background:`${brokerHint?.color}18`,color:brokerHint?.color,border:`1px solid ${brokerHint?.color}30`}}>
-                {parsed.broker}
+              <span className="im-detected-badge" style={{ background:`${brokerHint?.color}18`, color:brokerHint?.color, border:`1px solid ${brokerHint?.color}30` }}>
+                {parsed.broker} {parsed.isPdf ? '· PDF' : '· CSV'}
               </span>
               <div className="im-detected-info">
                 <p className="im-detected-name">Broker detectat automàticament</p>
                 <p className="im-detected-cols">{brokerHint?.cols}</p>
               </div>
-              <button className="im-change-btn" onClick={()=>{setStep(0);setParsed(null)}}>Canviar</button>
+              <button className="im-change-btn" onClick={reset}>Canviar</button>
             </div>
 
-            {parsed.transactions.some(t=>!t.ticker&&!t.name) && (
+            {parsed.transactions.some(t => !t.ticker && !t.name) && (
               <div className="im-warn">⚠ Algunes files no tenen ticker identificable. Revisa-les abans d'importar.</div>
+            )}
+
+            {parsed.isPdf && (
+              <div className="im-warn">
+                ℹ Els PDFs no sempre inclouen el ticker exacte — es fa servir l'ISIN com a ticker. Pots editar-lo manualment després de la importació.
+              </div>
             )}
 
             <div className="im-preview">
@@ -339,24 +464,24 @@ export default function ImportCSVModal({ onClose, onImport }) {
                 <table className="im-table">
                   <thead>
                     <tr>
-                      <th><input type="checkbox" className="im-check" checked={selected.size===parsed.transactions.length} onChange={toggleAll}/></th>
+                      <th><input type="checkbox" className="im-check" checked={selected.size === parsed.transactions.length} onChange={toggleAll}/></th>
                       <th>Data</th><th>Nom / Ticker</th><th>Acció</th><th>Quantitat</th><th>Preu/u</th><th>Total</th><th>Moneda</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {parsed.transactions.map((t,i)=>(
-                      <tr key={i} className={selected.has(i)?'':'unsel'} onClick={()=>toggleRow(i)} style={{cursor:'pointer'}}>
-                        <td><input type="checkbox" className="im-check" checked={selected.has(i)} onChange={()=>toggleRow(i)} onClick={e=>e.stopPropagation()}/></td>
+                    {parsed.transactions.map((t, i) => (
+                      <tr key={i} className={selected.has(i) ? '' : 'unsel'} onClick={() => toggleRow(i)} style={{ cursor:'pointer' }}>
+                        <td><input type="checkbox" className="im-check" checked={selected.has(i)} onChange={() => toggleRow(i)} onClick={e => e.stopPropagation()}/></td>
                         <td className="im-mono">{t.date}</td>
                         <td>
-                          <p style={{fontSize:12,fontWeight:500,color:'rgba(255,255,255,0.80)',marginBottom:1}}>{t.name||t.ticker||'—'}</p>
-                          {t.ticker&&t.ticker!==t.name&&<p style={{fontSize:9,color:'rgba(255,255,255,0.25)',fontFamily:FONTS.mono}}>{t.ticker}</p>}
+                          <p style={{ fontSize:12, fontWeight:500, color:'rgba(255,255,255,0.80)', marginBottom:1 }}>{t.name || t.ticker || '—'}</p>
+                          {t.ticker && t.ticker !== t.name && <p style={{ fontSize:9, color:'rgba(255,255,255,0.25)', fontFamily:FONTS.mono }}>{t.ticker}</p>}
                         </td>
-                        <td className={t.action==='buy'?'im-buy':'im-sell'}>{t.action==='buy'?'↑ Compra':'↓ Venda'}</td>
+                        <td className={t.action === 'buy' ? 'im-buy' : 'im-sell'}>{t.action === 'buy' ? '↑ Compra' : '↓ Venda'}</td>
                         <td className="im-mono">{t.qty.toFixed(4)}</td>
-                        <td className="im-mono">{t.pricePerUnit>0?t.pricePerUnit.toFixed(4):'—'}</td>
-                        <td className="im-mono">{t.totalCost>0?fmtEur(t.totalCost):'—'}</td>
-                        <td className="im-mono" style={{color:'rgba(255,255,255,0.25)'}}>{t.currency}</td>
+                        <td className="im-mono">{t.pricePerUnit > 0 ? t.pricePerUnit.toFixed(4) : '—'}</td>
+                        <td className="im-mono">{t.totalCost > 0 ? fmtEur(t.totalCost) : '—'}</td>
+                        <td className="im-mono" style={{ color:'rgba(255,255,255,0.25)' }}>{t.currency}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -364,22 +489,22 @@ export default function ImportCSVModal({ onClose, onImport }) {
               </div>
             </div>
 
-            {error&&<div className="im-error">⚠ {error}</div>}
+            {error && <div className="im-error">⚠ {error}</div>}
 
             <div className="im-footer">
-              <button className="im-btn-cancel" onClick={()=>{setStep(0);setParsed(null);setError('')}}>Enrere</button>
-              <button className="im-btn-import" onClick={handleImport} disabled={!selected.size||importing}>
+              <button className="im-btn-cancel" onClick={reset}>Enrere</button>
+              <button className="im-btn-import" onClick={handleImport} disabled={!selected.size || importing}>
                 {importing ? 'Important...' : `Importar ${selected.size} transaccions`}
               </button>
             </div>
           </>)}
 
           {/* ── STEP 2: Done ── */}
-          {step===2&&done&&(<>
+          {step === 2 && done && (<>
             <div className="im-result">
               <div className="im-result-icon">✅</div>
               <p className="im-result-title">{done.count} transaccions importades</p>
-              <p className="im-result-sub">des de <strong style={{color:'rgba(255,255,255,0.60)'}}>{done.broker}</strong><br/>Les inversions s'han actualitzat correctament.</p>
+              <p className="im-result-sub">des de <strong style={{ color:'rgba(255,255,255,0.60)' }}>{done.broker}</strong><br/>Les inversions s'han actualitzat correctament.</p>
             </div>
             <div className="im-footer">
               <button className="im-btn-import" onClick={onClose}>Tancar</button>
