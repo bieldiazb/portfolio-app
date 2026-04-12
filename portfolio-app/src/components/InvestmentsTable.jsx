@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import AddInvestmentModal from './AddInvestmentModal'
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, CartesianGrid } from 'recharts'
 import { fmtEur } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
 import { SHARED_STYLES, COLORS, FONTS, TYPE_COLORS } from './design-tokens'
@@ -12,19 +12,8 @@ const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
 const styles = `
   .inv { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  /* ── Hero ── */
-  .inv-hero {
-    background: linear-gradient(135deg, #0f0f0f 0%, #141414 100%);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px; padding: 20px; margin-bottom: 12px;
-    position: relative; overflow: hidden;
-  }
-  .inv-hero::before {
-    content:''; position:absolute; top:-60px; right:-60px;
-    width:220px; height:220px; border-radius:50%;
-    background: radial-gradient(circle, rgba(123,97,255,0.07) 0%, transparent 70%);
-    pointer-events:none;
-  }
+  .inv-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
+  .inv-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(123,97,255,0.07) 0%,transparent 70%); pointer-events:none; }
   .inv-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
   .inv-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .inv-hero-total span { font-size:30px; opacity:0.7; }
@@ -34,12 +23,8 @@ const styles = `
   .inv-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
   .inv-hero-sub { font-size:11px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
 
-  /* ── Mètriques ── */
   .inv-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .inv-metric {
-    background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px;
-    padding:12px 14px; display:flex; flex-direction:column; gap:4px;
-  }
+  .inv-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
   .inv-metric-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
   .inv-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
   .inv-metric-val.g { color:${COLORS.neonGreen}; }
@@ -47,7 +32,6 @@ const styles = `
   .inv-metric-val.p { color:${COLORS.neonPurple}; }
   .inv-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.25); }
 
-  /* ── Botons capçalera ── */
   .inv-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .inv-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
   .inv-btn-ico:hover { border-color:${COLORS.borderHi}; color:${COLORS.textSecondary}; }
@@ -56,16 +40,14 @@ const styles = `
   .inv-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:${COLORS.neonPurple}; color:#fff; border:none; border-radius:6px; font-family:${FONTS.sans}; font-size:12px; font-weight:600; cursor:pointer; transition:opacity 100ms; white-space:nowrap; }
   .inv-btn-add:hover { opacity:0.85; }
 
-  /* ── Secció títol ── */
   .inv-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .inv-section-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
 
-  /* ── Cards d'actiu (mòbil i desktop) ── */
   .inv-cards { display:flex; flex-direction:column; gap:0; background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-
   .inv-card { border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
   .inv-card:last-child { border-bottom:none; }
-  .inv-card:active { background:rgba(255,255,255,0.02); }
+  .inv-card:hover { background:rgba(255,255,255,0.02); }
+  .inv-card:active { background:rgba(255,255,255,0.03); }
 
   .inv-card-main { display:flex; align-items:center; gap:12px; padding:14px; }
   .inv-av { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
@@ -81,34 +63,8 @@ const styles = `
   .inv-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
   .inv-card-pct.pos { color:${COLORS.neonGreen}; }
   .inv-card-pct.neg { color:${COLORS.neonRed}; }
-  .inv-card-chevron { color:rgba(255,255,255,0.20); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
-  .inv-card-chevron.open { transform:rotate(180deg); }
+  .inv-card-arrow { color:rgba(255,255,255,0.18); margin-left:6px; flex-shrink:0; }
 
-  /* ── Expanded panel ── */
-  .inv-expand { border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.015); }
-  .inv-expand-inner { padding:16px 14px; }
-
-  .inv-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:14px; }
-  .inv-stat { position:relative; padding-right:12px; }
-  .inv-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:rgba(255,255,255,0.06); }
-  .inv-stat-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
-  .inv-stat-v { font-size:13px; font-family:${FONTS.mono}; color:#fff; font-weight:500; font-variant-numeric:tabular-nums; }
-  .inv-stat-v.pos { color:${COLORS.neonGreen}; }
-  .inv-stat-v.neg { color:${COLORS.neonRed}; }
-
-  .inv-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .inv-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
-
-  .inv-tx-list { display:flex; flex-direction:column; gap:0; }
-  .inv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
-  .inv-tx:last-child { border-bottom:none; }
-  .inv-tx-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-right:10px; }
-  .inv-tx-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); margin-bottom:2px; }
-  .inv-tx-date { font-size:10px; color:rgba(255,255,255,0.25); }
-  .inv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:rgba(255,255,255,0.20); margin-left:8px; flex-shrink:0; transition:all 80ms; }
-  .inv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
-
-  /* ── Barra de distribució ── */
   .inv-distrib { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px; margin-bottom:12px; }
   .inv-distrib-bar { display:flex; height:6px; border-radius:3px; overflow:hidden; gap:1px; margin-bottom:10px; }
   .inv-distrib-seg { height:100%; border-radius:2px; transition:flex 500ms; }
@@ -117,13 +73,114 @@ const styles = `
   .inv-distrib-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   .inv-distrib-lbl { font-size:10px; color:rgba(255,255,255,0.45); font-family:${FONTS.mono}; }
 
-  /* ── Empty ── */
   .inv-empty { padding:48px 0; text-align:center; }
   .inv-empty-main { font-size:14px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
   .inv-empty-sub { font-size:12px; color:rgba(255,255,255,0.15); }
 
-  /* ── Modals ── */
-  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
+  /* ── Asset Detail Modal — sempre centrat, mai bottom sheet ── */
+  .adm-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.82);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    z-index:60; display:flex; align-items:center; justify-content:center;
+    padding:16px;
+    animation:admFadeIn 160ms ease;
+  }
+  @keyframes admFadeIn { from{opacity:0} to{opacity:1} }
+
+  .adm-sheet {
+    background:#0e0e0e;
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:16px;
+    width:100%;
+    max-width:420px;          /* mòbil: fins a 420px */
+    max-height:88dvh;
+    overflow-y:auto; overflow-x:hidden;
+    font-family:${FONTS.sans};
+    box-shadow:0 24px 80px rgba(0,0,0,0.70);
+    animation:admScaleIn 220ms cubic-bezier(0.32,1.1,0.60,1);
+  }
+  @media (min-width:640px) {
+    .adm-sheet { max-width:660px; }  /* desktop: més ample */
+  }
+  @keyframes admScaleIn { from{transform:scale(0.95) translateY(8px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+
+  .adm-drag { display:none; }  /* no cal drag handle en dialog centrat */
+
+  /* Header */
+  .adm-hdr {
+    display:flex; align-items:center; gap:12px;
+    padding:16px 20px 12px;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    position:sticky; top:0; background:#0e0e0e; z-index:2;
+  }
+  .adm-hdr-av { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
+  .adm-hdr-info { flex:1; min-width:0; }
+  .adm-hdr-name { font-size:16px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+  .adm-hdr-meta { display:flex; align-items:center; gap:5px; }
+  .adm-close { width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); color:rgba(255,255,255,0.45); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
+  .adm-close:hover { background:rgba(255,255,255,0.10); color:#fff; }
+
+  /* Hero value */
+  .adm-value-section { padding:20px 20px 0; }
+  .adm-value-lbl { font-size:10px; font-weight:500; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
+  .adm-value-num { font-size:40px; font-weight:600; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0.5px; margin-bottom:10px; }
+  .adm-value-num span { font-size:28px; opacity:0.5; }
+  .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+  .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
+  .adm-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
+  .adm-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
+  .adm-badge.neu { color:rgba(255,255,255,0.40); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); }
+
+  /* Chart */
+  .adm-chart { padding: 10px; }
+  .adm-chart-tooltip { background:#1a1a1a; border:1px solid rgba(255,255,255,0.10); border-radius:8px; padding:8px 12px; font-family:${FONTS.sans}; }
+  .adm-chart-tooltip-date { font-size:10px; color:rgba(255,255,255,0.35); margin-bottom:4px; }
+  .adm-chart-tooltip-val { font-size:13px; font-weight:600; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
+
+  /* Stats grid */
+  .adm-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:16px 20px; }
+  @media (min-width:640px) { .adm-stats { grid-template-columns:repeat(4,1fr); } }
+  .adm-stat { background:#161616; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; }
+  .adm-stat-l { font-size:9px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
+  .adm-stat-v { font-size:18px; font-weight:500; font-family:${FONTS.num}; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .adm-stat-v.pos { color:${COLORS.neonGreen}; }
+  .adm-stat-v.neg { color:${COLORS.neonRed}; }
+  .adm-stat-v.dim { color:rgba(255,255,255,0.45); }
+  .adm-stat-sub { font-size:10px; color:rgba(255,255,255,0.22); margin-top:3px; font-family:${FONTS.mono}; }
+
+  /* Actions */
+  .adm-actions { display:flex; gap:8px; padding:0 20px 16px; }
+  .adm-action-btn { flex:1; padding:12px 8px; border-radius:10px; border:none; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; transition:opacity 100ms; display:flex; align-items:center; justify-content:center; gap:5px; }
+  .adm-action-btn:hover { opacity:0.85; }
+  .adm-action-btn.buy  { background:rgba(0,255,136,0.12); color:${COLORS.neonGreen}; border:1px solid rgba(0,255,136,0.25); }
+  .adm-action-btn.sell { background:rgba(255,149,0,0.10); color:${COLORS.neonAmber}; border:1px solid rgba(255,149,0,0.25); }
+  .adm-action-btn.cap  { background:rgba(0,212,255,0.08); color:${COLORS.neonCyan};  border:1px solid rgba(0,212,255,0.20); }
+
+  /* Divider */
+  .adm-divider { height:1px; background:rgba(255,255,255,0.05); margin:0 20px; }
+
+  /* Transactions */
+  .adm-txs { padding:16px 20px 32px; }
+  .adm-txs-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
+  .adm-tx { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .adm-tx:last-child { border-bottom:none; }
+  .adm-tx-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; font-weight:700; }
+  .adm-tx-info { flex:1; min-width:0; }
+  .adm-tx-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.65); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .adm-tx-date { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .adm-tx-right { text-align:right; flex-shrink:0; }
+  .adm-tx-qty { font-size:12px; font-weight:600; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  .adm-tx-cost { font-size:10px; color:rgba(255,255,255,0.28); font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; }
+  .adm-tx-del { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:5px; cursor:pointer; color:rgba(255,255,255,0.18); transition:all 80ms; flex-shrink:0; }
+  .adm-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
+
+  /* Delete zone */
+  .adm-delete-zone { padding:0 20px 24px; }
+  .adm-delete-btn { width:100%; padding:12px; border:1px solid rgba(255,59,59,0.20); background:rgba(255,59,59,0.04); border-radius:10px; font-family:${FONTS.sans}; font-size:13px; font-weight:500; color:rgba(255,59,59,0.60); cursor:pointer; transition:all 100ms; }
+  .adm-delete-btn:hover { background:rgba(255,59,59,0.10); border-color:rgba(255,59,59,0.40); color:${COLORS.neonRed}; }
+
+  /* Modals (transaction) */
+  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:70; }
   @media (min-width:640px) { .inv-overlay { align-items:center; padding:16px; } }
   .inv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 36px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
   @media (min-width:640px) { .inv-modal { border-radius:10px; max-width:420px; padding:24px 20px; } }
@@ -167,10 +224,6 @@ const TrashIcon = ({ size=12 }) => (
   </svg>
 )
 
-const ChevronDown = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-)
-
 function fmtQty(n) { if (!n) return '0'; return parseFloat(n.toFixed(6)).toString() }
 
 function currentValue(inv) {
@@ -178,16 +231,259 @@ function currentValue(inv) {
   return inv.totalCostEur || inv.totalCost || 0
 }
 
+// ── Chart Tooltip ────────────────────────────────────────────────────────────
+const ChartTooltip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null
+  const d = payload[0]?.payload
+  return (
+    <div className="adm-chart-tooltip">
+      <p className="adm-chart-tooltip-date">{d?.date || ''}</p>
+      <p className="adm-chart-tooltip-val">{fmtEur(payload[0]?.value || 0)}/u.</p>
+    </div>
+  )
+}
+
+// ── Asset Detail Modal ───────────────────────────────────────────────────────
+function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemoveTx, onRemove, fxRates }) {
+  const tc      = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+  const curVal  = calcVal(inv)
+  const costEur = inv.totalCostEur || inv.totalCost || 0
+  const gain    = curVal - costEur
+  const gPct    = costEur > 0 ? (gain / costEur) * 100 : 0
+  const isPos   = gain >= 0
+  const weight  = totalValue > 0 ? (curVal / totalValue) * 100 : 0
+  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+
+  // Construeix dades del gràfic: tots els buys ordenats per data + preu actual
+  const chartData = useMemo(() => {
+    const fmtChartDate = d => {
+      if (!d) return '—'
+      const parts = d.split('-')  // ['2025','12','22']
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}`  // '22/12'
+      return d
+    }
+    const buys = (inv.txs || [])
+      .filter(t => t.type === 'buy' && t.pricePerUnit > 0)
+      .sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1)
+      .map(t => ({
+        date: t.date || '',
+        price: +(t.pricePerUnit || 0),
+        label: fmtChartDate(t.date),
+      }))
+
+    // Afegim el preu actual com a últim punt
+    if (inv.currentPrice != null && inv.currentPrice > 0) {
+      const today = new Date().toISOString().split('T')[0]
+      buys.push({ date: today, price: +inv.currentPrice, label: 'Ara', isCurrent: true })
+    }
+    return buys
+  }, [inv.txs, inv.currentPrice])
+
+  // Preu actual viu (en moneda original)
+  const liveOrigPrice = inv.originalPrice || inv.currentPrice || null
+  const liveEurPrice  = inv.currentPrice || null
+
+  // Tanca al clicar fora
+  const handleOverlay = e => { if (e.target === e.currentTarget) onClose() }
+
+  return (
+    <div className="adm-overlay" onClick={handleOverlay}>
+      <div className="adm-sheet">
+        <div className="adm-drag"/>
+
+        {/* ── Capçalera sticky ── */}
+        <div className="adm-hdr">
+          <div className="adm-hdr-av" style={{ background: tc.bg, color: tc.color }}>
+            {(inv.name || '?').slice(0, 2).toUpperCase()}
+          </div>
+          <div className="adm-hdr-info">
+            <p className="adm-hdr-name">{inv.name}</p>
+            <div className="adm-hdr-meta">
+              <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
+                {TYPE_LABELS[inv.type] || inv.type}
+              </span>
+              {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+              {origCurr !== 'EUR' && <span className="inv-curr-badge">{origCurr}</span>}
+            </div>
+          </div>
+          <button className="adm-close" onClick={onClose}>✕</button>
+        </div>
+
+        {/* ── Valor hero ── */}
+        <div className="adm-value-section">
+          <p className="adm-value-lbl">Valor actual</p>
+          <p className="adm-value-num">
+            {fmtEur(curVal).replace('€', '')}<span>€</span>
+          </p>
+          <div className="adm-badges">
+            <span className={`adm-badge ${isPos ? 'pos' : 'neg'}`}>
+              {isPos ? '▲ +' : '▼ '}{isPos ? '+' : ''}{fmtEur(gain)}
+            </span>
+            <span className={`adm-badge ${isPos ? 'pos' : 'neg'}`}>
+              {isPos ? '+' : ''}{gPct.toFixed(2)}%
+            </span>
+            {liveEurPrice != null && (
+              <span className="adm-badge neu">
+                {fmtEur(liveEurPrice)}/u.
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Gràfic evolució de preus ── */}
+        {chartData.length >= 2 && (
+          <div className="adm-chart">
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={chartData} margin={{ top: 8, right: 20, left: 0, bottom: 4 }}>
+                <defs>
+                  <linearGradient id={`adm-grad-${inv.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={isPos ? COLORS.neonGreen : COLORS.neonRed} stopOpacity={0.25}/>
+                    <stop offset="100%" stopColor={isPos ? COLORS.neonGreen : COLORS.neonRed} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="2 6" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'rgba(255,255,255,0.22)' }}
+                  axisLine={false} tickLine={false}
+                  interval="preserveStartEnd"
+                  tickCount={4}
+                />
+                <YAxis
+                  domain={['auto', 'auto']}
+                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'rgba(255,255,255,0.22)' }}
+                  axisLine={false} tickLine={false} width={48}
+                  tickFormatter={v => fmtEur(v).replace(' €', '')}
+                />
+                {/* Línia de cost mitjà com a referència */}
+                {inv.avgCost > 0 && (
+                  <ReferenceLine
+                    y={inv.avgCost}
+                    stroke="rgba(255,255,255,0.18)"
+                    strokeDasharray="4 4"
+                    label={{ value: 'cost mitjà', position: 'insideTopRight', fontSize: 9, fill: 'rgba(255,255,255,0.30)', fontFamily: FONTS.mono }}
+                  />
+                )}
+                <Tooltip content={<ChartTooltip/>} cursor={{ stroke: 'rgba(255,255,255,0.10)', strokeWidth: 1 }}/>
+                <Area
+                  type="monotone" dataKey="price"
+                  stroke={isPos ? COLORS.neonGreen : COLORS.neonRed}
+                  strokeWidth={1.8}
+                  fill={`url(#adm-grad-${inv.id})`}
+                  dot={(props) => {
+                    const { cx, cy, payload } = props
+                    if (payload.isCurrent) {
+                      return <circle key={cx} cx={cx} cy={cy} r={4} fill={isPos ? COLORS.neonGreen : COLORS.neonRed} stroke="#0e0e0e" strokeWidth={2}/>
+                    }
+                    return <circle key={cx} cx={cx} cy={cy} r={2.5} fill="rgba(255,255,255,0.20)" stroke="none"/>
+                  }}
+                  activeDot={{ r: 5, fill: isPos ? COLORS.neonGreen : COLORS.neonRed, stroke: '#0e0e0e', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* ── Stats 2x2 ── */}
+        <div className="adm-stats">
+          <div className="adm-stat">
+            <p className="adm-stat-l">Cost mitjà</p>
+            <p className="adm-stat-v dim">{inv.avgCost > 0 ? fmtEur(inv.avgCost) : '—'}</p>
+            <p className="adm-stat-sub">per unitat · {fmtQty(inv.totalQty)} u.</p>
+          </div>
+          <div className="adm-stat">
+            <p className="adm-stat-l">Invertit</p>
+            <p className="adm-stat-v dim">{fmtEur(costEur)}</p>
+            <p className="adm-stat-sub">cost total EUR</p>
+          </div>
+          <div className="adm-stat">
+            <p className="adm-stat-l">P&amp;G total</p>
+            <p className={`adm-stat-v ${isPos ? 'pos' : 'neg'}`}>{isPos ? '+' : ''}{fmtEur(gain)}</p>
+            <p className="adm-stat-sub">{isPos ? '+' : ''}{gPct.toFixed(2)}% sobre cost</p>
+          </div>
+          <div className="adm-stat">
+            <p className="adm-stat-l">Pes al portfoli</p>
+            <p className="adm-stat-v dim">{weight.toFixed(1)}%</p>
+            <p className="adm-stat-sub">{(inv.txs || []).length} operacions</p>
+          </div>
+        </div>
+
+        {/* ── Botons d'acció ── */}
+        <div className="adm-actions">
+          <button className="adm-action-btn buy" onClick={() => onOpenTx('buy')}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Comprar
+          </button>
+          <button className="adm-action-btn sell" onClick={() => onOpenTx('sell')}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Vendre
+          </button>
+          <button className="adm-action-btn cap" onClick={() => onOpenTx('capital')}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Capital
+          </button>
+        </div>
+
+        <div className="adm-divider"/>
+
+        {/* ── Historial transaccions ── */}
+        {inv.txs && inv.txs.length > 0 && (
+          <div className="adm-txs">
+            <p className="adm-txs-title">Operacions ({inv.txs.length})</p>
+            {[...inv.txs].reverse().map(tx => {
+              const isBuy  = tx.type === 'buy'
+              const isSell = tx.type === 'sell'
+              const dotC   = isBuy ? COLORS.neonGreen : isSell ? COLORS.neonAmber : COLORS.neonCyan
+              const dotBg  = isBuy ? 'rgba(0,255,136,0.10)' : isSell ? 'rgba(255,149,0,0.10)' : 'rgba(0,212,255,0.10)'
+              const label  = isBuy ? 'BUY' : isSell ? 'SELL' : 'CAP'
+              return (
+                <div key={tx.id} className="adm-tx">
+                  <div className="adm-tx-icon" style={{ background: dotBg, color: dotC }}>
+                    {label}
+                  </div>
+                  <div className="adm-tx-info">
+                    <p className="adm-tx-name">{tx.note || (isBuy ? 'Compra' : isSell ? 'Venda' : 'Aportació de capital')}</p>
+                    <p className="adm-tx-date">{tx.date || '—'}</p>
+                  </div>
+                  <div className="adm-tx-right">
+                    {tx.type !== 'capital' && tx.qty > 0 && (
+                      <p className="adm-tx-qty" style={{ color: dotC }}>
+                        {isBuy ? '+' : '−'}{fmtQty(tx.qty)} u.
+                      </p>
+                    )}
+                    <p className="adm-tx-cost">{fmtEur(tx.totalCostEur || tx.totalCost)}</p>
+                  </div>
+                  <button className="adm-tx-del" onClick={() => onRemoveTx(tx.id)}>
+                    <TrashIcon size={11}/>
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ── Eliminar posició ── */}
+        <div className="adm-delete-zone">
+          <button className="adm-delete-btn" onClick={onRemove}>
+            Eliminar posició "{inv.name}"
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── InvestmentsTable ─────────────────────────────────────────────────────────
 export default function InvestmentsTable({
   investments, onAddInvestment, onRemoveInvestment,
   onAddTransaction, onRemoveTransaction,
   loading, status, onRefresh, onImportCSV,
 }) {
-  const [showNew, setShowNew]   = useState(false)
-  const [txModal, setTxModal]   = useState(null)
-  const [expanded, setExpanded] = useState({})
-  const [sortDir, setSortDir]   = useState('desc')
-  const [fxRates, setFxRates]   = useState({})
+  const [showNew, setShowNew]       = useState(false)
+  const [txModal, setTxModal]       = useState(null)
+  const [detailInv, setDetailInv]   = useState(null)
+  const [sortDir, setSortDir]       = useState('desc')
+  const [fxRates, setFxRates]       = useState({})
   const [showImport, setShowImport] = useState(false)
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
@@ -217,9 +513,7 @@ export default function InvestmentsTable({
   const isPos        = totalGain >= 0
   const posCount     = investments.filter(i => calcVal(i) > (i.totalCostEur || i.totalCost || 0)).length
   const sorted       = [...investments].sort((a, b) => sortDir === 'desc' ? calcVal(b) - calcVal(a) : calcVal(a) - calcVal(b))
-  const toggle       = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
 
-  // Distribució per tipus
   const distrib = useMemo(() => {
     const map = {}
     sorted.forEach(inv => {
@@ -231,6 +525,16 @@ export default function InvestmentsTable({
       .map(([t, d], i) => ({ ...d, type: t, pct: totalValue > 0 ? d.val / totalValue : 0, color: DISTRIB_COLORS[i % DISTRIB_COLORS.length] }))
       .sort((a, b) => b.val - a.val)
   }, [sorted, totalValue]) // eslint-disable-line
+
+  // Quan s'obre el modal de transacció, tanquem el modal de detall temporalment
+  const openTx = (inv, type) => {
+    setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })
+  }
+
+  // Quan es tanca el modal de tx, actualitza el detallInv amb les dades noves
+  const handleRemoveInv = (inv) => {
+    askConfirm({ name: inv.name, onConfirm: () => { onRemoveInvestment(inv.id); setDetailInv(null) } })
+  }
 
   return (
     <div className="inv">
@@ -319,31 +623,78 @@ export default function InvestmentsTable({
         </div>
       ) : (
         <div className="inv-section-hdr">
-          <span className="inv-section-title">Posicions</span>
+          <span className="inv-section-title">Posicions · clica per veure detall</span>
         </div>
       )}
 
       {investments.length > 0 && (
         <div className="inv-cards">
-          {sorted.map(inv => (
-            <AssetCard
-              key={inv.id}
-              inv={inv}
-              expanded={!!expanded[inv.id]}
-              onToggle={() => toggle(inv.id)}
-              calcVal={calcVal}
-              totalValue={totalValue}
-              onRemove={() => askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })}
-              onOpenTx={type => setTxModal({ invId: inv.id, name: inv.name, type, currency: inv.currency || inv.originalCurrency || null, ticker: inv.ticker })}
-              onRemoveTx={txId => onRemoveTransaction(inv.id, txId)}
-            />
-          ))}
+          {sorted.map(inv => {
+            const tc      = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+            const curVal  = calcVal(inv)
+            const costEur = inv.totalCostEur || inv.totalCost || 0
+            const gain    = curVal - costEur
+            const gPct    = costEur > 0 ? (gain / costEur) * 100 : 0
+            const isP     = gain >= 0
+            const origCurr = inv.originalCurrency || inv.currency || 'EUR'
+
+            return (
+              <div key={inv.id} className="inv-card" onClick={() => setDetailInv(inv)}>
+                <div className="inv-card-main">
+                  <div className="inv-av" style={{ background: tc.bg, color: tc.color }}>
+                    {(inv.name || '?').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="inv-card-info">
+                    <p className="inv-card-name">{inv.name}</p>
+                    <div className="inv-card-meta">
+                      <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
+                        {TYPE_LABELS[inv.type] || inv.type}
+                      </span>
+                      {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+                      {origCurr !== 'EUR' && <span className="inv-curr-badge">{origCurr}</span>}
+                    </div>
+                  </div>
+                  {/* Mini sparkline */}
+                  {(() => {
+                    const pts = (inv.txs||[]).filter(t=>t.type==='buy'&&t.pricePerUnit>0).map((t,i)=>({i,price:t.pricePerUnit}))
+                    if (inv.currentPrice!=null) pts.push({i:pts.length,price:inv.currentPrice})
+                    return pts.length >= 3 ? (
+                      <div style={{ width:50, height:28, flexShrink:0 }}>
+                        <ResponsiveContainer width="100%" height={28}>
+                          <AreaChart data={pts} margin={{top:2,right:0,left:0,bottom:2}}>
+                            <defs>
+                              <linearGradient id={`sg${inv.id}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={isP?COLORS.neonGreen:COLORS.neonRed} stopOpacity={0.3}/>
+                                <stop offset="100%" stopColor={isP?COLORS.neonGreen:COLORS.neonRed} stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <Area type="monotone" dataKey="price" stroke={isP?COLORS.neonGreen:COLORS.neonRed} strokeWidth={1.5} fill={`url(#sg${inv.id})`} dot={false}/>
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : null
+                  })()}
+                  <div className="inv-card-right">
+                    <p className="inv-card-val">{fmtEur(curVal)}</p>
+                    <p className={`inv-card-pct ${isP?'pos':'neg'}`}>
+                      {isP?'▲ +':'▼ '}{Math.abs(gPct).toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="inv-card-arrow">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
       <div style={{ height: 16 }}/>
 
+      {/* ── Modals ── */}
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
+
       {txModal && (
         <TransactionModal
           invName={txModal.name} defaultType={txModal.type}
@@ -352,147 +703,36 @@ export default function InvestmentsTable({
           onClose={() => setTxModal(null)}
         />
       )}
+
       {showImport && (
         <ImportCSVModal
           onClose={() => setShowImport(false)}
           onImport={async (txs, broker) => { await onImportCSV?.(txs, broker); setShowImport(false) }}
         />
       )}
+
+      {/* ── Asset Detail Modal ── */}
+      {detailInv && (() => {
+        // Sincronitza amb les dades fresques (txs, preus) de investments
+        const fresh = investments.find(i => i.id === detailInv.id) || detailInv
+        return (
+          <AssetDetailModal
+            inv={fresh}
+            totalValue={totalValue}
+            calcVal={calcVal}
+            fxRates={fxRates}
+            onClose={() => setDetailInv(null)}
+            onOpenTx={type => openTx(fresh, type)}
+            onRemoveTx={txId => onRemoveTransaction(fresh.id, txId)}
+            onRemove={() => handleRemoveInv(fresh)}
+          />
+        )
+      })()}
     </div>
   )
 }
 
-function AssetCard({ inv, expanded, onToggle, calcVal, totalValue, onRemove, onOpenTx, onRemoveTx }) {
-  const tc       = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
-  const origCurr = inv.originalCurrency || inv.currency || 'EUR'
-  const curVal   = calcVal(inv)
-  const costEur  = inv.totalCostEur || inv.totalCost || 0
-  const gain     = curVal - costEur
-  const gPct     = costEur > 0 ? (gain / costEur) * 100 : 0
-  const isPos    = gain >= 0
-  const weight   = totalValue > 0 ? (curVal / totalValue) * 100 : 0
-
-  const chartData = useMemo(() => {
-    const pts = (inv.txs||[]).filter(t=>t.type==='buy'&&t.pricePerUnit>0).map((t,i)=>({i,price:t.pricePerUnit}))
-    if (inv.currentPrice!=null) pts.push({i:pts.length,price:inv.currentPrice})
-    return pts
-  }, [inv.txs, inv.currentPrice])
-
-  const btns = [
-    { label:'Comprar',   color:COLORS.neonGreen,  bg:COLORS.bgGreen,  border:COLORS.borderGreen,  type:'buy' },
-    { label:'Vendre',    color:COLORS.neonAmber,  bg:COLORS.bgAmber,  border:COLORS.borderAmber,  type:'sell' },
-    { label:'Aportació', color:COLORS.neonCyan,   bg:COLORS.bgCyan,   border:COLORS.borderCyan,   type:'capital' },
-  ]
-
-  return (
-    <div className="inv-card">
-      <div className="inv-card-main" onClick={onToggle}>
-        <div className="inv-av" style={{ background: tc.bg, color: tc.color }}>
-          {(inv.name||'?').slice(0,2).toUpperCase()}
-        </div>
-        <div className="inv-card-info">
-          <p className="inv-card-name">{inv.name}</p>
-          <div className="inv-card-meta">
-            <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
-              {TYPE_LABELS[inv.type]||inv.type}
-            </span>
-            {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
-            {origCurr!=='EUR' && <span className="inv-curr-badge">{origCurr}</span>}
-          </div>
-        </div>
-        {/* Miní sparkline si hi ha historial */}
-        {chartData.length >= 3 && (
-          <div style={{ width:50, height:28, flexShrink:0 }}>
-            <ResponsiveContainer width="100%" height={28}>
-              <AreaChart data={chartData} margin={{top:2,right:0,left:0,bottom:2}}>
-                <defs>
-                  <linearGradient id={`sg${inv.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={isPos?COLORS.neonGreen:COLORS.neonRed} stopOpacity={0.3}/>
-                    <stop offset="100%" stopColor={isPos?COLORS.neonGreen:COLORS.neonRed} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="price" stroke={isPos?COLORS.neonGreen:COLORS.neonRed} strokeWidth={1.5} fill={`url(#sg${inv.id})`} dot={false}/>
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-        <div className="inv-card-right">
-          <p className="inv-card-val">{fmtEur(curVal)}</p>
-          <p className={`inv-card-pct ${isPos?'pos':'neg'}`}>
-            {isPos?'▲ +':'▼ '}{Math.abs(gPct).toFixed(2)}%
-          </p>
-        </div>
-        <div className={`inv-card-chevron${expanded?' open':''}`}><ChevronDown/></div>
-      </div>
-
-      {expanded && (
-        <div className="inv-expand">
-          <div className="inv-expand-inner">
-            {/* Stats */}
-            <div className="inv-stats">
-              {[
-                { l:'Cost mitjà', v: inv.avgCost>0 ? fmtEur(inv.avgCost)+'/u.' : '—' },
-                { l:'Invertit',   v: fmtEur(costEur) },
-                { l:'P&G',        v: (isPos?'+':'')+fmtEur(gain), cls: isPos?'pos':'neg' },
-                { l:'Pes',        v: weight.toFixed(1)+'%' },
-              ].map((s,i) => (
-                <div key={i} className="inv-stat">
-                  <p className="inv-stat-l">{s.l}</p>
-                  <p className={`inv-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Botons d'acció */}
-            <div className="inv-expand-btns">
-              {btns.map(b => (
-                <button key={b.type} className="inv-expand-btn"
-                  style={{ color: b.color }}
-                  onClick={() => onOpenTx(b.type)}
-                  onMouseOver={e=>{ e.currentTarget.style.background=b.bg; e.currentTarget.style.borderColor=b.border }}
-                  onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=COLORS.border }}
-                >{b.label}</button>
-              ))}
-              <button className="inv-expand-btn" style={{ color:COLORS.neonRed, marginLeft:'auto' }}
-                onClick={onRemove}
-                onMouseOver={e=>{ e.currentTarget.style.background=COLORS.bgRed; e.currentTarget.style.borderColor=COLORS.borderRed }}
-                onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=COLORS.border }}
-              >Eliminar</button>
-            </div>
-
-            {/* Operacions */}
-            {inv.txs && inv.txs.length > 0 && (
-              <>
-                <p style={{ fontSize:9, fontWeight:500, color:'rgba(255,255,255,0.25)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:8 }}>Operacions</p>
-                <div className="inv-tx-list" style={{ maxHeight:180, overflowY:'auto' }}>
-                  {[...inv.txs].reverse().map(tx => {
-                    const dotC = tx.type==='buy' ? COLORS.neonGreen : tx.type==='sell' ? COLORS.neonAmber : COLORS.neonCyan
-                    return (
-                      <div key={tx.id} className="inv-tx">
-                        <div className="inv-tx-dot" style={{ background:dotC }}/>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <p className="inv-tx-name">{tx.note||(tx.type==='buy'?'Compra':tx.type==='sell'?'Venda':'Aportació')}</p>
-                          <p className="inv-tx-date">{tx.date||'—'}</p>
-                        </div>
-                        <div style={{ textAlign:'right', flexShrink:0, marginLeft:10 }}>
-                          {tx.type!=='capital'&&tx.qty>0&&<p style={{ fontSize:12, fontWeight:600, fontFamily:FONTS.mono, color:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber, margin:0 }}>{tx.type==='buy'?'+':'−'}{fmtQty(tx.qty)}</p>}
-                          <p style={{ fontSize:11, color:'rgba(255,255,255,0.30)', fontFamily:FONTS.mono, marginTop:2 }}>{fmtEur(tx.totalCostEur||tx.totalCost)}</p>
-                        </div>
-                        <button className="inv-tx-del" onClick={()=>onRemoveTx(tx.id)}><TrashIcon size={11}/></button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// TransactionModal idèntic al de la versió anterior
+// ── TransactionModal ─────────────────────────────────────────────────────────
 function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd, onClose }) {
   const [type, setType]       = useState(defaultType||'buy')
   const [qty, setQty]         = useState('')
@@ -593,7 +833,7 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
           <div className="inv-grid2">
             <div>
               <label className="inv-lbl">Data</label>
-              <input type="date" className="inv-inp" value={date} onChange={e=>setDate(e.target.value)}/>
+              <input type="date" className="inv-inv-inp" value={date} onChange={e=>setDate(e.target.value)} style={{width:'100%',background:COLORS.bg,border:`1px solid ${COLORS.border}`,borderRadius:5,padding:'10px 12px',fontFamily:FONTS.sans,fontSize:16,color:COLORS.textPrimary,outline:'none',boxSizing:'border-box'}}/>
             </div>
             <div>
               <label className="inv-lbl">Nota</label>
@@ -613,8 +853,6 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
   )
 }
 
-// ── Funcions exportades per al Dashboard i App.jsx ──────────────────────────
-// currentPrice és sempre en EUR (guardat per usePriceFetcher)
 export function calcInvValue(inv) {
   const qty = inv.totalQty || 0
   if (inv.currentPrice != null && qty > 0) return +(qty * inv.currentPrice).toFixed(2)
