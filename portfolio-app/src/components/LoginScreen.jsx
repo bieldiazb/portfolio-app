@@ -301,7 +301,7 @@ export default function LoginScreen({ onLogin, error }) {
               <span className="lg-preview-label">Portfoli total</span>
               <span className="lg-live-badge"><span className="lg-live-dot"/>En viu</span>
             </div>
-            <p className="lg-preview-val">€124.830</p>
+            <p className="lg-preview-val">124.830 €</p>
             <div className="lg-preview-gain">↑ +18.4% · +€19.380 acumulat</div>
             <div className="lg-bar">
               <div className="lg-bar-seg" style={{flex:52, background:'var(--c-text-primary)'}}/>
