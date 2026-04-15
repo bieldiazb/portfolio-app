@@ -1,283 +1,206 @@
 import { COLORS, FONTS } from './design-tokens'
-
-// FONTS.sans = Geist (UI)
-// FONTS.mono = Geist Mono (tickers, codis)  
-// FONTS.num  = DM Sans (números i valors)
+import { useTheme } from '../hooks/useTheme'
 
 const FEATURES = [
-  { icon:'📈', title:'Preus en temps real',      desc:'ETFs, accions, crypto i matèries primeres via Yahoo Finance i CoinGecko.',       color:COLORS.neonCyan,   bg:'rgba(0,212,255,0.08)'   },
-  { icon:'🏆', title:'Benchmark vs mercat',       desc:'Compara el teu rendiment amb el S&P 500, MSCI World i FTSE All-World.',         color:COLORS.neonAmber,  bg:'rgba(255,149,0,0.08)'   },
-  { icon:'🔮', title:'Projeccions de futur',      desc:'Simula quant valdrà el teu portfoli en 5, 10 o 20 anys.',                        color:COLORS.neonPurple, bg:'rgba(123,97,255,0.08)'  },
-  { icon:'💰', title:'Dividends i rendes',        desc:'Calendari de dividends i estimació d\'ingressos passius mensuals.',               color:COLORS.neonGreen,  bg:'rgba(0,255,136,0.08)'   },
-  { icon:'⚖️', title:'Rebalanceig intel·ligent',  desc:'Detecta desviacions i rep suggeriments per ajustar la distribució.',             color:'#c8961a',          bg:'rgba(200,150,26,0.08)'  },
-  { icon:'🤖', title:'Assessor AI integrat',      desc:'Analitza el teu portfoli amb Claude: riscos, alternatives i estratègia.',        color:COLORS.neonPurple, bg:'rgba(123,97,255,0.08)'  },
+  { icon:'📈', label:'Preus en temps real'     },
+  { icon:'🏆', label:'Benchmark vs mercat'      },
+  { icon:'🔮', label:'Projeccions de futur'     },
+  { icon:'💰', label:'Dividends i rendes'       },
+  { icon:'⚖️', label:'Rebalanceig automàtic'   },
+  { icon:'🤖', label:'Assessor AI integrat'     },
 ]
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   .lg {
     min-height: 100dvh;
-    background: #080808;
+    background: var(--c-bg);
     color: var(--c-text-primary);
-    font-family: ${FONTS.sans};
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; flex-direction: column;
+    transition: background-color 220ms ease, color 220ms ease;
   }
 
-  /* ─── HEADER ─── */
+  /* ── Nav ── */
   .lg-nav {
-    width: 100%; max-width: 800px;
-    padding: 18px 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 48px;
+    border-bottom: 1px solid var(--c-border);
   }
-  .lg-logo-box {
-    width: 30px; height: 30px;
-    background: ${COLORS.neonGreen};
-    border-radius: 8px;
+  @media (max-width: 640px) { .lg-nav { padding: 18px 24px; } }
+
+  .lg-nav-right { display: flex; align-items: center; gap: 10px; }
+
+  .lg-brand { display: flex; align-items: center; gap: 10px; }
+  .lg-brand-mark {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--c-text-primary);
     display: flex; align-items: center; justify-content: center;
+    transition: background-color 220ms ease;
   }
-  .lg-logo-name {
-    font-family: ${FONTS.sans};
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--c-text-primary);
-    letter-spacing: -0.3px;
-  }
-  .lg-logo-tag {
-    font-family: ${FONTS.mono};
-    font-size: 9px;
-    font-weight: 500;
-    color: ${COLORS.neonGreen};
-    background: rgba(0,255,136,0.09);
-    border: 1px solid rgba(0,255,136,0.22);
-    padding: 2px 7px;
-    border-radius: 10px;
-    letter-spacing: 0.04em;
+  .lg-brand-name { font-size: 16px; font-weight: 500; color: var(--c-text-primary); letter-spacing: -0.3px; }
+  .lg-nav-pill {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px; color: var(--c-text-muted);
+    border: 1px solid var(--c-border);
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.03em;
   }
 
-  /* ─── HERO ─── */
-  .lg-hero {
-    width: 100%; max-width: 580px;
-    padding: 48px 24px 40px;
-    text-align: center;
-    position: relative;
+  /* ── Theme toggle ── */
+  .lg-theme-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 120ms; flex-shrink: 0;
   }
-  .lg-hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%; transform: translateX(-50%);
-    width: 480px; height: 260px;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0,255,136,0.07) 0%, transparent 65%);
-    pointer-events: none;
+  .lg-theme-btn:hover { border-color: var(--c-border-hi); color: var(--c-text-primary); background: var(--c-border); }
+
+  /* ── Layout ── */
+  .lg-main {
+    flex: 1;
+    display: grid; grid-template-columns: 1fr 1fr;
+    max-width: 1200px; margin: 0 auto; width: 100%;
+    padding: 0 48px; gap: 96px; align-items: center;
+  }
+  @media (max-width: 900px) {
+    .lg-main { grid-template-columns: 1fr; gap: 48px; padding: 48px 24px 40px; }
   }
 
-  /* Pill live */
-  .lg-live {
+  /* ── Left ── */
+  .lg-left { display: flex; flex-direction: column; }
+
+  .lg-eyebrow {
     display: inline-flex; align-items: center; gap: 7px;
-    font-family: ${FONTS.sans};
-    font-size: 11px; font-weight: 500;
-    color: rgba(255,255,255,0.45);
-    background: var(--c-border);
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 5px 14px; border-radius: 20px;
-    margin-bottom: 28px;
-    letter-spacing: 0.01em;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px; color: var(--c-text-muted);
+    letter-spacing: 0.10em; text-transform: uppercase;
+    margin-bottom: 24px;
   }
-  .lg-live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: ${COLORS.neonGreen};
-    animation: lgpulse 2s ease-in-out infinite;
+  .lg-eyebrow-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #22c55e; animation: lgblink 2.4s ease-in-out infinite;
   }
-  @keyframes lgpulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  @keyframes lgblink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-  /* Headline */
   .lg-h1 {
-    font-family: ${FONTS.sans};
-    font-size: clamp(36px, 7vw, 56px);
-    font-weight: 300;
-    color: var(--c-text-primary);
-    letter-spacing: -2px;
-    line-height: 1.08;
-    margin-bottom: 18px;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(40px, 4.8vw, 64px);
+    font-weight: 400; line-height: 1.06;
+    letter-spacing: -1.5px; color: var(--c-text-primary); margin-bottom: 22px;
   }
-  .lg-h1 strong {
-    font-weight: 600;
-    color: var(--c-text-primary);
-  }
-  .lg-h1 .accent {
-    font-weight: 300;
-    color: ${COLORS.neonGreen};
-  }
+  .lg-h1 em { font-style: italic; color: var(--c-text-secondary); }
 
-  /* Subtítol */
   .lg-desc {
-    font-family: ${FONTS.sans};
-    font-size: 15px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.35);
-    line-height: 1.7;
-    max-width: 420px;
-    margin: 0 auto 32px;
-    letter-spacing: 0.01em;
+    font-size: 15px; font-weight: 400; color: var(--c-text-secondary);
+    line-height: 1.7; max-width: 380px; margin-bottom: 36px;
   }
 
-  /* Stats en línia */
+  /* Stats */
   .lg-stats {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0; margin-bottom: 36px;
+    display: flex; gap: 0;
+    border: 1px solid var(--c-border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 36px;
+    background: var(--c-surface);
   }
-  .lg-stat {
-    text-align: center; padding: 0 20px;
-    position: relative;
-  }
-  .lg-stat:not(:last-child)::after {
-    content: ''; position: absolute; right: 0; top: 15%; height: 70%;
-    width: 1px; background: var(--c-surface);
-  }
+  .lg-stat { flex: 1; padding: 16px 20px; text-align: center; }
+  .lg-stat:not(:last-child) { border-right: 1px solid var(--c-border); }
   .lg-stat-v {
-    font-family: ${FONTS.num};
-    font-size: 20px; font-weight: 500;
-    color: var(--c-text-primary); letter-spacing: -0.5px;
-    margin-bottom: 2px;
+    font-family: ${FONTS.mono};
+    font-size: 24px; font-weight: 500; color: var(--c-text-primary);
+    letter-spacing: -0.5px; line-height: 1; margin-bottom: 4px;
   }
-  .lg-stat-l {
-    font-family: ${FONTS.sans};
-    font-size: 10px; font-weight: 400;
-    color: rgba(255,255,255,0.28);
-    letter-spacing: 0.02em;
+  .lg-stat-l { font-size: 10px; font-weight: 400; color: var(--c-text-muted); }
+
+  .lg-error {
+    font-size: 13px; color: var(--c-red);
+    background: var(--c-bg-red); border: 1px solid var(--c-border-red);
+    border-radius: 8px; padding: 11px 16px; margin-bottom: 16px;
   }
 
   /* CTA */
-  .lg-cta { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-
-  .lg-btn-google {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    background: #fff; color: #000;
-    border: none; border-radius: 12px;
-    padding: 14px 32px;
-    font-family: ${FONTS.sans};
-    font-size: 15px; font-weight: 600;
-    letter-spacing: -0.2px;
-    cursor: pointer;
-    width: 100%; max-width: 310px;
-    transition: opacity 100ms, transform 80ms;
-    -webkit-tap-highlight-color: transparent;
+  .lg-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--c-text-primary); color: var(--c-bg);
+    border: none; border-radius: 10px; padding: 15px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500; letter-spacing: -0.2px;
+    cursor: pointer; width: fit-content;
+    transition: opacity 150ms, transform 80ms;
   }
-  .lg-btn-google:hover { opacity: 0.88; }
-  .lg-btn-google:active { transform: scale(0.98); }
+  .lg-btn:hover  { opacity: 0.82; }
+  .lg-btn:active { transform: scale(0.98); }
 
-  .lg-privacy {
-    display: flex; align-items: center; gap: 5px;
-    font-family: ${FONTS.sans};
-    font-size: 11px; font-weight: 400;
-    color: rgba(255,255,255,0.18);
+  .lg-secure {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--c-text-muted); margin-top: 14px;
   }
 
-  .lg-error {
-    font-family: ${FONTS.sans};
-    font-size: 12px;
-    color: ${COLORS.neonRed};
-    background: rgba(255,59,59,0.08);
-    border: 1px solid rgba(255,59,59,0.22);
-    border-radius: 8px;
-    padding: 10px 16px;
-    max-width: 310px; width: 100%;
-    text-align: center;
-  }
+  /* ── Right ── */
+  .lg-right { display: flex; flex-direction: column; gap: 10px; }
 
-  /* ─── DIVISOR ─── */
-  .lg-sep {
-    display: flex; align-items: center; gap: 14px;
-    width: 100%; max-width: 640px;
-    padding: 0 24px; margin: 8px 0 28px;
-  }
-  .lg-sep::before, .lg-sep::after {
-    content: ''; flex: 1; height: 1px;
-    background: var(--c-border);
-  }
-  .lg-sep-text {
-    font-family: ${FONTS.sans};
-    font-size: 11px; font-weight: 500;
-    color: rgba(255,255,255,0.18);
-    white-space: nowrap;
-    letter-spacing: 0.04em;
-  }
-
-  /* ─── FEATURES ─── */
-  .lg-grid {
-    width: 100%; max-width: 720px;
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 36px;
-  }
-  @media (min-width: 600px) {
-    .lg-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-
-  .lg-feat {
+  .lg-preview {
     background: var(--c-surface);
     border: 1px solid var(--c-border);
-    border-radius: 12px;
-    padding: 16px 16px 14px;
-    transition: border-color 150ms;
+    border-radius: 16px; padding: 28px;
   }
-  .lg-feat:hover { border-color: rgba(255,255,255,0.11); }
+  .lg-preview-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .lg-preview-label { font-size: 11px; font-weight: 500; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .lg-live-badge {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Geist Mono', monospace; font-size: 10px; color: #16a34a;
+    background: var(--c-bg-green); border: 1px solid var(--c-border-green);
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .lg-live-dot { width: 4px; height: 4px; border-radius: 50%; background: #22c55e; animation: lgblink 2.4s ease-in-out infinite; }
 
-  .lg-feat-icon {
-    width: 36px; height: 36px; border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; margin-bottom: 10px;
+  .lg-preview-val {
+    font-family: ${FONTS.mono};
+    font-size: 44px; font-weight: 600; color: var(--c-text-primary);
+    letter-spacing: -1.5px; line-height: 1; margin-bottom: 8px;
   }
-  .lg-feat-title {
-    font-family: ${FONTS.sans};
-    font-size: 13px; font-weight: 600;
-    color: rgba(255,255,255,0.85);
-    letter-spacing: -0.2px;
-    margin-bottom: 5px;
-  }
-  .lg-feat-desc {
-    font-family: ${FONTS.sans};
-    font-size: 11px; font-weight: 400;
-    color: rgba(255,255,255,0.30);
-    line-height: 1.65;
+  .lg-preview-gain {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 500; color: #16a34a;
+    background: var(--c-bg-green); border: 1px solid var(--c-border-green);
+    padding: 4px 10px; border-radius: 20px; margin-bottom: 22px;
   }
 
-  /* ─── CTA FINAL ─── */
-  .lg-final {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    padding: 0 24px; width: 100%; max-width: 360px;
-  }
-  .lg-final-btn {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    background: ${COLORS.neonGreen}; color: #000;
-    border: none; border-radius: 12px;
-    padding: 14px 28px;
-    font-family: ${FONTS.sans};
-    font-size: 15px; font-weight: 700;
-    cursor: pointer; width: 100%;
-    transition: opacity 100ms, transform 80ms;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .lg-final-btn:hover { opacity: 0.85; }
-  .lg-final-btn:active { transform: scale(0.98); }
+  .lg-bar { display: flex; height: 4px; border-radius: 3px; overflow: hidden; gap: 2px; margin-bottom: 12px; }
+  .lg-bar-seg { border-radius: 2px; }
+  .lg-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .lg-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--c-text-secondary); }
+  .lg-legend-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-  /* ─── FOOTER ─── */
+  /* Feature chips */
+  .lg-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .lg-chip {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 9px;
+    font-size: 12px; font-weight: 500; color: var(--c-text-secondary);
+    transition: border-color 120ms, color 120ms;
+  }
+  .lg-chip:hover { border-color: var(--c-border-mid); color: var(--c-text-primary); }
+  .lg-chip-icon { font-size: 15px; flex-shrink: 0; }
+
+  /* Footer */
   .lg-footer {
-    padding: 24px 24px 44px;
-    text-align: center;
-    font-family: ${FONTS.sans};
-    font-size: 11px; font-weight: 400;
-    color: rgba(255,255,255,0.14);
-    line-height: 1.7;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+    padding: 18px 48px; border-top: 1px solid var(--c-border);
   }
+  @media (max-width: 640px) { .lg-footer { padding: 14px 24px; } }
+  .lg-footer-l { font-size: 12px; color: var(--c-text-muted); }
+  .lg-footer-r { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--c-text-disabled); letter-spacing: 0.05em; }
 `
 
 function GoogleIcon() {
@@ -291,104 +214,128 @@ function GoogleIcon() {
   )
 }
 
+const SunIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="2"  x2="12" y2="4"/>  <line x1="12" y1="20" x2="12" y2="22"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="2" y1="12" x2="4" y2="12"/>   <line x1="20" y1="12" x2="22" y2="12"/>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/> <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+)
+
+const MoonIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+)
+
 export default function LoginScreen({ onLogin, error }) {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
+
   return (
     <div className="lg">
       <style>{styles}</style>
 
-      {/* Nav */}
       <nav className="lg-nav">
-        <div className="lg-logo-box">
-          {/* <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-            <polyline points="16 7 22 7 22 13"/>
-          </svg> */}
-          <img src="/logo_black.png" alt="Cartera" style={{ width: 22, height: 22 }}/>
+        <div className="lg-brand">
+          <div className="lg-brand-mark">
+            <img src="/logo_black.png" alt="" style={{ width: 20, height: 20, filter: isDark ? 'invert(0)' : 'invert(1)' }}/>
+          </div>
+          <span className="lg-brand-name">Cartera</span>
         </div>
-        <span className="lg-logo-name">Cartera</span>
-        <span className="lg-logo-tag">Beta</span>
+        <div className="lg-nav-right">
+          <span className="lg-nav-pill">Beta privada</span>
+          <button
+            className="lg-theme-btn"
+            onClick={toggleTheme}
+            title={isDark ? 'Canviar a mode clar' : 'Canviar a mode fosc'}
+          >
+            {isDark ? <SunIcon/> : <MoonIcon/>}
+          </button>
+        </div>
       </nav>
 
-      {/* Hero */}
-      <section className="lg-hero">
-        {/* Pill live */}
-        <div className="lg-live">
-          <div className="lg-live-dot"/>
-          Preus en temps real · Actualitzat ara
-        </div>
+      <main className="lg-main">
+        <div className="lg-left">
+          <div className="lg-eyebrow">
+            <div className="lg-eyebrow-dot"/>
+            Gestió de portfoli personal
+          </div>
 
-        {/* Headline */}
-        <h1 className="lg-h1">
-          El teu portfoli,<br/>
-          <strong>sempre a punt.</strong><br/>
-          <span className="accent">Inverteix amb dades.</span>
-        </h1>
+          <h1 className="lg-h1">
+            Les teves inversions,<br/>
+            <em>sempre sota control.</em>
+          </h1>
 
-        {/* Subtítol */}
-        <p className="lg-desc">
-          Segueix totes les teves inversions en temps real.
-          Compara amb el mercat, projecta el futur i rep
-          anàlisi personalitzada amb intel·ligència artificial.
-        </p>
+          <p className="lg-desc">
+            Segueix tots els teus actius en temps real, compara el rendiment
+            amb el mercat i rep anàlisi personalitzada amb intel·ligència artificial.
+          </p>
 
-        {/* Stats */}
-        <div className="lg-stats">
-          {[
-            { v:'6+',  l:"tipus d'actius" },
-            { v:'RT',  l:'preus en viu'   },
-            { v:'AI',  l:'assessor'        },
-          ].map(s => (
-            <div key={s.l} className="lg-stat">
-              <p className="lg-stat-v">{s.v}</p>
-              <p className="lg-stat-l">{s.l}</p>
-            </div>
-          ))}
-        </div>
+          <div className="lg-stats">
+            <div className="lg-stat"><p className="lg-stat-v">6+</p><p className="lg-stat-l">Tipus d'actius</p></div>
+            <div className="lg-stat"><p className="lg-stat-v">RT</p><p className="lg-stat-l">Preus en viu</p></div>
+            <div className="lg-stat"><p className="lg-stat-v">AI</p><p className="lg-stat-l">Assessor inclòs</p></div>
+          </div>
 
-        {/* CTA */}
-        <div className="lg-cta">
           {error && <div className="lg-error">{error}</div>}
-          <button className="lg-btn-google" onClick={onLogin}>
+
+          <button className="lg-btn" onClick={onLogin}>
             <GoogleIcon/>
             Accedir amb Google
           </button>
-          <span className="lg-privacy">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+
+          <p className="lg-secure">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            Les teves dades, al teu compte. Accés privat.
-          </span>
+            Accés segur via Google OAuth · Les teves dades, al teu compte.
+          </p>
         </div>
-      </section>
 
-      {/* Divisor */}
-      <div className="lg-sep">
-        <span className="lg-sep-text">Funcionalitats incloses</span>
-      </div>
-
-      {/* Grid de features */}
-      <div className="lg-grid">
-        {FEATURES.map(f => (
-          <div key={f.title} className="lg-feat">
-            <div className="lg-feat-icon" style={{background:f.bg}}>{f.icon}</div>
-            <p className="lg-feat-title">{f.title}</p>
-            <p className="lg-feat-desc">{f.desc}</p>
+        <div className="lg-right">
+          <div className="lg-preview">
+            <div className="lg-preview-hdr">
+              <span className="lg-preview-label">Portfoli total</span>
+              <span className="lg-live-badge"><span className="lg-live-dot"/>En viu</span>
+            </div>
+            <p className="lg-preview-val">€124.830</p>
+            <div className="lg-preview-gain">↑ +18.4% · +€19.380 acumulat</div>
+            <div className="lg-bar">
+              <div className="lg-bar-seg" style={{flex:52, background:'var(--c-text-primary)'}}/>
+              <div className="lg-bar-seg" style={{flex:23, background:'#4ade80'}}/>
+              <div className="lg-bar-seg" style={{flex:14, background:'#f59e0b'}}/>
+              <div className="lg-bar-seg" style={{flex:11, background:'#60a5fa'}}/>
+            </div>
+            <div className="lg-legend">
+              {[
+                { color:'var(--c-text-primary)', label:'ETFs · 52%'     },
+                { color:'#4ade80',               label:'Estalvis · 23%' },
+                { color:'#f59e0b',               label:'Crypto · 14%'   },
+                { color:'#60a5fa',               label:'Accions · 11%'  },
+              ].map(d => (
+                <div key={d.label} className="lg-legend-item">
+                  <div className="lg-legend-dot" style={{background: d.color}}/>{d.label}
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
 
-      {/* CTA final verd */}
-      <div className="lg-final">
-        <button className="lg-final-btn" onClick={onLogin}>
-          <GoogleIcon/>
-          Comença ara, és gratuït
-        </button>
-      </div>
+          <div className="lg-chips">
+            {FEATURES.map(f => (
+              <div key={f.label} className="lg-chip">
+                <span className="lg-chip-icon">{f.icon}</span>{f.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
 
-      {/* Footer */}
       <footer className="lg-footer">
-        Dades sincronitzades amb Google · Accés segur via OAuth 2.0<br/>
-        Fet amb ❤️ per gestionar el teu futur financer
+        <span className="lg-footer-l">Fet per gestionar el teu futur financer</span>
+        <span className="lg-footer-r">CARTERA © 2026</span>
       </footer>
     </div>
   )
