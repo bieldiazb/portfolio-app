@@ -1,47 +1,53 @@
 // ─── components/Sidebar.v4.jsx ────────────────────────────────────────────────
 import { useState } from 'react'
 import { COLORS, FONTS } from './design-tokens'
+import { ThemeTogglePill } from './ThemeToggle'
 
 const styles = `
   .sb4 {
     position: fixed; top: 0; left: 0; bottom: 0; width: 220px;
-    background: #0a0a0a; border-right: 1px solid rgba(255,255,255,0.06);
+    background: var(--c-bg);
+    border-right: 1px solid var(--c-border);
     display: flex; flex-direction: column; z-index: 30;
-    transition: transform 200ms cubic-bezier(0.4,0,0.2,1);
+    transition: transform 200ms cubic-bezier(0.4,0,0.2,1), background-color 220ms ease, border-color 220ms ease;
     font-family: ${FONTS.sans};
   }
   @media (max-width:1023px) {
     .sb4 { transform: translateX(-100%); }
-    .sb4.open { transform: translateX(0); box-shadow: 20px 0 60px rgba(0,0,0,0.8); }
+    .sb4.open { transform: translateX(0); box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
   }
 
   .sb4-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     z-index: 29; display: none;
     backdrop-filter: blur(4px);
   }
   @media (max-width:1023px) { .sb4-overlay.show { display: block; } }
 
+  /* ── Logo ── */
   .sb4-logo {
     padding: 20px 16px 16px;
     display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--c-border);
     flex-shrink: 0;
   }
   .sb4-logo-mark {
     width: 28px; height: 28px; border-radius: 7px;
-    background: #fff; display: flex;
-    align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--c-text-primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .sb4-logo-text { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
-  .sb4-logo-sub  { font-size: 10px; color: rgba(255,255,255,0.30); font-weight: 400; display:block; }
+  /* En mode clar el logo s'inverteix per contrast */
+  [data-theme="light"] .sb4-logo-mark { background: #00ff88; }
+  .sb4-logo-text { font-size: 15px; font-weight: 600; color: var(--c-text-primary); letter-spacing: -0.3px; }
+  .sb4-logo-sub  { font-size: 10px; color: var(--c-text-muted); font-weight: 400; display: block; }
 
+  /* ── Nav ── */
   .sb4-nav { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
   .sb4-nav::-webkit-scrollbar { display: none; }
 
   .sb4-group { margin-bottom: 6px; }
   .sb4-group-label {
-    font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.20);
+    font-size: 9px; font-weight: 600; color: var(--c-text-disabled);
     text-transform: uppercase; letter-spacing: 0.14em;
     padding: 6px 8px 4px; display: block;
   }
@@ -55,64 +61,63 @@ const styles = `
     -webkit-tap-highlight-color: transparent;
     position: relative;
   }
-  .sb4-item:hover { background: rgba(255,255,255,0.05); }
-  .sb4-item.active { background: rgba(255,255,255,0.07); }
-  .sb4-item-ico { color: rgba(255,255,255,0.35); flex-shrink:0; transition: color 100ms; display:flex; }
-  .sb4-item.active .sb4-item-ico { color: ${COLORS.neonPurple}; }
-  .sb4-item:hover .sb4-item-ico { color: rgba(255,255,255,0.60); }
-  .sb4-item-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); transition: color 100ms; }
-  .sb4-item.active .sb4-item-label { color: #fff; font-weight: 600; }
-  .sb4-item:hover .sb4-item-label { color: rgba(255,255,255,0.80); }
+  .sb4-item:hover  { background: var(--c-elevated); }
+  .sb4-item.active { background: var(--c-elevated); }
+  .sb4-item-ico { color: var(--c-text-muted); flex-shrink: 0; transition: color 100ms; display: flex; }
+  .sb4-item.active .sb4-item-ico { color: var(--c-purple); }
+  .sb4-item:hover  .sb4-item-ico { color: var(--c-text-secondary); }
+  .sb4-item-label { font-size: 13px; font-weight: 500; color: var(--c-text-secondary); transition: color 100ms; }
+  .sb4-item.active .sb4-item-label { color: var(--c-text-primary); font-weight: 600; }
+  .sb4-item:hover  .sb4-item-label { color: var(--c-text-primary); }
   .sb4-item-bar {
     position: absolute; left: 0; top: 25%; bottom: 25%;
     width: 2px; border-radius: 0 2px 2px 0;
-    background: ${COLORS.neonPurple}; opacity: 0; transition: opacity 100ms;
+    background: var(--c-purple); opacity: 0; transition: opacity 100ms;
   }
   .sb4-item.active .sb4-item-bar { opacity: 1; }
 
   .sb4-badge {
     margin-left: auto; min-width: 16px; height: 16px;
-    border-radius: 8px; background: ${COLORS.neonRed};
+    border-radius: 8px; background: var(--c-red);
     color: #fff; font-size: 9px; font-weight: 700;
     font-family: ${FONTS.mono}; display: flex;
     align-items: center; justify-content: center; padding: 0 4px;
   }
 
-  /* Peu — FIX mòbil: padding extra per no quedar tapat pel BottomNav */
+  /* ── Footer ── */
   .sb4-footer {
     padding: 12px 10px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    flex-shrink: 0;
+    border-top: 1px solid var(--c-border);
+    flex-shrink: 0; display: flex; flex-direction: column; gap: 4px;
   }
   @media (max-width:1023px) {
-    .sb4-footer {
-      padding-bottom: calc(12px + 60px + env(safe-area-inset-bottom));
-    }
+    .sb4-footer { padding-bottom: calc(12px + 60px + env(safe-area-inset-bottom)); }
   }
 
   .sb4-user {
     display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 7px; cursor: pointer;
-    transition: background 80ms; border:none; background:transparent; width:100%;
+    padding: 8px 10px; border-radius: 7px; cursor: default;
+    border: none; background: transparent; width: 100%;
   }
-  .sb4-user:hover { background: rgba(255,255,255,0.05); }
   .sb4-user-av {
     width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10);
-    color: rgba(255,255,255,0.5); display: flex; align-items: center;
-    justify-content: center; font-size: 11px; font-weight: 500; overflow:hidden; flex-shrink:0;
+    background: var(--c-elevated); border: 1px solid var(--c-border-hi);
+    color: var(--c-text-muted); display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 500; overflow: hidden; flex-shrink: 0;
   }
-  .sb4-user-av img { width:100%; height:100%; object-fit:cover; }
-  .sb4-user-name { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.60); }
-  .sb4-user-role { font-size: 10px; color: rgba(255,255,255,0.25); }
+  .sb4-user-av img { width: 100%; height: 100%; object-fit: cover; }
+  .sb4-user-name { font-size: 12px; font-weight: 500; color: var(--c-text-secondary); }
+  .sb4-user-role { font-size: 10px; color: var(--c-text-muted); }
+
   .sb4-logout {
-    display:flex; align-items:center; gap:6px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 6px; padding: 8px 10px;
     border-radius: 6px; border: none; background: transparent;
-    width: 100%; cursor: pointer; margin-top: 4px;
-    transition: background 80ms; color: rgba(255,255,255,0.25);
+    width: 100%; cursor: pointer; margin-top: 2px;
+    transition: background 80ms, color 80ms;
+    color: var(--c-text-muted);
     font-family: ${FONTS.sans}; font-size: 12px;
   }
-  .sb4-logout:hover { background: rgba(255,59,59,0.08); color: ${COLORS.neonRed}; }
+  .sb4-logout:hover { background: var(--c-bg-red); color: var(--c-red); }
 `
 
 const I = {
@@ -216,14 +221,14 @@ export default function Sidebar({ active, onChange, user, onLogout, isOpen, onCl
             <div className="sb4-user-av">
               {user?.photoURL
                 ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"/>
-                : initials
-              }
+                : initials}
             </div>
             <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
               <p className="sb4-user-name">{user?.displayName || user?.email?.split('@')[0] || 'Usuari'}</p>
               <p className="sb4-user-role">Compte personal</p>
             </div>
           </div>
+          <ThemeTogglePill/>
           <button className="sb4-logout" onClick={onLogout}>
             {I.logout} Tancar sessió
           </button>

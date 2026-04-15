@@ -3,100 +3,105 @@ import { useMemo } from 'react'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { COLORS, FONTS, SHARED_STYLES } from './design-tokens'
 import { fmtEur } from '../utils/format'
-// NO cal importar calcInvValue — el càlcul el fa App.jsx i passa fxRates com a prop
 
 const styles = `
   .dash { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
+  /* ── Hero ── */
   .dash-hero {
-    background: linear-gradient(135deg, #0f0f0f 0%, #141414 100%);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(135deg, var(--c-bg) 0%, var(--c-overlay) 100%);
+    border: 1px solid var(--c-border);
     border-radius: 12px; padding: 24px 20px 20px;
     margin-bottom: 16px; position: relative; overflow: hidden;
   }
   .dash-hero::before {
     content:''; position:absolute; top:-40px; right:-40px;
     width:180px; height:180px; border-radius:50%;
-    background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--c-bg-green) 0%, transparent 70%);
     pointer-events: none;
   }
-  .dash-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .dash-hero-total { font-size:36px; font-weight:600; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .dash-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .dash-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .dash-hero-total span { font-size:30px; opacity:0.7; }
   .dash-hero-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .dash-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
-  .dash-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
-  .dash-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .dash-hero-sub { font-size:11px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
+  .dash-badge.pos { color:var(--c-green); background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .dash-badge.neg { color:var(--c-red);   background:var(--c-bg-red);   border:1px solid var(--c-border-red);   }
+  .dash-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
 
+  /* ── Mètriques ── */
   .dash-metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
   @media (min-width:480px) { .dash-metrics { grid-template-columns:repeat(4,1fr); } }
-  .dash-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 14px 12px; display:flex; flex-direction:column; gap:6px; transition:border-color 120ms; }
-  .dash-metric:hover { border-color:rgba(255,255,255,0.10); }
-  .dash-metric-label { font-size:10px; font-weight:500; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.10em; }
-  .dash-metric-val { font-size:18px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
+  .dash-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:14px 14px 12px; display:flex; flex-direction:column; gap:6px; transition:border-color 120ms; }
+  .dash-metric:hover { border-color:var(--c-border-hi); }
+  .dash-metric-label { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; }
+  .dash-metric-val { font-size:18px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
   .dash-metric-val.sm { font-size:14px; }
-  .dash-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.30); }
-  .dash-metric-val.g { color:${COLORS.neonGreen}; }
-  .dash-metric-val.r { color:${COLORS.neonRed}; }
-  .dash-metric-val.p { color:${COLORS.neonPurple}; }
-  .dash-metric-val.c { color:${COLORS.neonCyan}; }
+  .dash-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
+  .dash-metric-val.g { color:var(--c-green);  }
+  .dash-metric-val.r { color:var(--c-red);    }
+  .dash-metric-val.p { color:var(--c-purple); }
+  .dash-metric-val.c { color:var(--c-cyan);   }
 
+  /* ── Seccions ── */
   .dash-section { margin-bottom:16px; }
   .dash-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .dash-section-title { font-size:11px; font-weight:600; color:rgba(255,255,255,0.40); text-transform:uppercase; letter-spacing:0.12em; }
-  .dash-section-link { font-size:11px; color:${COLORS.neonGreen}; font-weight:500; cursor:pointer; background:none; border:none; padding:0; font-family:${FONTS.sans}; }
+  .dash-section-title { font-size:11px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.12em; }
+  .dash-section-link { font-size:11px; color:var(--c-green); font-weight:500; cursor:pointer; background:none; border:none; padding:0; font-family:${FONTS.sans}; }
 
-  .dash-alloc { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
+  /* ── Distribució ── */
+  .dash-alloc { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
   .dash-alloc-bars { display:flex; flex-direction:column; gap:8px; }
   .dash-alloc-row { display:flex; align-items:center; gap:8px; }
-  .dash-alloc-label { font-size:11px; color:rgba(255,255,255,0.55); width:72px; flex-shrink:0; }
-  .dash-alloc-track { flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+  .dash-alloc-label { font-size:11px; color:var(--c-text-secondary); width:72px; flex-shrink:0; }
+  .dash-alloc-track { flex:1; height:5px; background:var(--c-border); border-radius:3px; overflow:hidden; }
   .dash-alloc-fill { height:100%; border-radius:3px; transition:width 600ms cubic-bezier(0.4,0,0.2,1); }
-  .dash-alloc-pct { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.40); width:32px; text-align:right; flex-shrink:0; }
+  .dash-alloc-pct { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); width:32px; text-align:right; flex-shrink:0; }
 
-  .dash-assets { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .dash-asset-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  /* ── Top actius ── */
+  .dash-assets { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .dash-asset-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
   .dash-asset-row:last-child { border-bottom:none; }
-  .dash-asset-row:hover { background:rgba(255,255,255,0.02); }
-  .dash-asset-row:active { background:rgba(255,255,255,0.03); }
+  .dash-asset-row:hover  { background:var(--c-elevated); }
+  .dash-asset-row:active { background:var(--c-elevated); }
   .dash-av { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
   .dash-asset-info { flex:1; min-width:0; }
-  .dash-asset-name { font-size:13px; font-weight:500; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .dash-asset-sub { font-size:10px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
+  .dash-asset-name { font-size:13px; font-weight:500; color:var(--c-text-primary); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dash-asset-sub { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .dash-asset-right { text-align:right; flex-shrink:0; }
-  .dash-asset-val { font-size:13px; font-weight:500; font-family:${FONTS.mono}; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  .dash-asset-val { font-size:13px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:2px; }
   .dash-asset-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
-  .dash-asset-pct.p { color:${COLORS.neonGreen}; }
-  .dash-asset-pct.n { color:${COLORS.neonRed}; }
+  .dash-asset-pct.p { color:var(--c-green); }
+  .dash-asset-pct.n { color:var(--c-red);   }
 
+  /* ── Accés ràpid ── */
   .dash-quick { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px; }
   @media (min-width:480px) { .dash-quick { grid-template-columns:repeat(4,1fr); } }
-  .dash-quick-btn { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition:all 120ms; -webkit-tap-highlight-color:transparent; font-family:${FONTS.sans}; }
-  .dash-quick-btn:hover { border-color:rgba(255,255,255,0.12); background:#161616; }
+  .dash-quick-btn { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:14px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition:all 120ms; -webkit-tap-highlight-color:transparent; font-family:${FONTS.sans}; }
+  .dash-quick-btn:hover  { border-color:var(--c-border-hi); background:var(--c-elevated); }
   .dash-quick-btn:active { transform:scale(0.97); }
   .dash-quick-ico { font-size:20px; }
-  .dash-quick-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.55); text-align:center; }
+  .dash-quick-label { font-size:11px; font-weight:500; color:var(--c-text-secondary); text-align:center; }
 
-  .dash-next-div { background:rgba(0,255,136,0.04); border:1px solid rgba(0,255,136,0.12); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:14px; }
+  /* ── Proper dividend ── */
+  .dash-next-div { background:var(--c-bg-green); border:1px solid var(--c-border-green); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:14px; }
   .dash-next-div-ico { font-size:24px; }
   .dash-next-div-info { flex:1; }
-  .dash-next-div-label { font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:4px; font-weight:500; }
-  .dash-next-div-val { font-size:14px; font-weight:600; color:${COLORS.neonGreen}; font-family:${FONTS.mono}; margin-bottom:2px; }
-  .dash-next-div-sub { font-size:11px; color:rgba(255,255,255,0.35); }
+  .dash-next-div-label { font-size:10px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:4px; font-weight:500; }
+  .dash-next-div-val { font-size:14px; font-weight:600; color:var(--c-green); font-family:${FONTS.mono}; margin-bottom:2px; }
+  .dash-next-div-sub { font-size:11px; color:var(--c-text-secondary); }
 `
 
 const TYPE_COLORS_BG = {
-  etf:      { bg:'rgba(0,212,255,0.12)',  color:COLORS.neonCyan   },
-  stock:    { bg:'rgba(123,97,255,0.12)', color:COLORS.neonPurple },
-  robo:     { bg:'rgba(0,255,136,0.10)',  color:COLORS.neonGreen  },
-  crypto:   { bg:'rgba(255,149,0,0.12)',  color:COLORS.neonAmber  },
-  estalvi:  { bg:'rgba(0,255,136,0.08)',  color:COLORS.neonGreen  },
-  efectiu:  { bg:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.4)' },
-  commodity:{ bg:'rgba(200,150,26,0.12)', color:'#c8961a'         },
+  etf:      { bg:'var(--c-bg-cyan)',   color:'var(--c-cyan)'   },
+  stock:    { bg:'var(--c-bg-purple)', color:'var(--c-purple)' },
+  robo:     { bg:'var(--c-bg-green)',  color:'var(--c-green)'  },
+  crypto:   { bg:'var(--c-bg-amber)',  color:'var(--c-amber)'  },
+  estalvi:  { bg:'var(--c-bg-green)',  color:'var(--c-green)'  },
+  efectiu:  { bg:'var(--c-elevated)',  color:'var(--c-text-secondary)' },
+  commodity:{ bg:'rgba(200,150,26,0.12)', color:'#c8961a' },
 }
 
-// Mateixa lògica que InvestmentsTable.calcVal
 function invVal(inv, fxRates) {
   const origCurr = inv.originalCurrency || inv.currency || 'EUR'
   const qty = inv.totalQty || 0
@@ -111,29 +116,28 @@ export default function DashboardPage({
   totalSav, totalCry, totalInv, totalCom,
   investments, savings, cryptos, commodities,
   snapshots, dividends,
-  fxRates = {},   // ← NOU: passat des d'App.jsx
+  fxRates = {},
   onNavigate,
 }) {
   const isPos = pg >= 0
 
   const alloc = useMemo(() => {
     const cats = [
-      { label:'Inversions', val:totalInv, color:COLORS.neonGreen  },
-      { label:'Estalvis',   val:totalSav, color:COLORS.neonCyan   },
-      { label:'Crypto',     val:totalCry, color:COLORS.neonAmber  },
+      { label:'Inversions', val:totalInv, color:'var(--c-green)'  },
+      { label:'Estalvis',   val:totalSav, color:'var(--c-cyan)'   },
+      { label:'Crypto',     val:totalCry, color:'var(--c-amber)'  },
       { label:'Mat. prim.', val:totalCom, color:'#c8961a'          },
     ].filter(c => c.val > 0)
     const total = cats.reduce((s,c) => s+c.val, 0)
     return cats.map(c => ({ ...c, pct: total>0 ? (c.val/total)*100 : 0 }))
   }, [totalInv, totalSav, totalCry, totalCom])
 
-  // ── Top actius: IDÈNTIC a InvestmentsTable (usa invVal amb fxRates) ───────
   const topAssets = useMemo(() => {
     const all = [
       ...investments.map(inv => ({
         id: inv.id, name: inv.name, ticker: inv.ticker,
         type: inv.type || 'etf',
-        val:  invVal(inv, fxRates),                         // ← mateixa fórmula
+        val:  invVal(inv, fxRates),
         cost: inv.totalCostEur || inv.totalCost || 0,
         category: 'inv',
       })),
@@ -199,7 +203,9 @@ export default function DashboardPage({
                       <stop offset="100%" stopColor={isPos?COLORS.neonGreen:COLORS.neonRed} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="v" stroke={isPos?COLORS.neonGreen:COLORS.neonRed} strokeWidth={1.5} fill="url(#dashGrad)" dot={false}/>
+                  <Area type="monotone" dataKey="v"
+                    stroke={isPos?COLORS.neonGreen:COLORS.neonRed}
+                    strokeWidth={1.5} fill="url(#dashGrad)" dot={false}/>
                 </AreaChart>
               </ResponsiveContainer>
             </div>

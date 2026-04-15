@@ -50,35 +50,35 @@ const styles = `
   .bm { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* Hero */
-  .bm-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .bm-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
   .bm-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(0,212,255,0.06) 0%,transparent 70%); pointer-events:none; }
-  .bm-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .bm-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
   .bm-hero-ret { font-size:36px; font-weight:600; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:6px; }
   .bm-hero-ret.pos { color:${COLORS.neonGreen}; }
   .bm-hero-ret.neg { color:${COLORS.neonRed}; }
-  .bm-hero-ret.neu { color:rgba(255,255,255,0.40); }
-  .bm-hero-sub { font-size:12px; color:rgba(255,255,255,0.30); margin-bottom:14px; }
+  .bm-hero-ret.neu { color:var(--c-text-secondary); }
+  .bm-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:14px; }
   .bm-hero-badges { display:flex; gap:8px; flex-wrap:wrap; }
   .bm-hero-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; font-family:${FONTS.num}; padding:4px 10px; border-radius:20px; }
-  .bm-hero-badge.mine { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
-  .bm-hero-badge.bench { color:rgba(255,255,255,0.50); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); }
+  .bm-hero-badge.mine { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .bm-hero-badge.bench { color:rgba(255,255,255,0.50); background:var(--c-border); border:1px solid var(--c-border); }
   .bm-hero-badge.out { color:${COLORS.neonGreen}; }
   .bm-hero-badge.und { color:${COLORS.neonRed}; }
 
   /* Panel */
-  .bm-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
+  .bm-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
   .bm-panel-hdr { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
-  .bm-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .bm-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
   /* Period tabs */
   .bm-periods { display:flex; gap:3px; }
-  .bm-period { padding:4px 10px; border-radius:20px; border:1px solid rgba(255,255,255,0.07); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); cursor:pointer; transition:all 100ms; }
-  .bm-period:hover { color:rgba(255,255,255,0.60); border-color:rgba(255,255,255,0.15); }
+  .bm-period { padding:4px 10px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
+  .bm-period:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
   .bm-period.on { background:rgba(0,255,136,0.10); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
 
   /* Legend */
   .bm-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .bm-li { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.40); cursor:pointer; padding:2px 0; transition:color 100ms; }
+  .bm-li { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--c-text-secondary); cursor:pointer; padding:2px 0; transition:color 100ms; }
   .bm-li:hover { color:rgba(255,255,255,0.70); }
   .bm-li.hidden { opacity:0.35; text-decoration:line-through; }
   .bm-li-line { width:14px; height:2px; border-radius:1px; flex-shrink:0; }
@@ -86,47 +86,47 @@ const styles = `
 
   /* Gràfic */
   .bm-chart { position:relative; }
-  .bm-loading { display:flex; align-items:center; justify-content:center; gap:8px; padding:50px 0; font-size:12px; color:rgba(255,255,255,0.30); }
+  .bm-loading { display:flex; align-items:center; justify-content:center; gap:8px; padding:50px 0; font-size:12px; color:var(--c-text-muted); }
   .bm-spin { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.08); border-top-color:${COLORS.neonGreen}; border-radius:50%; animation:bmspin .7s linear infinite; }
   @keyframes bmspin { to { transform:rotate(360deg); } }
 
   /* Taula de rendiments */
   .bm-table { display:flex; flex-direction:column; gap:0; }
-  .bm-tr { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .bm-tr { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid var(--c-border); }
   .bm-tr:last-child { border-bottom:none; }
   .bm-tr-left { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
   .bm-tr-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .bm-tr-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.55); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .bm-tr-name.mine { color:#fff; font-weight:600; }
-  .bm-tr-bar-wrap { width:80px; height:3px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; margin:0 12px; flex-shrink:0; }
+  .bm-tr-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bm-tr-name.mine { color:var(--c-text-primary); font-weight:600; }
+  .bm-tr-bar-wrap { width:80px; height:3px; background:var(--c-border); border-radius:2px; overflow:hidden; margin:0 12px; flex-shrink:0; }
   .bm-tr-bar { height:100%; border-radius:2px; transition:width 500ms cubic-bezier(0.4,0,0.2,1); }
   .bm-tr-val { font-family:${FONTS.num}; font-size:13px; font-weight:500; min-width:60px; text-align:right; font-variant-numeric:tabular-nums; }
   .bm-tr-val.pos { color:${COLORS.neonGreen}; }
   .bm-tr-val.neg { color:${COLORS.neonRed}; }
-  .bm-tr-val.neu { color:rgba(255,255,255,0.30); }
+  .bm-tr-val.neu { color:var(--c-text-muted); }
 
   /* Accions pròpies */
   .bm-assets-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
   @media (min-width:480px) { .bm-assets-grid { grid-template-columns:repeat(3,1fr); } }
   @media (min-width:700px) { .bm-assets-grid { grid-template-columns:repeat(4,1fr); } }
-  .bm-asset-chip { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); cursor:pointer; transition:all 100ms; }
+  .bm-asset-chip { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; border:1px solid var(--c-border); background:var(--c-elevated); cursor:pointer; transition:all 100ms; }
   .bm-asset-chip:hover { border-color:rgba(0,255,136,0.25); background:rgba(0,255,136,0.04); }
   .bm-asset-chip.on { border-color:rgba(0,255,136,0.30); background:rgba(0,255,136,0.08); }
   .bm-asset-ticker { font-size:11px; font-weight:600; font-family:${FONTS.mono}; color:rgba(255,255,255,0.70); }
   .bm-asset-ret { font-size:11px; font-family:${FONTS.num}; font-weight:500; font-variant-numeric:tabular-nums; }
   .bm-asset-ret.pos { color:${COLORS.neonGreen}; }
   .bm-asset-ret.neg { color:${COLORS.neonRed}; }
-  .bm-asset-ret.load { color:rgba(255,255,255,0.20); }
+  .bm-asset-ret.load { color:var(--c-text-disabled); }
 
-  .bm-note { padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:8px; font-size:11px; color:rgba(255,255,255,0.30); line-height:1.6; }
+  .bm-note { padding:10px 12px; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; font-size:11px; color:var(--c-text-muted); line-height:1.6; }
 `
 
 const BmTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   const sorted = [...payload].sort((a,b) => (b.value||0)-(a.value||0))
   return (
-    <div style={{background:'#1a1a1a',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:8,padding:'10px 12px',fontFamily:FONTS.sans,minWidth:150}}>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',marginBottom:7}}>{label}</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:8,padding:'10px 12px',fontFamily:FONTS.sans,minWidth:150}}>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',marginBottom:7}}>{label}</p>
       {sorted.filter(p=>p.value!=null).map((p,i)=>(
         <div key={i} style={{display:'flex',justifyContent:'space-between',gap:12,marginBottom:3}}>
           <span style={{fontSize:10,color:p.color,fontWeight:500}}>{p.name}</span>
@@ -337,9 +337,9 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{top:4,right:4,left:0,bottom:0}}>
-              <XAxis dataKey="date" tick={{fontSize:10,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.25)'}} axisLine={false} tickLine={false} interval={Math.floor((chartData.length||1)/5)}/>
-              <YAxis tick={{fontSize:10,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.25)'}} axisLine={false} tickLine={false} width={38} tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.06)" strokeWidth={1}/>
+              <XAxis dataKey="date" tick={{fontSize:10,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} interval={Math.floor((chartData.length||1)/5)}/>
+              <YAxis tick={{fontSize:10,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={38} tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
+              <ReferenceLine y={0} stroke="var(--c-border)" strokeWidth={1}/>
               <Tooltip content={<BmTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
               {!hiddenLines.has('Cartera') && snapshots.length>=2 && (
                 <Line type="monotone" dataKey="Cartera" stroke={COLORS.neonGreen} strokeWidth={2} dot={false} connectNulls name="Cartera"/>
@@ -365,7 +365,7 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
             {returns.map((r,i) => (
               <div key={i} className="bm-tr">
                 <div className="bm-tr-left">
-                  <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',fontFamily:FONTS.num,fontWeight:500,width:18,flexShrink:0}}>#{i+1}</div>
+                  <div style={{fontSize:11,color:'var(--c-text-muted)',fontFamily:FONTS.num,fontWeight:500,width:18,flexShrink:0}}>#{i+1}</div>
                   <div className="bm-tr-dot" style={{background:r.color}}/>
                   <span className={`bm-tr-name${r.isMine?' mine':''}`}>
                     {r.name}{r.isMine?' 🏦':''}
@@ -387,7 +387,7 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
       {myAssets.length > 0 && (
         <div className="bm-panel">
           <p className="bm-panel-title" style={{marginBottom:10}}>Compara els teus actius individualment</p>
-          <p style={{fontSize:11,color:'rgba(255,255,255,0.25)',marginBottom:12}}>Clica un actiu per afegir-lo al gràfic</p>
+          <p style={{fontSize:11,color:'var(--c-text-muted)',marginBottom:12}}>Clica un actiu per afegir-lo al gràfic</p>
           <div className="bm-assets-grid">
             {myAssets.map(a => {
               const ret = assetReturns[a.ticker]

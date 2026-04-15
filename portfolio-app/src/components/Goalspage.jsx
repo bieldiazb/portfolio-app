@@ -5,7 +5,6 @@ import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
 import { GOAL_TYPES } from '../hooks/Usegoals.js'
 
-
 function fv(pv, pmt, rAnnual, months) {
   if (rAnnual === 0) return pv + pmt * months
   const m = rAnnual / 100 / 12
@@ -31,9 +30,9 @@ const TrashIcon = ({size=12}) => (
 const SimTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   return (
-    <div style={{background:'#1a1a1a',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:8,padding:'8px 12px',fontFamily:FONTS.sans}}>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',marginBottom:4}}>{label}</p>
-      <p style={{fontSize:15,fontWeight:300,fontFamily:FONTS.num,color:'#fff',fontVariantNumeric:'tabular-nums'}}>{fmtEur(payload[0]?.value)}</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:8,padding:'8px 12px',fontFamily:FONTS.sans}}>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',marginBottom:4}}>{label}</p>
+      <p style={{fontSize:15,fontWeight:300,fontFamily:FONTS.num,color:'var(--c-text-primary)',fontVariantNumeric:'tabular-nums'}}>{fmtEur(payload[0]?.value)}</p>
     </div>
   )
 }
@@ -42,113 +41,112 @@ const styles = `
   .gl { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .gl-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .gl-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(123,97,255,0.07) 0%,transparent 70%); pointer-events:none; }
+  .gl-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .gl-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-purple) 0%,transparent 70%); pointer-events:none; }
   .gl-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
-  .gl-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .gl-hero-count { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
-  .gl-hero-sub { font-size:12px; color:rgba(255,255,255,0.70); margin-top:4px; }
+  .gl-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .gl-hero-count { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
+  .gl-hero-sub { font-size:12px; color:var(--c-text-secondary); margin-top:4px; }
   .gl-btn-add { display:flex; align-items:center; gap:5px; padding:8px 14px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:opacity 100ms; }
   .gl-btn-add:hover { opacity:0.85; }
   .gl-hero-pills { display:flex; gap:6px; flex-wrap:wrap; }
   .gl-hero-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
-  .gl-hero-pill.done { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.22); }
-  .gl-hero-pill.pend { color:rgba(255,255,255,0.40); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+  .gl-hero-pill.done { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .gl-hero-pill.pend { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
 
   /* ── Card objectiu ── */
-  .gl-card { background:#111; border:1px solid rgba(255,255,255,0.07); border-radius:12px; overflow:hidden; transition:border-color 150ms; }
-  .gl-card:hover { border-color:rgba(255,255,255,0.11); }
+  .gl-card { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; transition:border-color 150ms; }
+  .gl-card:hover { border-color:var(--c-border-mid); }
 
   .gl-card-hdr { display:flex; align-items:center; gap:12px; padding:16px 16px 0; }
   .gl-card-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
   .gl-card-info { flex:1; min-width:0; }
-  .gl-card-name { font-size:15px; font-weight:600; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .gl-card-type { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.30); }
-  .gl-card-del { width:28px; height:28px; background:transparent; border:none; color:rgba(255,255,255,0.20); cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:all 80ms; flex-shrink:0; }
-  .gl-card-del:hover { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); }
+  .gl-card-name { font-size:15px; font-weight:600; color:var(--c-text-primary); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gl-card-type { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:var(--c-text-muted); }
+  .gl-card-del { width:28px; height:28px; background:transparent; border:none; color:var(--c-text-disabled); cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:all 80ms; flex-shrink:0; }
+  .gl-card-del:hover { color:${COLORS.neonRed}; background:var(--c-bg-red); }
 
   .gl-card-body { padding:14px 16px 16px; }
 
   /* Progress gran */
   .gl-prog-nums { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:10px; }
-  .gl-prog-cur { font-size:28px; font-weight:200; font-family:${FONTS.num}; color:#fff; letter-spacing:-1px; font-variant-numeric:tabular-nums; line-height:1; }
-  .gl-prog-cur .unit { font-size:14px; color:rgba(255,255,255,0.30); font-weight:300; margin-left:2px; }
+  .gl-prog-cur { font-size:28px; font-weight:200; font-family:${FONTS.num}; color:var(--c-text-primary); letter-spacing:-1px; font-variant-numeric:tabular-nums; line-height:1; }
+  .gl-prog-cur .unit { font-size:14px; color:var(--c-text-muted); font-weight:300; margin-left:2px; }
   .gl-prog-meta { text-align:right; }
   .gl-prog-pct { font-size:20px; font-weight:300; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:2px; }
-  .gl-prog-target { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.num}; }
+  .gl-prog-target { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.num}; }
 
   /* Barra de progrés */
   .gl-bar-wrap { margin-bottom:14px; }
-  .gl-bar-track { height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:visible; position:relative; }
+  .gl-bar-track { height:6px; background:var(--c-border); border-radius:3px; overflow:visible; position:relative; }
   .gl-bar-fill { height:100%; border-radius:3px; transition:width 700ms cubic-bezier(0.4,0,0.2,1); position:relative; }
-  .gl-bar-fill::after { content:''; position:absolute; right:-1px; top:-3px; width:12px; height:12px; border-radius:50%; background:inherit; border:2px solid #111; }
+  .gl-bar-fill::after { content:''; position:absolute; right:-1px; top:-3px; width:12px; height:12px; border-radius:50%; background:inherit; border:2px solid var(--c-bg); }
   .gl-bar-fill.done::after { display:none; }
-  .gl-bar-label { display:flex; justify-content:space-between; margin-top:6px; font-size:9px; color:rgba(255,255,255,0.20); font-family:${FONTS.num}; }
+  .gl-bar-label { display:flex; justify-content:space-between; margin-top:6px; font-size:9px; color:var(--c-text-disabled); font-family:${FONTS.num}; }
 
   /* Stats grid */
   .gl-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-  .gl-stat { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:10px 12px; }
-  .gl-stat-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
-  .gl-stat-v { font-size:14px; font-weight:300; font-family:${FONTS.num}; color:#fff; font-variant-numeric:tabular-nums; }
+  .gl-stat { background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; }
+  .gl-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
+  .gl-stat-v { font-size:14px; font-weight:300; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; }
   .gl-stat-v.g { color:${COLORS.neonGreen}; }
   .gl-stat-v.p { color:${COLORS.neonPurple}; }
   .gl-stat-v.c { color:${COLORS.neonCyan}; }
   .gl-stat-v.sm { font-size:12px; }
 
   /* Done banner */
-  .gl-done-banner { display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.20); border-radius:8px; font-size:13px; font-weight:600; color:${COLORS.neonGreen}; margin-bottom:14px; }
+  .gl-done-banner { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--c-bg-green); border:1px solid var(--c-border-green); border-radius:8px; font-size:13px; font-weight:600; color:${COLORS.neonGreen}; margin-bottom:14px; }
 
   /* Alert preu */
   .gl-price-alert { display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:8px; font-size:12px; font-weight:500; }
-  .gl-price-alert.ok   { background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.20); color:${COLORS.neonGreen}; }
-  .gl-price-alert.wait { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); color:rgba(255,255,255,0.45); }
+  .gl-price-alert.ok   { background:var(--c-bg-green); border:1px solid var(--c-border-green); color:${COLORS.neonGreen}; }
+  .gl-price-alert.wait { background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
 
   /* Gràfic simulació */
-  .gl-sim-label { font-size:9px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px; }
+  .gl-sim-label { font-size:9px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px; }
 
   /* Empty */
   .gl-empty { padding:56px 0; text-align:center; }
   .gl-empty-icon { font-size:40px; margin-bottom:12px; }
-  .gl-empty-main { font-size:14px; color:rgba(255,255,255,0.35); font-weight:500; margin-bottom:6px; }
-  .gl-empty-sub  { font-size:12px; color:rgba(255,255,255,0.18); line-height:1.65; }
+  .gl-empty-main { font-size:14px; color:var(--c-text-secondary); font-weight:500; margin-bottom:6px; }
+  .gl-empty-sub  { font-size:12px; color:var(--c-text-disabled); line-height:1.65; }
 
   /* ── Modal ── */
   .gl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); }
   @media (min-width:640px) { .gl-overlay { align-items:center; padding:16px; } }
-  .gl-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:glSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
+  .gl-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.40); animation:glSlide 220ms cubic-bezier(0.34,1.2,0.64,1); transition:background-color 220ms ease; }
   @keyframes glSlide { from { transform:translateY(24px); opacity:0 } to { transform:translateY(0); opacity:1 } }
   @media (min-width:640px) { .gl-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
-  .gl-modal-drag { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.10); margin:0 auto 18px; display:block; }
+  .gl-modal-drag { width:36px; height:4px; border-radius:2px; background:var(--c-border); margin:0 auto 18px; display:block; }
   @media (min-width:640px) { .gl-modal-drag { display:none; } }
   .gl-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .gl-modal-title { font-size:16px; font-weight:600; color:#fff; letter-spacing:-0.3px; }
-  .gl-modal-x { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:rgba(255,255,255,0.45); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .gl-lbl { display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:7px; }
-  .gl-inp { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:#fff; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  .gl-modal-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
+  .gl-modal-x { width:28px; height:28px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .gl-lbl { display:block; font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:7px; }
+  .gl-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
   .gl-inp:focus { border-color:rgba(0,255,136,0.35); }
-  .gl-inp::placeholder { color:rgba(255,255,255,0.20); }
+  .gl-inp::placeholder { color:var(--c-text-disabled); }
   .gl-inp.mono { font-family:${FONTS.num}; }
-  .gl-sel { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:#fff; outline:none; cursor:pointer; -webkit-appearance:none; }
-  .gl-sel option { background:#1a1a1a; }
+  .gl-sel { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:var(--c-text-primary); outline:none; cursor:pointer; -webkit-appearance:none; }
+  .gl-sel option { background:var(--c-elevated); }
   .gl-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .gl-fgroup { display:flex; flex-direction:column; gap:14px; }
   .gl-mfooter { display:flex; gap:8px; margin-top:20px; }
-  .gl-btn-cancel { flex:1; padding:13px; border:1px solid rgba(255,255,255,0.09); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; color:rgba(255,255,255,0.45); cursor:pointer; }
+  .gl-btn-cancel { flex:1; padding:13px; border:1px solid var(--c-border); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; color:var(--c-text-secondary); cursor:pointer; }
   .gl-btn-ok { flex:1; padding:13px; border:none; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; font-weight:700; background:${COLORS.neonGreen}; color:#000; cursor:pointer; }
   .gl-btn-ok:hover { opacity:0.85; }
-  .gl-error { font-size:12px; color:${COLORS.neonRed}; background:rgba(255,59,59,0.08); border:1px solid rgba(255,59,59,0.20); border-radius:8px; padding:9px 12px; }
+  .gl-error { font-size:12px; color:${COLORS.neonRed}; background:var(--c-bg-red); border:1px solid var(--c-border-red); border-radius:8px; padding:9px 12px; }
 
   /* Type selector */
   .gl-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-  .gl-type-btn { padding:14px 6px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); cursor:pointer; text-align:center; transition:all 100ms; font-family:${FONTS.sans}; -webkit-tap-highlight-color:transparent; }
-  .gl-type-btn:hover { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); }
-  .gl-type-btn.sel { border-color:rgba(0,255,136,0.30); background:rgba(0,255,136,0.08); }
+  .gl-type-btn { padding:14px 6px 12px; border-radius:10px; border:1px solid var(--c-border); background:var(--c-elevated); cursor:pointer; text-align:center; transition:all 100ms; font-family:${FONTS.sans}; -webkit-tap-highlight-color:transparent; }
+  .gl-type-btn:hover { border-color:var(--c-border-mid); background:var(--c-border); }
+  .gl-type-btn.sel { border-color:rgba(0,255,136,0.30); background:var(--c-bg-green); }
   .gl-type-emoji { font-size:22px; margin-bottom:6px; }
-  .gl-type-lbl { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
+  .gl-type-lbl { font-size:11px; color:var(--c-text-secondary); font-weight:500; }
   .gl-type-btn.sel .gl-type-lbl { color:${COLORS.neonGreen}; font-weight:600; }
 `
 
-// ── GoalCard ──────────────────────────────────────────────────────────────────
 function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove }) {
   const meta  = GOAL_TYPES[goal.type] || { icon:'🎯', label:'Objectiu', color:COLORS.neonPurple }
   const color = meta.color || COLORS.neonPurple
@@ -167,7 +165,6 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
   const pct    = target>0 ? Math.min((currentValue/target)*100, 100) : 0
   const done   = pct>=100
 
-  // Simulació savings
   const simData = useMemo(() => {
     if (goal.type!=='savings') return []
     const pv=currentTotal||0, pmt=goal.monthlyContrib||0, rate=goal.expectedReturn||7
@@ -197,7 +194,6 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
 
   return (
     <div className="gl-card">
-      {/* Header */}
       <div className="gl-card-hdr">
         <div className="gl-card-icon" style={{background:`${color}15`,border:`1px solid ${color}30`}}>
           {meta.icon}
@@ -210,22 +206,15 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
       </div>
 
       <div className="gl-card-body">
-
         {/* ── SAVINGS ── */}
         {goal.type==='savings' && (<>
-          {done && (
-            <div className="gl-done-banner">
-              <span>🏆</span> Objectiu assolit!
-            </div>
-          )}
+          {done && <div className="gl-done-banner"><span>🏆</span> Objectiu assolit!</div>}
           <div className="gl-prog-nums">
             <div className="gl-prog-cur">
               {fmtEur(currentValue).replace('€','')}<span className="unit">€</span>
             </div>
             <div className="gl-prog-meta">
-              <p className="gl-prog-pct" style={{color:done?COLORS.neonGreen:color}}>
-                {pct.toFixed(1)}%
-              </p>
+              <p className="gl-prog-pct" style={{color:done?COLORS.neonGreen:color}}>{pct.toFixed(1)}%</p>
               <p className="gl-prog-target">de {fmtEur(target)}</p>
             </div>
           </div>
@@ -234,9 +223,7 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
               <div className={`gl-bar-fill${done?' done':''}`} style={{width:`${pct}%`,background:done?COLORS.neonGreen:color}}/>
             </div>
             <div className="gl-bar-label">
-              <span>0</span>
-              <span>{fmtEur(target/2)}</span>
-              <span>{fmtEur(target)}</span>
+              <span>0</span><span>{fmtEur(target/2)}</span><span>{fmtEur(target)}</span>
             </div>
           </div>
           <div className="gl-stats">
@@ -258,10 +245,10 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
               <p className="gl-sim-label">Simulació · {goal.expectedReturn||7}% anual estimat</p>
               <ResponsiveContainer width="100%" height={110}>
                 <LineChart data={simData} margin={{top:4,right:0,left:0,bottom:0}}>
-                  <XAxis dataKey="label" tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.22)'}} axisLine={false} tickLine={false} interval={Math.floor(simData.length/4)}/>
-                  <YAxis tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.22)'}} axisLine={false} tickLine={false} width={40} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
+                  <XAxis dataKey="label" tick={{fontSize:9,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} interval={Math.floor(simData.length/4)}/>
+                  <YAxis tick={{fontSize:9,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={40} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
                   <ReferenceLine y={target} stroke={color} strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.5}/>
-                  <Tooltip content={<SimTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
+                  <Tooltip content={<SimTooltip/>} cursor={{stroke:'var(--c-border)',strokeWidth:1}}/>
                   <Line type="monotone" dataKey="value" stroke={color} strokeWidth={1.8} dot={false}/>
                 </LineChart>
               </ResponsiveContainer>
@@ -286,9 +273,7 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
               <div className="gl-bar-fill" style={{width:`${pct}%`,background:done?COLORS.neonGreen:color}}/>
             </div>
             <div className="gl-bar-label">
-              <span>0 €/mes</span>
-              <span>{fmtEur((goal.target||0)/2)}/mes</span>
-              <span>{fmtEur(goal.target||0)}/mes</span>
+              <span>0 €/mes</span><span>{fmtEur((goal.target||0)/2)}/mes</span><span>{fmtEur(goal.target||0)}/mes</span>
             </div>
           </div>
           <div className="gl-stats">
@@ -305,14 +290,14 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
               <p className="gl-stat-v">{fmtEur((goal.target||0)*12)}</p>
             </div>
           </div>
-          <p style={{fontSize:11,color:'rgba(255,255,255,0.25)',lineHeight:1.65}}>
-            Basat en dividends registrats. Afegeix cobraments a <strong style={{color:'rgba(255,255,255,0.45)'}}>Dividends</strong> per actualitzar el progrés.
+          <p style={{fontSize:11,color:'var(--c-text-muted)',lineHeight:1.65}}>
+            Basat en dividends registrats. Afegeix cobraments a <strong style={{color:'var(--c-text-secondary)'}}>Dividends</strong> per actualitzar el progrés.
           </p>
         </>)}
 
         {/* ── ASSET ── */}
         {goal.type==='asset' && (<>
-          <p style={{fontSize:12,color:'rgba(255,255,255,0.30)',marginBottom:12}}>
+          <p style={{fontSize:12,color:'var(--c-text-muted)',marginBottom:12}}>
             {inv?.name||goal.assetName||'—'}{inv?.ticker?` · ${inv.ticker}`:''}
           </p>
           <div className="gl-stats">
@@ -340,16 +325,14 @@ function GoalCard({ goal, currentTotal, totalDividends, investments, onRemove })
             }
           </div>
           {goal.note && (
-            <p style={{fontSize:11,color:'rgba(255,255,255,0.25)',marginTop:10,fontStyle:'italic'}}>"{goal.note}"</p>
+            <p style={{fontSize:11,color:'var(--c-text-muted)',marginTop:10,fontStyle:'italic'}}>"{goal.note}"</p>
           )}
         </>)}
-
       </div>
     </div>
   )
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
 function AddGoalModal({ investments, onAdd, onClose }) {
   const [type, setType] = useState('savings')
   const [form, setForm] = useState({
@@ -463,7 +446,6 @@ function AddGoalModal({ investments, onAdd, onClose }) {
   )
 }
 
-// ── GoalsPage ─────────────────────────────────────────────────────────────────
 export default function GoalsPage({ goals, addGoal, removeGoal, currentTotal=0, totalDividendsYear=0, investments=[] }) {
   const [showModal, setShowModal] = useState(false)
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
@@ -479,7 +461,6 @@ export default function GoalsPage({ goals, addGoal, removeGoal, currentTotal=0, 
       <style>{`${SHARED_STYLES}${styles}`}</style>
       <ConfirmDialog state={confirmState} onClose={closeConfirm}/>
 
-      {/* Hero */}
       <div className="gl-hero">
         <div className="gl-hero-top">
           <div>

@@ -19,36 +19,36 @@ const styles = `
   .al { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .al-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .al-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(0,255,136,0.07) 0%,transparent 70%); pointer-events:none; }
-  .al-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .al-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; line-height:1; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; margin-bottom:10px; }
+  .al-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .al-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-green) 0%,transparent 70%); pointer-events:none; }
+  .al-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .al-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; line-height:1; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; margin-bottom:10px; }
   .al-hero-total span { font-size:20px; opacity:0.35; font-weight:300; }
   .al-hero-cats { display:flex; gap:16px; flex-wrap:wrap; }
   .al-hero-cat { display:flex; align-items:center; gap:6px; }
   .al-hero-cat-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .al-hero-cat-name { font-size:11px; color:rgba(255,255,255,0.40); }
-  .al-hero-cat-val { font-size:12px; font-family:${FONTS.num}; font-weight:500; color:#fff; font-variant-numeric:tabular-nums; margin-left:2px; }
-  .al-hero-cat-pct { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.num}; margin-left:2px; }
+  .al-hero-cat-name { font-size:11px; color:var(--c-text-secondary); }
+  .al-hero-cat-val { font-size:12px; font-family:${FONTS.num}; font-weight:500; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-left:2px; }
+  .al-hero-cat-pct { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.num}; margin-left:2px; }
 
   /* ── Layout ── */
   .al-layout { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   @media (max-width:680px) { .al-layout { grid-template-columns:1fr; } }
 
   /* ── Panel ── */
-  .al-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
-  .al-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+  .al-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
+  .al-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
 
   /* ── Donut ── */
   .al-donut-wrap { position:relative; }
   .al-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
-  .al-center-l { font-size:9px; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
-  .al-center-v { font-size:20px; font-weight:300; font-family:${FONTS.num}; color:#fff; letter-spacing:-0.8px; font-variant-numeric:tabular-nums; }
+  .al-center-l { font-size:9px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
+  .al-center-v { font-size:20px; font-weight:300; font-family:${FONTS.num}; color:var(--c-text-primary); letter-spacing:-0.8px; font-variant-numeric:tabular-nums; }
 
   /* ── Donut legend tabs ── */
   .al-tabs { display:flex; gap:4px; margin-bottom:14px; flex-wrap:wrap; }
-  .al-tab { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:500; cursor:pointer; transition:all 100ms; border:1px solid rgba(255,255,255,0.07); background:transparent; color:rgba(255,255,255,0.35); font-family:${FONTS.sans}; }
-  .al-tab:hover { color:rgba(255,255,255,0.70); border-color:rgba(255,255,255,0.15); }
+  .al-tab { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:500; cursor:pointer; transition:all 100ms; border:1px solid var(--c-border); background:transparent; color:var(--c-text-secondary); font-family:${FONTS.sans}; }
+  .al-tab:hover { color:rgba(255,255,255,0.70); border-color:var(--c-text-disabled); }
   .al-tab.on { background:rgba(0,255,136,0.10); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
 
   /* ── Barres ── */
@@ -57,25 +57,25 @@ const styles = `
   .al-bar-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
   .al-bar-left { display:flex; align-items:center; gap:7px; min-width:0; }
   .al-bar-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-  .al-bar-name { font-size:12px; color:rgba(255,255,255,0.55); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+  .al-bar-name { font-size:12px; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
   .al-bar-right { display:flex; align-items:baseline; gap:6px; flex-shrink:0; }
-  .al-bar-val  { font-size:13px; font-family:${FONTS.num}; font-weight:400; color:#fff; font-variant-numeric:tabular-nums; }
-  .al-bar-pct  { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.num}; }
-  .al-track    { height:3px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+  .al-bar-val  { font-size:13px; font-family:${FONTS.num}; font-weight:400; color:var(--c-text-primary); font-variant-numeric:tabular-nums; }
+  .al-bar-pct  { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.num}; }
+  .al-track    { height:3px; background:var(--c-border); border-radius:2px; overflow:hidden; }
   .al-fill     { height:100%; border-radius:2px; transition:width 500ms cubic-bezier(0.4,0,0.2,1); }
 
   /* ── Categories ── */
   .al-cats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   @media (min-width:480px) { .al-cats-grid { grid-template-columns:repeat(4,1fr); } }
   @media (min-width:700px) { .al-cats-grid { grid-template-columns:repeat(6,1fr); } }
-  .al-cat { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:12px 12px 10px; }
+  .al-cat { background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:12px 12px 10px; }
   .al-cat-dot { width:5px; height:5px; border-radius:50%; margin-bottom:8px; }
-  .al-cat-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.10em; color:rgba(255,255,255,0.35); margin-bottom:5px; }
-  .al-cat-v { font-size:15px; font-weight:300; font-family:${FONTS.num}; color:#fff; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; margin-bottom:2px; }
-  .al-cat-p { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.30); font-weight:400; }
+  .al-cat-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.10em; color:var(--c-text-secondary); margin-bottom:5px; }
+  .al-cat-v { font-size:15px; font-weight:300; font-family:${FONTS.num}; color:var(--c-text-primary); letter-spacing:-0.5px; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  .al-cat-p { font-size:11px; font-family:${FONTS.num}; color:var(--c-text-muted); font-weight:400; }
 
   /* ── Tooltip ── */
-  .al-empty { padding:56px 0; text-align:center; font-size:13px; color:rgba(255,255,255,0.25); }
+  .al-empty { padding:56px 0; text-align:center; font-size:13px; color:var(--c-text-muted); }
 `
 
 const AlTooltip = ({ active, payload, total }) => {
@@ -83,10 +83,10 @@ const AlTooltip = ({ active, payload, total }) => {
   const d   = payload[0].payload
   const pct = total>0?((d.value/total)*100).toFixed(1):0
   return (
-    <div style={{background:'#1a1a1a',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:6,padding:'9px 12px',fontFamily:FONTS.sans}}>
-      <p style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.55)',marginBottom:5}}>{d.name}</p>
-      <p style={{fontSize:16,fontWeight:300,fontFamily:FONTS.num,color:'#fff',letterSpacing:'-0.5px',fontVariantNumeric:'tabular-nums',marginBottom:2}}>{fmtEur(d.value)}</p>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',fontFamily:FONTS.num}}>{pct}% del total</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:6,padding:'9px 12px',fontFamily:FONTS.sans}}>
+      <p style={{fontSize:11,fontWeight:500,color:'var(--c-text-secondary)',marginBottom:5}}>{d.name}</p>
+      <p style={{fontSize:16,fontWeight:300,fontFamily:FONTS.num,color:'var(--c-text-primary)',letterSpacing:'-0.5px',fontVariantNumeric:'tabular-nums',marginBottom:2}}>{fmtEur(d.value)}</p>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',fontFamily:FONTS.num}}>{pct}% del total</p>
     </div>
   )
 }

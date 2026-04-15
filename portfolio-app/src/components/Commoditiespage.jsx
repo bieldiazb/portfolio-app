@@ -26,7 +26,7 @@ function currentValue(c) {
 
 const PriceTip = ({ active, payload }) => {
   if (!active||!payload?.length) return null
-  return <div style={{background:COLORS.elevated,border:`1px solid rgba(255,255,255,0.08)`,borderRadius:5,padding:'5px 9px',fontFamily:FONTS.mono,fontSize:11,color:'#fff'}}>${payload[0]?.value?.toFixed(2)}</div>
+  return <div style={{background:COLORS.elevated,border:`1px solid var(--c-border)`,borderRadius:5,padding:'5px 9px',fontFamily:FONTS.mono,fontSize:11,color:'var(--c-text-primary)'}}>${payload[0]?.value?.toFixed(2)}</div>
 }
 const TrashIcon = ({size=12}) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -38,25 +38,25 @@ const ChevronDown = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="
 const styles = `
   .cm { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  .cm-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
+  .cm-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
   .cm-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(200,150,26,0.07) 0%,transparent 70%); pointer-events:none; }
-  .cm-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .cm-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .cm-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .cm-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .cm-hero-total span { font-size:30px; opacity:0.7; }
   .cm-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .cm-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
-  .cm-hero-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
+  .cm-hero-badge.pos { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .cm-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .cm-hero-sub { font-size:11px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .cm-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
 
   .cm-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .cm-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .cm-metric-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
-  .cm-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
+  .cm-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
+  .cm-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
+  .cm-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
   .cm-metric-val.g { color:${COLORS.neonGreen}; }
   .cm-metric-val.r { color:${COLORS.neonRed}; }
   .cm-metric-val.y { color:#c8961a; }
-  .cm-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.25); }
+  .cm-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
 
   .cm-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
   .cm-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
@@ -65,49 +65,49 @@ const styles = `
   .cm-btn-add:hover { opacity:0.85; }
 
   .cm-section-hdr { display:flex; align-items:center; margin-bottom:8px; }
-  .cm-section-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .cm-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
-  .cm-cards { display:flex; flex-direction:column; background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .cm-card { border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .cm-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .cm-card { border-bottom:1px solid var(--c-border); cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .cm-card:last-child { border-bottom:none; }
 
   .cm-card-main { display:flex; align-items:center; gap:12px; padding:14px; transition:background 80ms; }
-  .cm-card-main:active { background:rgba(255,255,255,0.02); }
+  .cm-card-main:active { background:var(--c-elevated); }
   .cm-av { width:36px; height:36px; border-radius:10px; background:${COM_COLOR.bg}; border:1px solid ${COM_COLOR.border}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COM_COLOR.color}; }
   .cm-card-info { flex:1; min-width:0; }
-  .cm-card-name { font-size:14px; font-weight:500; color:#fff; margin-bottom:3px; }
+  .cm-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; }
   .cm-card-meta { display:flex; align-items:center; gap:6px; }
   .cm-sym-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:3px; background:${COM_COLOR.bg}; color:${COM_COLOR.color}; }
-  .cm-card-price { font-size:10px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
+  .cm-card-price { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .cm-card-right { text-align:right; flex-shrink:0; }
-  .cm-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .cm-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
   .cm-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
   .cm-card-pct.pos { color:${COLORS.neonGreen}; }
   .cm-card-pct.neg { color:${COLORS.neonRed}; }
-  .cm-card-chevron { color:rgba(255,255,255,0.20); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
+  .cm-card-chevron { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
   .cm-card-chevron.open { transform:rotate(180deg); }
 
-  .cm-expand { border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.015); }
+  .cm-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .cm-expand-inner { padding:16px 14px; }
-  .cm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:14px; }
+  .cm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
   .cm-stat { position:relative; padding-right:12px; }
-  .cm-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:rgba(255,255,255,0.06); }
-  .cm-stat-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
-  .cm-stat-v { font-size:13px; font-family:${FONTS.mono}; color:#fff; font-weight:500; font-variant-numeric:tabular-nums; }
+  .cm-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
+  .cm-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
+  .cm-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
   .cm-stat-v.pos { color:${COLORS.neonGreen}; }
   .cm-stat-v.neg { color:${COLORS.neonRed}; }
 
   .cm-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
   .cm-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
 
-  .cm-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .cm-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .cm-tx:last-child { border-bottom:none; }
-  .cm-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:rgba(255,255,255,0.20); margin-left:8px; transition:all 80ms; }
+  .cm-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
   .cm-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
   .cm-empty { padding:48px 0; text-align:center; }
-  .cm-empty-main { font-size:14px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
-  .cm-empty-sub { font-size:12px; color:rgba(255,255,255,0.15); }
+  .cm-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
+  .cm-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
   .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
   @media (min-width:640px) { .cm-overlay { align-items:center; padding:16px; } }
@@ -137,7 +137,7 @@ const styles = `
   .cm-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; }
   .cm-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
   .cm-popular-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:14px; }
-  .cm-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:10px; font-weight:700; transition:all 100ms; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.40); }
+  .cm-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:10px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
   .cm-pop-btn:hover { color:rgba(255,255,255,0.70); }
   .cm-pop-btn.sel { background:${COM_COLOR.bg}; border-color:${COM_COLOR.border}; color:${COM_COLOR.color}; }
 `
@@ -305,18 +305,18 @@ export default function CommoditiesPage({ commodities, onAdd, onRemove, onRefres
                         </div>
                         {c.txs&&c.txs.length>0 && (
                           <>
-                            <p style={{fontSize:9,fontWeight:500,color:'rgba(255,255,255,0.25)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:8}}>Operacions</p>
+                            <p style={{fontSize:9,fontWeight:500,color:'var(--c-text-muted)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:8}}>Operacions</p>
                             <div style={{maxHeight:180,overflowY:'auto'}}>
                               {[...c.txs].reverse().map(tx=>(
                                 <div key={tx.id} className="cm-tx">
                                   <div style={{width:6,height:6,borderRadius:'50%',background:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber,flexShrink:0,marginRight:10}}/>
                                   <div style={{flex:1,minWidth:0}}>
-                                    <p style={{fontSize:12,fontWeight:500,color:'rgba(255,255,255,0.55)',margin:'0 0 2px',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{tx.note||(tx.type==='buy'?'Compra':'Venda')}</p>
-                                    <p style={{fontSize:10,color:'rgba(255,255,255,0.25)',margin:0}}>{tx.date||'—'}</p>
+                                    <p style={{fontSize:12,fontWeight:500,color:'var(--c-text-secondary)',margin:'0 0 2px',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{tx.note||(tx.type==='buy'?'Compra':'Venda')}</p>
+                                    <p style={{fontSize:10,color:'var(--c-text-muted)',margin:0}}>{tx.date||'—'}</p>
                                   </div>
                                   <div style={{textAlign:'right',flexShrink:0,marginLeft:10}}>
                                     <p style={{fontSize:12,fontWeight:600,fontFamily:FONTS.mono,color:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber,margin:0}}>{tx.type==='buy'?'+':'−'}{parseFloat(tx.qty).toFixed(4)} {c.unit}</p>
-                                    <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',fontFamily:FONTS.mono,marginTop:2}}>{fmtEur(tx.totalCostEur||tx.totalCost)}</p>
+                                    <p style={{fontSize:10,color:'var(--c-text-muted)',fontFamily:FONTS.mono,marginTop:2}}>{fmtEur(tx.totalCostEur||tx.totalCost)}</p>
                                   </div>
                                   {onRemoveTransaction&&<button className="cm-tx-del" onClick={()=>onRemoveTransaction(c.id,tx.id)}><TrashIcon size={11}/></button>}
                                 </div>

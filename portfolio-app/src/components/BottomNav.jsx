@@ -51,49 +51,44 @@ const TABS = [
   { id:'home',      label:'Inici',     Icon:IcoHome      },
   { id:'portfolio', label:'Cartera',   Icon:IcoPortfolio },
   { id:'analysis',  label:'Anàlisi',   Icon:IcoChart     },
-  { id:'dividends', label:'Dividends', Icon:IcoDividend },
+  { id:'dividends', label:'Dividends', Icon:IcoDividend  },
   { id:'more',      label:'Més',       Icon:IcoMore      },
 ]
 
-// Cartera submenu
 const PORTFOLIO_ITEMS = [
-  { page:'investments', label:'Inversions',      emoji:'📈' },
-  { page:'savings',     label:'Estalvis',        emoji:'🏦' },
-  { page:'crypto',      label:'Crypto',          emoji:'🔶' },
-  { page:'commodities', label:'Mat. primeres',   emoji:'🥇' },
+  { page:'investments', label:'Inversions',    emoji:'📈' },
+  { page:'savings',     label:'Estalvis',      emoji:'🏦' },
+  { page:'crypto',      label:'Crypto',        emoji:'🔶' },
+  { page:'commodities', label:'Mat. primeres', emoji:'🥇' },
 ]
-
-// Anàlisi submenu
 const ANALYSIS_ITEMS = [
-  { page:'chart',       label:'Distribució',     emoji:'🥧' },
-  { page:'projections', label:'Projeccions',     emoji:'📊' },
-  { page:'timeline',    label:'Evolució',        emoji:'📈' },
-  { page:'benchmark',   label:'Benchmark',       emoji:'⚡' },
-  { page:'rebalancing', label:'Rebalanceig',     emoji:'⚖️' },
+  { page:'chart',       label:'Distribució',   emoji:'🥧' },
+  { page:'projections', label:'Projeccions',   emoji:'📊' },
+  { page:'timeline',    label:'Evolució',      emoji:'📈' },
+  { page:'benchmark',   label:'Benchmark',     emoji:'⚡' },
+  { page:'rebalancing', label:'Rebalanceig',   emoji:'⚖️' },
 ]
-
-// Projeccions / Dividends tab → va directament
-// Més submenu
 const MORE_ITEMS = [
-  { page:'dividends',   label:'Dividends',       emoji:'💰' },
-  { page:'movements',   label:'Moviments',       emoji:'📋' },
-  { page:'goals',       label:'Objectius',       emoji:'🎯' },
-  { page:'news',        label:'Notícies',        emoji:'📰' },
-  { page:'alerts',      label:'Alertes',         emoji:'🔔' },
-  { page:'report',      label:'Informe PDF',     emoji:'📄' },
+  { page:'dividends',   label:'Dividends',     emoji:'💰' },
+  { page:'movements',   label:'Moviments',     emoji:'📋' },
+  { page:'goals',       label:'Objectius',     emoji:'🎯' },
+  { page:'news',        label:'Notícies',      emoji:'📰' },
+  { page:'alerts',      label:'Alertes',       emoji:'🔔' },
+  { page:'report',      label:'Informe PDF',   emoji:'📄' },
 ]
 
 const styles = `
   .bnav {
     position: fixed; bottom: 12px; left: 8px; right: 8px; z-index: 50;
-    background: rgba(16,16,16,0.97);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
     border-radius: 20px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex; align-items: stretch;
     height: 64px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    transition: background-color 220ms ease, border-color 220ms ease;
   }
   @media (min-width: 1024px) { .bnav { display: none; } }
 
@@ -105,18 +100,18 @@ const styles = `
     transition: background 120ms;
     margin: 4px 2px;
   }
-  .bnav-tab:active { background: rgba(255,255,255,0.05); }
-  .bnav-tab.active { background: rgba(0,255,136,0.07); }
+  .bnav-tab:active { background: var(--c-border); }
+  .bnav-tab.active { background: var(--c-bg-green); }
 
   .bnav-tab-label {
     font-family: ${FONTS.sans};
     font-size: 9px; font-weight: 500; letter-spacing: 0.02em;
     transition: color 150ms; line-height: 1;
   }
-  .bnav-tab.active .bnav-tab-label { color: ${COLORS.neonGreen}; font-weight: 600; }
-  .bnav-tab:not(.active) .bnav-tab-label { color: rgba(255,255,255,0.30); }
-  .bnav-tab.active svg { color: ${COLORS.neonGreen}; }
-  .bnav-tab:not(.active) svg { color: rgba(255,255,255,0.30); }
+  .bnav-tab.active .bnav-tab-label      { color: ${COLORS.neonGreen}; font-weight: 600; }
+  .bnav-tab:not(.active) .bnav-tab-label { color: var(--c-text-muted); }
+  .bnav-tab.active svg                   { color: ${COLORS.neonGreen}; }
+  .bnav-tab:not(.active) svg             { color: var(--c-text-muted); }
 
   /* Badge */
   .bnav-badge {
@@ -130,7 +125,7 @@ const styles = `
 
 const drawerStyles = `
   .bnav-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
     z-index: 48; backdrop-filter: blur(6px);
     animation: bnFadeIn 150ms ease;
   }
@@ -138,41 +133,40 @@ const drawerStyles = `
 
   .bnav-drawer {
     position: fixed; bottom: 90px; left: 8px; right: 8px; z-index: 49;
-    background: #131313;
-    border: 1px solid rgba(255,255,255,0.09);
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
     border-radius: 18px;
     padding: 16px 12px 14px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.30);
     animation: bnSlideUp 220ms cubic-bezier(0.34,1.2,0.64,1);
+    transition: background-color 220ms ease, border-color 220ms ease;
   }
   @keyframes bnSlideUp { from { transform:translateY(20px); opacity:0 } to { transform:translateY(0); opacity:1 } }
 
   .bnav-drawer-title {
     font-family: ${FONTS.sans}; font-size: 10px; font-weight: 600;
-    color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.14em;
     margin-bottom: 12px; padding: 0 4px;
   }
-  .bnav-drawer-grid {
-    display: grid; gap: 4px;
-  }
+  .bnav-drawer-grid { display: grid; gap: 4px; }
   .bnav-drawer-grid.col2 { grid-template-columns: 1fr 1fr; }
   .bnav-drawer-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
 
   .bnav-drawer-item {
     display: flex; align-items: center; gap: 10px;
     padding: 11px 12px; border-radius: 10px;
-    border: none; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--c-border);
+    background: var(--c-elevated);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
     transition: background 100ms; text-align: left;
-    border: 1px solid rgba(255,255,255,0.04);
   }
-  .bnav-drawer-item:active { background: rgba(255,255,255,0.07); }
-  .bnav-drawer-item.active-page { background: rgba(0,255,136,0.07); border-color: rgba(0,255,136,0.15); }
+  .bnav-drawer-item:active { background: var(--c-border); }
+  .bnav-drawer-item.active-page { background: var(--c-bg-green); border-color: var(--c-border-green); }
 
   .bnav-drawer-emoji { font-size: 18px; flex-shrink: 0; width: 22px; text-align: center; }
   .bnav-drawer-label {
     font-family: ${FONTS.sans}; font-size: 13px; font-weight: 500;
-    color: rgba(255,255,255,0.70);
+    color: var(--c-text-secondary);
   }
   .bnav-drawer-item.active-page .bnav-drawer-label { color: ${COLORS.neonGreen}; }
 `
@@ -201,26 +195,13 @@ function Drawer({ title, items, activePage, onNavigate, onClose, cols=2 }) {
 }
 
 export default function BottomNav({ activePage, onNavigate, alertsCount = 0 }) {
-  const [openDrawer, setOpenDrawer] = useState(null) // null | 'portfolio' | 'analysis' | 'more'
+  const [openDrawer, setOpenDrawer] = useState(null)
   const activeTab = pageToTab(activePage)
 
   const handleTab = (tabId) => {
-    // Toggle drawer si és el mateix
     if (openDrawer === tabId) { setOpenDrawer(null); return }
-
-    // Tabs sense drawer → navega directe
-    if (tabId === 'home') {
-      setOpenDrawer(null)
-      onNavigate('dashboard')
-      return
-    }
-    if (tabId === 'dividends') {
-      setOpenDrawer(null)
-      onNavigate('dividends')
-      return
-    }
-
-    // Tabs amb drawer
+    if (tabId === 'home') { setOpenDrawer(null); onNavigate('dashboard'); return }
+    if (tabId === 'dividends') { setOpenDrawer(null); onNavigate('dividends'); return }
     setOpenDrawer(tabId)
   }
 
@@ -230,7 +211,6 @@ export default function BottomNav({ activePage, onNavigate, alertsCount = 0 }) {
     <>
       <style>{`${styles}${drawerStyles}`}</style>
 
-      {/* Drawers */}
       {openDrawer === 'portfolio' && (
         <Drawer title="Cartera" items={PORTFOLIO_ITEMS} activePage={activePage} onNavigate={onNavigate} onClose={closeDrawer} cols={2}/>
       )}

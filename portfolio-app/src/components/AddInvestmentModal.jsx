@@ -22,13 +22,14 @@ const modalStyles = `
 
   .aim-modal {
     font-family: ${FONTS.sans};
-    background: #131313;
-    border: 1px solid rgba(255,255,255,0.09);
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
     border-radius: 16px 16px 0 0;
     width: 100%; padding: 20px 16px 100px;
     max-height: 92dvh; overflow-y: auto;
-    box-shadow: 0 -20px 60px rgba(0,0,0,0.70);
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.40);
     animation: aimSlide 220ms cubic-bezier(0.34,1.2,0.64,1);
+    transition: background-color 220ms ease;
   }
   @keyframes aimSlide {
     from { transform: translateY(24px); opacity:0 }
@@ -40,60 +41,60 @@ const modalStyles = `
 
   .aim-drag {
     width: 36px; height: 4px; border-radius: 2px;
-    background: rgba(255,255,255,0.10);
+    background: var(--c-border);
     margin: 0 auto 18px; display: block;
   }
   @media (min-width: 640px) { .aim-drag { display: none; } }
 
   .aim-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .aim-title { font-size:16px; font-weight:600; color:#fff; letter-spacing:-0.3px; }
+  .aim-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
   .aim-close {
     width: 28px; height: 28px; border-radius: 8px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.40); font-size: 16px;
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-secondary); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 100ms;
   }
-  .aim-close:hover { color: rgba(255,255,255,0.80); border-color: rgba(255,255,255,0.18); }
+  .aim-close:hover { color: var(--c-text-primary); border-color: var(--c-border-hi); }
 
   /* Tipus — 4 botons grid */
   .aim-tgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:20px; }
   .aim-tbtn {
     display: flex; flex-direction: column; align-items: center;
     padding: 12px 4px 10px; border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.07);
-    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--c-border);
+    background: var(--c-elevated);
     cursor: pointer; gap: 6px; transition: all 100ms;
     font-family: ${FONTS.sans}; -webkit-tap-highlight-color: transparent;
   }
-  .aim-tbtn:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+  .aim-tbtn:hover { border-color: var(--c-border-mid); background: var(--c-border); }
   .aim-tbtn.sel { border-color: rgba(0,255,136,0.28); background: rgba(0,255,136,0.07); }
   .aim-tav {
     width: 30px; height: 30px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 9px; font-weight: 700; font-family: ${FONTS.mono};
   }
-  .aim-tlbl { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.40); }
+  .aim-tlbl { font-size: 10px; font-weight: 500; color: var(--c-text-muted); }
   .aim-tbtn.sel .aim-tlbl { color: ${COLORS.neonGreen}; }
 
   /* Search */
   .aim-search-wrap { position: relative; margin-bottom: 8px; }
   .aim-search-inp {
-    width: 100%; background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.09);
+    width: 100%; background: var(--c-elevated);
+    border: 1px solid var(--c-border);
     border-radius: 10px; padding: 11px 36px 11px 38px;
     font-family: ${FONTS.sans}; font-size: 15px;
-    color: #fff; outline: none; transition: border-color 120ms;
+    color: var(--c-text-primary); outline: none; transition: border-color 120ms;
     box-sizing: border-box; -webkit-appearance: none;
   }
   .aim-search-inp:focus { border-color: rgba(0,255,136,0.35); }
-  .aim-search-inp::placeholder { color: rgba(255,255,255,0.20); }
-  .aim-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.25); pointer-events: none; }
+  .aim-search-inp::placeholder { color: var(--c-text-disabled); }
+  .aim-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); pointer-events: none; }
   .aim-search-spin {
     position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
     width: 13px; height: 13px;
-    border: 1.5px solid rgba(255,255,255,0.08);
+    border: 1.5px solid var(--c-border);
     border-top-color: ${COLORS.neonGreen};
     border-radius: 50%; animation: aimspin .7s linear infinite;
   }
@@ -101,98 +102,98 @@ const modalStyles = `
 
   /* Results */
   .aim-results {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
     border-radius: 10px; overflow: hidden; margin-bottom: 8px;
   }
   .aim-result {
     display: flex; align-items: center; padding: 11px 12px;
-    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer; border-bottom: 1px solid var(--c-border);
     transition: background 80ms; gap: 10px;
     -webkit-tap-highlight-color: transparent;
   }
   .aim-result:last-child { border-bottom: none; }
-  .aim-result:hover { background: rgba(255,255,255,0.04); }
+  .aim-result:hover { background: var(--c-border); }
   .aim-result:active { background: rgba(0,255,136,0.05); }
   .aim-result-av {
     width: 30px; height: 30px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: ${FONTS.mono};
-    background: rgba(0,212,255,0.10); color: ${COLORS.neonCyan};
+    background: var(--c-bg-cyan); color: ${COLORS.neonCyan};
   }
   .aim-result-info { flex: 1; min-width: 0; }
-  .aim-result-name { font-size: 13px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .aim-result-meta { font-size: 10px; color: rgba(255,255,255,0.30); font-family: ${FONTS.mono}; }
+  .aim-result-name { font-size: 13px; font-weight: 500; color: var(--c-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .aim-result-meta { font-size: 10px; color: var(--c-text-muted); font-family: ${FONTS.mono}; }
   .aim-result-curr {
     font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px;
     flex-shrink: 0; font-family: ${FONTS.mono};
   }
-  .aim-result-curr.usd { color: ${COLORS.neonAmber}; background: rgba(255,149,0,0.10); }
-  .aim-result-curr.gbp { color: ${COLORS.neonGreen}; background: rgba(0,255,136,0.10); }
-  .aim-result-curr.eur { color: ${COLORS.neonCyan}; background: rgba(0,212,255,0.10); }
-  .aim-result-price { font-size: 12px; font-family: ${FONTS.mono}; color: rgba(255,255,255,0.55); text-align: right; flex-shrink: 0; min-width: 52px; }
-  .aim-result-price.loading { color: rgba(255,255,255,0.20); letter-spacing: 2px; }
-  .aim-no-results { padding: 16px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.25); }
+  .aim-result-curr.usd { color: ${COLORS.neonAmber}; background: var(--c-bg-amber); }
+  .aim-result-curr.gbp { color: ${COLORS.neonGreen}; background: var(--c-bg-green); }
+  .aim-result-curr.eur { color: ${COLORS.neonCyan};  background: var(--c-bg-cyan);  }
+  .aim-result-price { font-size: 12px; font-family: ${FONTS.mono}; color: var(--c-text-secondary); text-align: right; flex-shrink: 0; min-width: 52px; }
+  .aim-result-price.loading { color: var(--c-text-disabled); letter-spacing: 2px; }
+  .aim-no-results { padding: 16px; text-align: center; font-size: 12px; color: var(--c-text-muted); }
 
   /* Chip actiu seleccionat */
   .aim-chip {
     display: flex; align-items: center; gap: 10px;
     padding: 12px 14px;
-    background: rgba(0,255,136,0.07);
-    border: 1px solid rgba(0,255,136,0.22);
+    background: var(--c-bg-green);
+    border: 1px solid var(--c-border-green);
     border-radius: 10px; margin-bottom: 10px;
   }
   .aim-chip-info { flex: 1; min-width: 0; }
-  .aim-chip-name { font-size: 14px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .aim-chip-name { font-size: 14px; font-weight: 500; color: var(--c-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
   .aim-chip-meta { font-size: 11px; color: ${COLORS.neonGreen}; font-family: ${FONTS.mono}; }
   .aim-chip-clear {
     width: 24px; height: 24px; border-radius: 6px;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
-    color: rgba(255,255,255,0.40); font-size: 14px;
+    background: var(--c-elevated); border: 1px solid var(--c-border);
+    color: var(--c-text-secondary); font-size: 14px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 100ms; flex-shrink: 0;
   }
-  .aim-chip-clear:hover { color: ${COLORS.neonRed}; border-color: rgba(255,59,59,0.25); }
+  .aim-chip-clear:hover { color: ${COLORS.neonRed}; border-color: var(--c-border-red); }
 
   .aim-manual-link {
-    font-size: 11px; color: rgba(255,255,255,0.25); text-align: center;
+    font-size: 11px; color: var(--c-text-muted); text-align: center;
     margin-bottom: 12px; cursor: pointer; text-decoration: underline;
-    text-decoration-color: rgba(255,255,255,0.10); transition: color 100ms;
+    text-decoration-color: var(--c-border); transition: color 100ms;
   }
-  .aim-manual-link:hover { color: rgba(255,255,255,0.55); }
+  .aim-manual-link:hover { color: var(--c-text-secondary); }
 
   /* Camps manuals */
   .aim-space { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
   .aim-lbl {
     display: block; font-size: 10px; font-weight: 600;
-    color: rgba(255,255,255,0.28); text-transform: uppercase;
+    color: var(--c-text-muted); text-transform: uppercase;
     letter-spacing: 0.12em; margin-bottom: 6px;
   }
   .aim-inp {
-    width: 100%; background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.09); border-radius: 10px;
+    width: 100%; background: var(--c-elevated);
+    border: 1px solid var(--c-border); border-radius: 10px;
     padding: 11px 13px; font-family: ${FONTS.sans}; font-size: 15px;
-    color: #fff; outline: none; transition: border-color 120ms;
+    color: var(--c-text-primary); outline: none; transition: border-color 120ms;
     box-sizing: border-box; -webkit-appearance: none;
   }
   .aim-inp:focus { border-color: rgba(0,255,136,0.35); }
-  .aim-inp::placeholder { color: rgba(255,255,255,0.20); }
+  .aim-inp::placeholder { color: var(--c-text-disabled); }
   .aim-inp.mono { font-family: ${FONTS.mono}; }
 
   /* Hint info */
   .aim-hint {
     display: flex; align-items: flex-start; gap: 9px;
     padding: 11px 13px;
-    background: rgba(0,212,255,0.06);
-    border: 1px solid rgba(0,212,255,0.15);
+    background: var(--c-bg-cyan);
+    border: 1px solid var(--c-border-cyan);
     border-radius: 10px; margin-bottom: 4px;
   }
-  .aim-hint-text { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.65; }
+  .aim-hint-text { font-size: 12px; color: var(--c-text-secondary); line-height: 1.65; }
 
   .aim-error {
     font-size: 12px; color: ${COLORS.neonRed};
-    background: rgba(255,59,59,0.08);
-    border: 1px solid rgba(255,59,59,0.20);
+    background: var(--c-bg-red);
+    border: 1px solid var(--c-border-red);
     border-radius: 8px; padding: 10px 13px; margin-bottom: 4px;
   }
 
@@ -200,12 +201,12 @@ const modalStyles = `
   .aim-footer { display: flex; gap: 8px; margin-top: 20px; }
   .aim-cancel {
     flex: 1; padding: 13px;
-    border: 1px solid rgba(255,255,255,0.09);
+    border: 1px solid var(--c-border);
     background: transparent; border-radius: 10px;
     font-family: ${FONTS.sans}; font-size: 14px;
-    color: rgba(255,255,255,0.45); cursor: pointer; transition: all 100ms;
+    color: var(--c-text-secondary); cursor: pointer; transition: all 100ms;
   }
-  .aim-cancel:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.80); }
+  .aim-cancel:hover { border-color: var(--c-border-hi); color: var(--c-text-primary); }
   .aim-submit {
     flex: 1; background: ${COLORS.neonGreen}; border: none;
     color: #000; padding: 13px; border-radius: 10px;
@@ -351,7 +352,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                   onClick={() => set('type', t.value)}
                 >
                   <div className="aim-tav"
-                    style={{ background: isSel?tc.bg:'rgba(255,255,255,0.04)', color: isSel?tc.color:'rgba(255,255,255,0.30)' }}>
+                    style={{ background: isSel?tc.bg:'var(--c-elevated)', color: isSel?tc.color:'var(--c-text-muted)' }}>
                     {t.short}
                   </div>
                   <span className="aim-tlbl" style={isSel?{color:tc.color}:{}}>{t.label}</span>

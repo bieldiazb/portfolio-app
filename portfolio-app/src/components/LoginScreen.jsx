@@ -21,7 +21,7 @@ const styles = `
   .lg {
     min-height: 100dvh;
     background: #080808;
-    color: #fff;
+    color: var(--c-text-primary);
     font-family: ${FONTS.sans};
     display: flex;
     flex-direction: column;
@@ -46,7 +46,7 @@ const styles = `
     font-family: ${FONTS.sans};
     font-size: 16px;
     font-weight: 600;
-    color: #fff;
+    color: var(--c-text-primary);
     letter-spacing: -0.3px;
   }
   .lg-logo-tag {
@@ -83,7 +83,7 @@ const styles = `
     font-family: ${FONTS.sans};
     font-size: 11px; font-weight: 500;
     color: rgba(255,255,255,0.45);
-    background: rgba(255,255,255,0.05);
+    background: var(--c-border);
     border: 1px solid rgba(255,255,255,0.08);
     padding: 5px 14px; border-radius: 20px;
     margin-bottom: 28px;
@@ -101,14 +101,14 @@ const styles = `
     font-family: ${FONTS.sans};
     font-size: clamp(36px, 7vw, 56px);
     font-weight: 300;
-    color: #fff;
+    color: var(--c-text-primary);
     letter-spacing: -2px;
     line-height: 1.08;
     margin-bottom: 18px;
   }
   .lg-h1 strong {
     font-weight: 600;
-    color: #fff;
+    color: var(--c-text-primary);
   }
   .lg-h1 .accent {
     font-weight: 300;
@@ -138,12 +138,12 @@ const styles = `
   }
   .lg-stat:not(:last-child)::after {
     content: ''; position: absolute; right: 0; top: 15%; height: 70%;
-    width: 1px; background: rgba(255,255,255,0.06);
+    width: 1px; background: var(--c-surface);
   }
   .lg-stat-v {
     font-family: ${FONTS.num};
     font-size: 20px; font-weight: 500;
-    color: #fff; letter-spacing: -0.5px;
+    color: var(--c-text-primary); letter-spacing: -0.5px;
     margin-bottom: 2px;
   }
   .lg-stat-l {
@@ -199,7 +199,7 @@ const styles = `
   }
   .lg-sep::before, .lg-sep::after {
     content: ''; flex: 1; height: 1px;
-    background: rgba(255,255,255,0.05);
+    background: var(--c-border);
   }
   .lg-sep-text {
     font-family: ${FONTS.sans};
@@ -223,8 +223,8 @@ const styles = `
   }
 
   .lg-feat {
-    background: #111;
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
     border-radius: 12px;
     padding: 16px 16px 14px;
     transition: border-color 150ms;

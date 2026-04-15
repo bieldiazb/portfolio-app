@@ -4,7 +4,6 @@ import { COLORS, FONTS, CHART_COLORS, SHARED_STYLES } from './design-tokens'
 
 const NUM = `'DM Sans', system-ui, sans-serif`
 
-// ── Fetch amb fallback query1 → query2 ────────────────────────────────────────
 async function fetchPriceHistory(ticker, range = '1y') {
   const urls = [
     `/yahoo/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1wk&range=${range}`,
@@ -22,13 +21,12 @@ async function fetchPriceHistory(ticker, range = '1y') {
       const pts = timestamps
         .map((t, i) => ({ date: new Date(t * 1000).toISOString().split('T')[0], price: closes[i] }))
         .filter(p => p.price != null && p.price > 0)
-      if (pts.length >= 8) return pts   // mínim 8 punts per ser útil
+      if (pts.length >= 8) return pts
     } catch { continue }
   }
   return null
 }
 
-// ── Correlació de Pearson sobre retorns ──────────────────────────────────────
 function weeklyReturns(prices) {
   const r = []
   for (let i = 1; i < prices.length; i++) {
@@ -38,7 +36,6 @@ function weeklyReturns(prices) {
 }
 
 function pearson(a, b) {
-  // Alinea per longitud mínima
   const n = Math.min(a.length, b.length)
   if (n < 6) return null
   const xa = a.slice(-n), xb = b.slice(-n)
@@ -52,14 +49,14 @@ function pearson(a, b) {
   return denom===0 ? null : +(num/denom).toFixed(3)
 }
 
-// ── Colors semàntics ──────────────────────────────────────────────────────────
+// Colors de correlació — funcionen en mode clar i fosc
 function correlColor(v) {
-  if (v===null) return 'rgba(255,255,255,0.05)'
+  if (v===null) return 'var(--c-border)'
   if (v>=0.8)   return 'rgba(255,59,59,0.70)'
   if (v>=0.5)   return 'rgba(255,149,0,0.60)'
   if (v>=0.2)   return 'rgba(255,220,0,0.30)'
-  if (v>=-0.2)  return 'rgba(0,255,136,0.40)'
-  return 'rgba(0,212,255,0.55)'
+  if (v>=-0.2)  return 'rgba(0,201,112,0.40)'
+  return 'rgba(0,184,217,0.55)'
 }
 function correlLabel(v) {
   if (v===null) return '?'
@@ -70,20 +67,20 @@ function correlLabel(v) {
   return 'Negativa'
 }
 function correlTextColor(v) {
-  if (v===null) return 'rgba(255,255,255,0.20)'
+  if (v===null) return 'var(--c-text-disabled)'
   if (v>=0.8)   return '#ff3b3b'
   if (v>=0.5)   return '#ff9500'
-  if (v>=0.2)   return '#ffd60a'
-  if (v>=-0.2)  return COLORS.neonGreen
-  return COLORS.neonCyan
+  if (v>=0.2)   return '#b8940a'    // dauradmés fosc — llegible sobre fons clar
+  if (v>=-0.2)  return 'var(--c-green)'
+  return 'var(--c-cyan)'
 }
 
 const NormTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   const sorted = [...payload].sort((a,b)=>(b.value||0)-(a.value||0))
   return (
-    <div style={{background:'#1a1a1a',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:8,padding:'9px 12px',fontFamily:FONTS.sans,minWidth:140}}>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',marginBottom:6}}>{label}</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:8,padding:'9px 12px',fontFamily:FONTS.sans,minWidth:140}}>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',marginBottom:6}}>{label}</p>
       {sorted.filter(p=>p.value!=null).map((p,i)=>(
         <div key={i} style={{display:'flex',justifyContent:'space-between',gap:12,marginBottom:3}}>
           <span style={{fontSize:10,color:p.color,fontWeight:500}}>{p.name}</span>
@@ -103,21 +100,20 @@ const PERIODS = [
 ]
 
 const styles = `
-  .corr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:14px; margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); }
+  .corr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:14px; margin-top:14px; padding-top:14px; border-top:1px solid var(--c-border); }
 
-  .corr-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
+  .corr-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
   .corr-panel-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
-  .corr-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .corr-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
   .corr-periods { display:flex; gap:3px; }
-  .corr-period { padding:4px 10px; border-radius:20px; border:1px solid rgba(255,255,255,0.07); background:transparent; font-family:${NUM}; font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); cursor:pointer; transition:all 100ms; }
-  .corr-period:hover { color:rgba(255,255,255,0.65); border-color:rgba(255,255,255,0.15); }
-  .corr-period.on { background:rgba(0,255,136,0.09); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
+  .corr-period { padding:4px 10px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${NUM}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
+  .corr-period:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
+  .corr-period.on { background:var(--c-bg-green); border-color:var(--c-border-green); color:var(--c-green); }
 
-  /* Heatmap */
   .corr-heatmap-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .corr-table { border-collapse:separate; border-spacing:3px; }
-  .corr-th { font-size:9px; font-weight:600; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.08em; padding:4px 6px; text-align:center; white-space:nowrap; max-width:64px; overflow:hidden; text-overflow:ellipsis; }
+  .corr-th { font-size:9px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.08em; padding:4px 6px; text-align:center; white-space:nowrap; max-width:64px; overflow:hidden; text-overflow:ellipsis; }
   .corr-th.row { text-align:right; padding-right:10px; max-width:90px; font-size:9px; }
   .corr-cell {
     width:54px; height:48px; text-align:center; border-radius:6px;
@@ -126,68 +122,63 @@ const styles = `
     position:relative; font-variant-numeric:tabular-nums;
   }
   .corr-cell:hover { transform:scale(1.06); z-index:2; }
-  .corr-cell.self { background:rgba(255,255,255,0.04); cursor:default; }
+  .corr-cell.self { background:var(--c-elevated); color:var(--c-text-disabled); cursor:default; }
   .corr-cell.no-data { cursor:default; }
 
-  /* Popup */
+  /* Popup — usa variables per adaptar-se al tema */
   .corr-popup {
-    position:fixed; background:#1c1c1c;
-    border:1px solid rgba(255,255,255,0.10);
+    position:fixed;
+    background:var(--c-elevated);
+    border:1px solid var(--c-border-mid);
     border-radius:10px; padding:13px 15px; z-index:100; min-width:200px;
-    pointer-events:none; box-shadow:0 12px 36px rgba(0,0,0,0.60);
+    pointer-events:none;
+    box-shadow:0 12px 36px rgba(0,0,0,0.25);
   }
-  .corr-popup-pair { font-size:11px; color:rgba(255,255,255,0.40); margin-bottom:6px; line-height:1.5; }
+  .corr-popup-pair { font-size:11px; color:var(--c-text-secondary); margin-bottom:6px; line-height:1.5; }
   .corr-popup-val  { font-size:28px; font-weight:200; font-family:${NUM}; margin-bottom:3px; font-variant-numeric:tabular-nums; }
   .corr-popup-lbl  { font-size:11px; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.08em; }
-  .corr-popup-exp  { font-size:11px; color:rgba(255,255,255,0.45); line-height:1.6; }
-  .corr-popup-nodata { font-size:12px; color:rgba(255,255,255,0.30); }
+  .corr-popup-exp  { font-size:11px; color:var(--c-text-secondary); line-height:1.6; }
+  .corr-popup-nodata { font-size:12px; color:var(--c-text-muted); }
 
-  /* Diversificadors */
-  .corr-div-row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .corr-div-row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid var(--c-border); }
   .corr-div-row:last-child { border-bottom:none; }
-  .corr-div-rank { width:24px; font-size:11px; font-weight:600; font-family:${NUM}; color:rgba(255,255,255,0.22); flex-shrink:0; }
-  .corr-div-name { flex:1; font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .corr-div-bar-wrap { width:70px; height:3px; background:rgba(255,255,255,0.05); border-radius:2px; margin:0 10px; flex-shrink:0; }
+  .corr-div-rank { width:24px; font-size:11px; font-weight:600; font-family:${NUM}; color:var(--c-text-muted); flex-shrink:0; }
+  .corr-div-name { flex:1; font-size:12px; font-weight:500; color:var(--c-text-secondary); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .corr-div-bar-wrap { width:70px; height:3px; background:var(--c-border); border-radius:2px; margin:0 10px; flex-shrink:0; }
   .corr-div-bar { height:100%; border-radius:2px; }
   .corr-div-val { font-size:12px; font-weight:600; font-family:${NUM}; min-width:38px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
-  .corr-div-lbl { font-size:9px; color:rgba(255,255,255,0.25); min-width:52px; text-align:right; flex-shrink:0; margin-left:6px; }
+  .corr-div-lbl { font-size:9px; color:var(--c-text-muted); min-width:52px; text-align:right; flex-shrink:0; margin-left:6px; }
 
-  /* Loading */
-  .corr-loading { display:flex; align-items:center; gap:8px; padding:32px 0; font-size:12px; color:rgba(255,255,255,0.30); justify-content:center; }
-  .corr-spin { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.08); border-top-color:${COLORS.neonGreen}; border-radius:50%; animation:corrspin .7s linear infinite; }
+  .corr-loading { display:flex; align-items:center; gap:8px; padding:32px 0; font-size:12px; color:var(--c-text-muted); justify-content:center; }
+  .corr-spin { width:12px; height:12px; border:1.5px solid var(--c-border); border-top-color:var(--c-green); border-radius:50%; animation:corrspin .7s linear infinite; }
   @keyframes corrspin { to { transform:rotate(360deg); } }
 
-  /* Llegenda */
-  .corr-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05); }
-  .corr-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; color:rgba(255,255,255,0.30); }
+  .corr-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--c-border); }
+  .corr-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--c-text-muted); }
   .corr-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 
-  /* Progress fetch */
-  .corr-progress { display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,0.30); margin-bottom:10px; }
-  .corr-progress-bar-wrap { flex:1; height:2px; background:rgba(255,255,255,0.06); border-radius:1px; overflow:hidden; }
-  .corr-progress-bar { height:100%; background:${COLORS.neonGreen}; border-radius:1px; transition:width 300ms; }
+  .corr-progress { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--c-text-muted); margin-bottom:10px; }
+  .corr-progress-bar-wrap { flex:1; height:2px; background:var(--c-border); border-radius:1px; overflow:hidden; }
+  .corr-progress-bar { height:100%; background:var(--c-green); border-radius:1px; transition:width 300ms; }
 `
 
 export default function CorrelationMatrix({ investments }) {
-  const [range, setRange]       = useState('1y')
+  const [range, setRange]         = useState('1y')
   const [histories, setHistories] = useState({})
-  const [loading, setLoading]   = useState(false)
+  const [loading, setLoading]     = useState(false)
   const [loadedCount, setLoadedCount] = useState(0)
-  const [popup, setPopup]       = useState(null)
+  const [popup, setPopup]         = useState(null)
   const popupRef = useRef(null)
 
-  // Actius elegibles — tots els que tenen ticker excepte efectiu/estalvi
   const assets = useMemo(() =>
     (investments||[]).filter(inv => inv.ticker && !['efectiu','estalvi'].includes(inv.type))
   , [investments])
 
-  // Fetch amb progress
   useEffect(() => {
     if (!assets.length) return
     setLoading(true)
     setHistories({})
     setLoadedCount(0)
-
     let count = 0
     Promise.all(
       assets.map(async inv => {
@@ -204,7 +195,6 @@ export default function CorrelationMatrix({ investments }) {
     })
   }, [assets.length, range]) // eslint-disable-line
 
-  // Matriu de correlació (ara amb alineació per dates)
   const matrix = useMemo(() => {
     const ids = Object.keys(histories)
     const data = {}
@@ -212,7 +202,6 @@ export default function CorrelationMatrix({ investments }) {
       data[a] = {}
       ids.forEach(b => {
         if (a===b) { data[a][b]=1; return }
-        // Alinea per dates comunes
         const pricesA = histories[a].prices
         const pricesB = histories[b].prices
         const datesA  = new Set(pricesA.map(p=>p.date))
@@ -227,7 +216,6 @@ export default function CorrelationMatrix({ investments }) {
     return { ids, data }
   }, [histories])
 
-  // Diversificadors
   const diversifiers = useMemo(() => {
     const { ids, data } = matrix
     if (ids.length < 2) return []
@@ -241,7 +229,6 @@ export default function CorrelationMatrix({ investments }) {
     .sort((a,b)=>a.avg-b.avg)
   }, [matrix, histories])
 
-  // Gràfic normalitzat per dates (alinea tots els actius)
   const chartData = useMemo(() => {
     const ids = Object.keys(histories)
     if (!ids.length) return []
@@ -291,7 +278,7 @@ export default function CorrelationMatrix({ investments }) {
             <div className="corr-loading"><div className="corr-spin"/> Carregant historial de preus...</div>
           </>
         ) : ids.length < 2 ? (
-          <p style={{fontSize:12,color:'rgba(255,255,255,0.25)',textAlign:'center',padding:'24px 0'}}>
+          <p style={{fontSize:12,color:'var(--c-text-muted)',textAlign:'center',padding:'24px 0'}}>
             Necessites almenys 2 actius amb ticker vàlid i suficients dades per calcular la correlació
           </p>
         ) : (
@@ -318,8 +305,8 @@ export default function CorrelationMatrix({ investments }) {
                         const v    = matrix.data[rowId]?.[colId]
                         const self = rowId===colId
                         const noD  = !self && v===null
-                        const bg   = self ? 'rgba(255,255,255,0.04)' : correlColor(v)
-                        const tc   = self ? 'rgba(255,255,255,0.20)' : correlTextColor(v)
+                        const bg   = self ? 'var(--c-elevated)' : correlColor(v)
+                        const tc   = self ? 'var(--c-text-disabled)' : correlTextColor(v)
                         return (
                           <td key={colId}
                             className={`corr-cell${self?' self':''}${noD?' no-data':''}`}
@@ -336,7 +323,7 @@ export default function CorrelationMatrix({ investments }) {
                             onMouseLeave={()=>setPopup(null)}
                           >
                             {self ? '—' : v!==null ? v.toFixed(2) : (
-                              <span style={{fontSize:14,opacity:0.35}}>?</span>
+                              <span style={{fontSize:14,opacity:0.5}}>?</span>
                             )}
                           </td>
                         )
@@ -347,14 +334,13 @@ export default function CorrelationMatrix({ investments }) {
               </table>
             </div>
 
-            {/* Llegenda */}
             <div className="corr-legend">
               {[
                 {color:'rgba(255,59,59,0.70)',   label:'Molt alta (>0.8)'},
                 {color:'rgba(255,149,0,0.60)',   label:'Alta (0.5–0.8)'},
                 {color:'rgba(255,220,0,0.30)',   label:'Moderada (0.2–0.5)'},
-                {color:'rgba(0,255,136,0.40)',   label:'Baixa (-0.2–0.2)'},
-                {color:'rgba(0,212,255,0.55)',   label:'Negativa (<-0.2)'},
+                {color:'rgba(0,201,112,0.40)',   label:'Baixa (-0.2–0.2)'},
+                {color:'rgba(0,184,217,0.55)',   label:'Negativa (<-0.2)'},
               ].map(l=>(
                 <div key={l.label} className="corr-legend-item">
                   <div className="corr-legend-dot" style={{background:l.color}}/>
@@ -363,9 +349,8 @@ export default function CorrelationMatrix({ investments }) {
               ))}
             </div>
 
-            {/* Info actius sense dades */}
             {assets.filter(a=>!ids.includes(a.id)).length>0 && (
-              <p style={{fontSize:10,color:'rgba(255,255,255,0.20)',marginTop:10,lineHeight:1.6}}>
+              <p style={{fontSize:10,color:'var(--c-text-disabled)',marginTop:10,lineHeight:1.6}}>
                 ⚠ {assets.filter(a=>!ids.includes(a.id)).map(a=>a.ticker).join(', ')} — sense dades suficients per calcular (ticker incorrecte o historial massa curt)
               </p>
             )}
@@ -392,7 +377,7 @@ export default function CorrelationMatrix({ investments }) {
               </div>
             )
           })}
-          <p style={{fontSize:10,color:'rgba(255,255,255,0.20)',marginTop:10,lineHeight:1.6}}>
+          <p style={{fontSize:10,color:'var(--c-text-disabled)',marginTop:10,lineHeight:1.6}}>
             Correlació mitjana amb la resta del portfoli. Com més baixa, millor diversificació.
           </p>
         </div>
@@ -404,10 +389,16 @@ export default function CorrelationMatrix({ investments }) {
           <p className="corr-panel-title" style={{marginBottom:14}}>Evolució comparada (base 0%)</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{top:4,right:4,left:0,bottom:0}}>
-              <XAxis dataKey="date" tick={{fontSize:9,fontFamily:NUM,fill:'rgba(255,255,255,0.22)'}} axisLine={false} tickLine={false} interval={Math.floor(chartData.length/5)}/>
-              <YAxis tick={{fontSize:9,fontFamily:NUM,fill:'rgba(255,255,255,0.22)'}} axisLine={false} tickLine={false} width={36} tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.06)" strokeWidth={1}/>
-              <Tooltip content={<NormTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
+              <XAxis dataKey="date"
+                tick={{fontSize:9,fontFamily:NUM,fill:'var(--c-text-muted)'}}
+                axisLine={false} tickLine={false}
+                interval={Math.floor(chartData.length/5)}/>
+              <YAxis
+                tick={{fontSize:9,fontFamily:NUM,fill:'var(--c-text-muted)'}}
+                axisLine={false} tickLine={false} width={36}
+                tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
+              <ReferenceLine y={0} stroke="var(--c-border)" strokeWidth={1}/>
+              <Tooltip content={<NormTooltip/>} cursor={{stroke:'var(--c-border)',strokeWidth:1}}/>
               {ids.map((id,i)=>(
                 <Line key={id} type="monotone"
                   dataKey={histories[id]?.ticker||histories[id]?.name}
@@ -418,10 +409,9 @@ export default function CorrelationMatrix({ investments }) {
               ))}
             </LineChart>
           </ResponsiveContainer>
-          {/* Mini llegenda */}
-          <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:10,paddingTop:10,borderTop:'1px solid var(--c-border)'}}>
             {ids.map((id,i)=>(
-              <div key={id} style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'rgba(255,255,255,0.35)'}}>
+              <div key={id} style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'var(--c-text-muted)'}}>
                 <div style={{width:18,height:2,background:CHART_COLORS[i%CHART_COLORS.length],borderRadius:1,flexShrink:0}}/>
                 {histories[id]?.ticker} — {histories[id]?.name}
               </div>

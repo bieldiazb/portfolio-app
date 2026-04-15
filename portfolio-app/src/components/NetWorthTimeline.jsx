@@ -24,8 +24,8 @@ const styles = `
 
   /* ── Hero card amb gràfic integrat ── */
   .nwt-hero {
-    background:linear-gradient(160deg,#0d0d0d 0%,#131313 100%);
-    border:1px solid rgba(255,255,255,0.06);
+    background:linear-gradient(160deg,var(--c-bg) 0%,var(--c-border) 100%);
+    border:1px solid var(--c-border);
     border-radius:14px; overflow:hidden; position:relative;
   }
   .nwt-hero::after {
@@ -37,25 +37,18 @@ const styles = `
 
   /* Info superior */
   .nwt-top { padding:22px 20px 0; position:relative; z-index:1; }
-  .nwt-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .nwt-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
 
   /* Valor principal */
   .nwt-amount { display:flex; align-items:flex-end; gap:4px; margin-bottom:10px; line-height:1; }
-  .nwt-symbol { padding-left:4px; font-size:30px;  color:rgba(255,255,255,0.7); font-family:${FONTS.num}; font-weight:600; }
-  .nwt-int { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
-  .nwt-dec { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; }
-
-  /* Badge canvi */
-  .nwt-change-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
-  .nwt-change { display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:600; font-family:${FONTS.num}; padding:5px 12px; border-radius:20px; }
-  .nwt-change.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.22); }
-  .nwt-change.neg { color:${COLORS.neonRed};   background:rgba(255,59,59,0.09);  border:1px solid rgba(255,59,59,0.20);  }
-  .nwt-change-hint { font-size:11px; color:rgba(255,255,255,0.22); font-family:${FONTS.num}; }
+  .nwt-symbol { padding-left:4px; font-size:30px;  color:var(--c-text-primary); opacity:0.7; font-family:${FONTS.num}; font-weight:600; }
+  .nwt-int { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
+  .nwt-dec { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; }
 
   /* Period pills */
   .nwt-periods { display:flex; gap:4px; margin-bottom:18px; }
-  .nwt-period { padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.07); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); cursor:pointer; transition:all 100ms; }
-  .nwt-period:hover { color:rgba(255,255,255,0.65); border-color:rgba(255,255,255,0.15); }
+  .nwt-period { padding:4px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
+  .nwt-period:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
   .nwt-period.on { background:rgba(0,255,136,0.09); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
 
   /* Gràfic sense marges als costats */
@@ -65,44 +58,44 @@ const styles = `
   .nwt-stats-bar {
     display:grid; grid-template-columns:repeat(3,1fr);
     padding:14px 20px 18px; gap:0;
-    border-top:1px solid rgba(255,255,255,0.05);
+    border-top:1px solid var(--c-border);
   }
   .nwt-sbar { position:relative; }
   .nwt-sbar:not(:last-child)::after {
     content:''; position:absolute; right:0; top:15%; height:70%;
-    width:1px; background:rgba(255,255,255,0.05);
+    width:1px; background:var(--c-border);
   }
-  .nwt-sbar-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.22); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:5px; }
+  .nwt-sbar-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:5px; }
   .nwt-sbar-v { font-size:16px; font-weight:600; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; margin-bottom:2px; }
   .nwt-sbar-v.pos { color:${COLORS.neonGreen}; }
   .nwt-sbar-v.neg { color:${COLORS.neonRed}; }
-  .nwt-sbar-v.neu { color:rgba(255,255,255,0.65); }
-  .nwt-sbar-sub { font-size:10px; color:rgba(255,255,255,0.18); font-family:${FONTS.num}; }
+  .nwt-sbar-v.neu { color:var(--c-text-secondary); }
+  .nwt-sbar-sub { font-size:10px; color:var(--c-text-disabled); font-family:${FONTS.num}; }
 
   /* Empty state */
   .nwt-empty { padding:48px 20px; text-align:center; }
   .nwt-empty-icon { font-size:36px; margin-bottom:12px; }
-  .nwt-empty-main { font-size:14px; color:rgba(255,255,255,0.35); font-weight:500; margin-bottom:6px; }
-  .nwt-empty-sub { font-size:12px; color:rgba(255,255,255,0.18); line-height:1.7; }
+  .nwt-empty-main { font-size:14px; color:var(--c-text-secondary); font-weight:500; margin-bottom:6px; }
+  .nwt-empty-sub { font-size:12px; color:var(--c-text-disabled); line-height:1.7; }
 
   /* ── Breakdown categories ── */
   .nwt-cats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-  .nwt-cat { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 12px 12px; }
+  .nwt-cat { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:14px 12px 12px; }
   .nwt-cat-dot { width:6px; height:6px; border-radius:50%; margin-bottom:10px; }
-  .nwt-cat-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.28); margin-bottom:6px; }
-  .nwt-cat-v { font-size:16px; font-weight:600; font-family:${FONTS.num}; color:#fff; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; margin-bottom:3px; }
-  .nwt-cat-p { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.22); }
+  .nwt-cat-l { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.12em; color:var(--c-text-muted); margin-bottom:6px; }
+  .nwt-cat-v { font-size:16px; font-weight:600; font-family:${FONTS.num}; color:var(--c-text-primary); letter-spacing:-0.5px; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .nwt-cat-p { font-size:11px; font-family:${FONTS.num}; color:var(--c-text-muted); }
 
   /* ── Historial mensual ── */
-  .nwt-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
-  .nwt-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+  .nwt-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
+  .nwt-panel-title { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
 
-  .nwt-month-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .nwt-month-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); }
   .nwt-month-row:last-child { border-bottom:none; }
-  .nwt-month-label { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.30); width:64px; flex-shrink:0; text-transform:capitalize; }
-  .nwt-month-bar-wrap { flex:1; height:4px; background:rgba(255,255,255,0.04); border-radius:2px; overflow:hidden; }
+  .nwt-month-label { font-size:11px; font-family:${FONTS.num}; color:var(--c-text-muted); width:64px; flex-shrink:0; text-transform:capitalize; }
+  .nwt-month-bar-wrap { flex:1; height:4px; background:var(--c-elevated); border-radius:2px; overflow:hidden; }
   .nwt-month-bar { height:100%; border-radius:2px; }
-  .nwt-month-end { font-size:13px; font-family:${FONTS.num}; font-weight:400; color:rgba(255,255,255,0.65); font-variant-numeric:tabular-nums; min-width:80px; text-align:right; }
+  .nwt-month-end { font-size:13px; font-family:${FONTS.num}; font-weight:400; color:var(--c-text-secondary); font-variant-numeric:tabular-nums; min-width:80px; text-align:right; }
   .nwt-month-chg { font-size:11px; font-family:${FONTS.num}; font-weight:500; min-width:52px; text-align:right; font-variant-numeric:tabular-nums; }
   .nwt-month-chg.pos { color:${COLORS.neonGreen}; }
   .nwt-month-chg.neg { color:${COLORS.neonRed}; }
@@ -111,9 +104,9 @@ const styles = `
 const NwtTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   return (
-    <div style={{background:'#1c1c1c',border:`1px solid rgba(255,255,255,0.08)`,borderRadius:8,padding:'9px 13px',fontFamily:FONTS.sans,boxShadow:'0 8px 24px rgba(0,0,0,0.5)'}}>
-      <p style={{fontSize:10,color:'rgba(255,255,255,0.28)',marginBottom:4}}>{label}</p>
-      <p style={{fontSize:18,fontWeight:300,fontFamily:FONTS.num,color:'#fff',letterSpacing:'-0.8px',fontVariantNumeric:'tabular-nums'}}>{fmtEur(payload[0]?.value||0)}</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:8,padding:'9px 13px',fontFamily:FONTS.sans,boxShadow:'0 8px 24px rgba(0,0,0,0.5)'}}>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',marginBottom:4}}>{label}</p>
+      <p style={{fontSize:18,fontWeight:300,fontFamily:FONTS.num,color:'var(--c-text-primary)',letterSpacing:'-0.8px',fontVariantNumeric:'tabular-nums'}}>{fmtEur(payload[0]?.value||0)}</p>
     </div>
   )
 }
@@ -228,17 +221,17 @@ export default function NetWorthTimeline({ snapshots=[], currentTotal, totalCost
                 </defs>
                 <XAxis
                   dataKey="label"
-                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.20)'}}
+                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}}
                   axisLine={false} tickLine={false}
                   interval={Math.max(0,Math.floor(chartData.length/5)-1)}
                 />
                 <YAxis
                   domain={[minVal,maxVal]}
-                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'rgba(255,255,255,0.20)'}}
+                  tick={{fontSize:9,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}}
                   axisLine={false} tickLine={false} width={38}
                   tickFormatter={v=>`${(v/1000).toFixed(0)}k`}
                 />
-                <ReferenceLine y={first} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 4" strokeWidth={1}/>
+                <ReferenceLine y={first} stroke="var(--c-border)" strokeDasharray="3 4" strokeWidth={1}/>
                 <Tooltip content={<NwtTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
                 <Area
                   type="monotone" dataKey="total"

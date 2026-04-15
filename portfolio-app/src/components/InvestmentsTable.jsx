@@ -12,25 +12,25 @@ const CURR_SYM    = { EUR:'€', USD:'$', GBP:'£', CHF:'Fr' }
 const styles = `
   .inv { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  .inv-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
-  .inv-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(123,97,255,0.07) 0%,transparent 70%); pointer-events:none; }
-  .inv-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .inv-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .inv-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
+  .inv-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-purple) 0%,transparent 70%); pointer-events:none; }
+  .inv-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .inv-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .inv-hero-total span { font-size:30px; opacity:0.7; }
   .inv-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .inv-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
   .inv-hero-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
   .inv-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .inv-hero-sub { font-size:11px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .inv-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
 
   .inv-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .inv-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .inv-metric-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
-  .inv-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
+  .inv-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
+  .inv-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
+  .inv-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
   .inv-metric-val.g { color:${COLORS.neonGreen}; }
   .inv-metric-val.r { color:${COLORS.neonRed}; }
   .inv-metric-val.p { color:${COLORS.neonPurple}; }
-  .inv-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.25); }
+  .inv-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
 
   .inv-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .inv-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
@@ -41,41 +41,41 @@ const styles = `
   .inv-btn-add:hover { opacity:0.85; }
 
   .inv-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .inv-section-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .inv-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
-  .inv-cards { display:flex; flex-direction:column; gap:0; background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .inv-card { border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  .inv-cards { display:flex; flex-direction:column; gap:0; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .inv-card { border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
   .inv-card:last-child { border-bottom:none; }
-  .inv-card:hover { background:rgba(255,255,255,0.02); }
-  .inv-card:active { background:rgba(255,255,255,0.03); }
+  .inv-card:hover { background:var(--c-elevated); }
+  .inv-card:active { background:var(--c-elevated); }
 
   .inv-card-main { display:flex; align-items:center; gap:12px; padding:14px; }
   .inv-av { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
   .inv-card-info { flex:1; min-width:0; }
-  .inv-card-name { font-size:14px; font-weight:500; color:#fff; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .inv-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .inv-card-meta { display:flex; align-items:center; gap:5px; }
   .inv-type-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; padding:1px 6px; border-radius:3px; text-transform:uppercase; letter-spacing:0.06em; }
-  .inv-ticker { font-size:10px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
+  .inv-ticker { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .inv-curr-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; padding:1px 5px; border-radius:3px; color:${COLORS.neonAmber}; background:${COLORS.bgAmber}; }
 
   .inv-card-right { text-align:right; flex-shrink:0; }
-  .inv-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .inv-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
   .inv-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
   .inv-card-pct.pos { color:${COLORS.neonGreen}; }
   .inv-card-pct.neg { color:${COLORS.neonRed}; }
-  .inv-card-arrow { color:rgba(255,255,255,0.18); margin-left:6px; flex-shrink:0; }
+  .inv-card-arrow { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; }
 
-  .inv-distrib { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px; margin-bottom:12px; }
+  .inv-distrib { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:14px; margin-bottom:12px; }
   .inv-distrib-bar { display:flex; height:6px; border-radius:3px; overflow:hidden; gap:1px; margin-bottom:10px; }
   .inv-distrib-seg { height:100%; border-radius:2px; transition:flex 500ms; }
   .inv-distrib-legend { display:flex; flex-wrap:wrap; gap:10px; }
   .inv-distrib-item { display:flex; align-items:center; gap:5px; }
   .inv-distrib-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .inv-distrib-lbl { font-size:10px; color:rgba(255,255,255,0.45); font-family:${FONTS.mono}; }
+  .inv-distrib-lbl { font-size:10px; color:var(--c-text-secondary); font-family:${FONTS.mono}; }
 
   .inv-empty { padding:48px 0; text-align:center; }
-  .inv-empty-main { font-size:14px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
-  .inv-empty-sub { font-size:12px; color:rgba(255,255,255,0.15); }
+  .inv-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
+  .inv-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
   /* ── Asset Detail Modal — sempre centrat, mai bottom sheet ── */
   .adm-overlay {
@@ -88,8 +88,8 @@ const styles = `
   @keyframes admFadeIn { from{opacity:0} to{opacity:1} }
 
   .adm-sheet {
-    background:#0e0e0e;
-    border:1px solid rgba(255,255,255,0.09);
+    background:var(--c-bg);
+    border:1px solid var(--c-border);
     border-radius:16px;
     width:100%;
     max-width:420px;          /* mòbil: fins a 420px */
@@ -110,43 +110,43 @@ const styles = `
   .adm-hdr {
     display:flex; align-items:center; gap:12px;
     padding:16px 20px 12px;
-    border-bottom:1px solid rgba(255,255,255,0.05);
-    position:sticky; top:0; background:#0e0e0e; z-index:2;
+    border-bottom:1px solid var(--c-border);
+    position:sticky; top:0; background:var(--c-bg); z-index:2;
   }
   .adm-hdr-av { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
   .adm-hdr-info { flex:1; min-width:0; }
-  .adm-hdr-name { font-size:16px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+  .adm-hdr-name { font-size:16px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
   .adm-hdr-meta { display:flex; align-items:center; gap:5px; }
-  .adm-close { width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); color:rgba(255,255,255,0.45); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
-  .adm-close:hover { background:rgba(255,255,255,0.10); color:#fff; }
+  .adm-close { width:30px; height:30px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-muted); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
+  .adm-close:hover { background:var(--c-border-hi); color:var(--c-text-primary); }
 
   /* Hero value */
   .adm-value-section { padding:20px 20px 0; }
-  .adm-value-lbl { font-size:10px; font-weight:500; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
-  .adm-value-num { font-size:40px; font-weight:600; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0.5px; margin-bottom:10px; }
+  .adm-value-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
+  .adm-value-num { font-size:40px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0.5px; margin-bottom:10px; }
   .adm-value-num span { font-size:28px; opacity:0.5; }
   .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
   .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
   .adm-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
   .adm-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .adm-badge.neu { color:rgba(255,255,255,0.40); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); }
+  .adm-badge.neu { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
 
   /* Chart */
-  .adm-chart { padding: 10px; }
-  .adm-chart-tooltip { background:#1a1a1a; border:1px solid rgba(255,255,255,0.10); border-radius:8px; padding:8px 12px; font-family:${FONTS.sans}; }
-  .adm-chart-tooltip-date { font-size:10px; color:rgba(255,255,255,0.35); margin-bottom:4px; }
-  .adm-chart-tooltip-val { font-size:13px; font-weight:600; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
+  .adm-chart { padding:0 0 4px; }
+  .adm-chart-tooltip { background:var(--c-elevated); border:1px solid var(--c-border-mid); border-radius:8px; padding:8px 12px; font-family:${FONTS.sans}; }
+  .adm-chart-tooltip-date { font-size:10px; color:var(--c-text-muted); margin-bottom:4px; }
+  .adm-chart-tooltip-val { font-size:13px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
 
   /* Stats grid */
   .adm-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:16px 20px; }
   @media (min-width:640px) { .adm-stats { grid-template-columns:repeat(4,1fr); } }
-  .adm-stat { background:#161616; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; }
-  .adm-stat-l { font-size:9px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
-  .adm-stat-v { font-size:18px; font-weight:500; font-family:${FONTS.num}; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .adm-stat { background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; }
+  .adm-stat-l { font-size:9px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
+  .adm-stat-v { font-size:18px; font-weight:300; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
   .adm-stat-v.pos { color:${COLORS.neonGreen}; }
   .adm-stat-v.neg { color:${COLORS.neonRed}; }
-  .adm-stat-v.dim { color:rgba(255,255,255,0.45); }
-  .adm-stat-sub { font-size:10px; color:rgba(255,255,255,0.22); margin-top:3px; font-family:${FONTS.mono}; }
+  .adm-stat-v.dim { color:var(--c-text-secondary); }
+  .adm-stat-sub { font-size:10px; color:var(--c-text-muted); margin-top:3px; font-family:${FONTS.mono}; }
 
   /* Actions */
   .adm-actions { display:flex; gap:8px; padding:0 20px 16px; }
@@ -157,21 +157,21 @@ const styles = `
   .adm-action-btn.cap  { background:rgba(0,212,255,0.08); color:${COLORS.neonCyan};  border:1px solid rgba(0,212,255,0.20); }
 
   /* Divider */
-  .adm-divider { height:1px; background:rgba(255,255,255,0.05); margin:0 20px; }
+  .adm-divider { height:1px; background:var(--c-border); margin:0 20px; }
 
   /* Transactions */
   .adm-txs { padding:16px 20px 32px; }
-  .adm-txs-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
-  .adm-tx { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .adm-txs-title { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
+  .adm-tx { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--c-border); }
   .adm-tx:last-child { border-bottom:none; }
   .adm-tx-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; font-weight:700; }
   .adm-tx-info { flex:1; min-width:0; }
-  .adm-tx-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.65); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .adm-tx-date { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .adm-tx-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .adm-tx-date { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .adm-tx-right { text-align:right; flex-shrink:0; }
   .adm-tx-qty { font-size:12px; font-weight:600; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; margin-bottom:2px; }
-  .adm-tx-cost { font-size:10px; color:rgba(255,255,255,0.28); font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; }
-  .adm-tx-del { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:5px; cursor:pointer; color:rgba(255,255,255,0.18); transition:all 80ms; flex-shrink:0; }
+  .adm-tx-cost { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; }
+  .adm-tx-del { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:5px; cursor:pointer; color:var(--c-text-disabled); transition:all 80ms; flex-shrink:0; }
   .adm-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
   /* Delete zone */
@@ -341,17 +341,17 @@ function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemov
                     <stop offset="100%" stopColor={isPos ? COLORS.neonGreen : COLORS.neonRed} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="2 6" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+                <CartesianGrid strokeDasharray="2 6" stroke="var(--c-border)" vertical={false}/>
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'rgba(255,255,255,0.22)' }}
+                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'var(--c-text-muted)' }}
                   axisLine={false} tickLine={false}
                   interval="preserveStartEnd"
                   tickCount={4}
                 />
                 <YAxis
                   domain={['auto', 'auto']}
-                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'rgba(255,255,255,0.22)' }}
+                  tick={{ fontSize: 9, fontFamily: FONTS.mono, fill: 'var(--c-text-muted)' }}
                   axisLine={false} tickLine={false} width={48}
                   tickFormatter={v => fmtEur(v).replace(' €', '')}
                 />
@@ -359,12 +359,12 @@ function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemov
                 {inv.avgCost > 0 && (
                   <ReferenceLine
                     y={inv.avgCost}
-                    stroke="rgba(255,255,255,0.18)"
+                    stroke="var(--c-border-hi)"
                     strokeDasharray="4 4"
-                    label={{ value: 'cost mitjà', position: 'insideTopRight', fontSize: 9, fill: 'rgba(255,255,255,0.30)', fontFamily: FONTS.mono }}
+                    label={{ value: 'cost mitjà', position: 'insideTopRight', fontSize: 9, fill: 'var(--c-text-muted)', fontFamily: FONTS.mono }}
                   />
                 )}
-                <Tooltip content={<ChartTooltip/>} cursor={{ stroke: 'rgba(255,255,255,0.10)', strokeWidth: 1 }}/>
+                <Tooltip content={<ChartTooltip/>} cursor={{ stroke: 'var(--c-border-hi)', strokeWidth: 1 }}/>
                 <Area
                   type="monotone" dataKey="price"
                   stroke={isPos ? COLORS.neonGreen : COLORS.neonRed}
@@ -373,11 +373,11 @@ function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemov
                   dot={(props) => {
                     const { cx, cy, payload } = props
                     if (payload.isCurrent) {
-                      return <circle key={cx} cx={cx} cy={cy} r={4} fill={isPos ? COLORS.neonGreen : COLORS.neonRed} stroke="#0e0e0e" strokeWidth={2}/>
+                      return <circle key={cx} cx={cx} cy={cy} r={4} fill={isPos ? COLORS.neonGreen : COLORS.neonRed} stroke="var(--c-bg)" strokeWidth={2}/>
                     }
                     return <circle key={cx} cx={cx} cy={cy} r={2.5} fill="rgba(255,255,255,0.20)" stroke="none"/>
                   }}
-                  activeDot={{ r: 5, fill: isPos ? COLORS.neonGreen : COLORS.neonRed, stroke: '#0e0e0e', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: isPos ? COLORS.neonGreen : COLORS.neonRed, stroke: 'var(--c-bg)', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>

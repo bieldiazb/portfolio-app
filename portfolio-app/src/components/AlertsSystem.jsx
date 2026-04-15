@@ -21,7 +21,7 @@ function sendBrowserNotification(title, body) {
   } catch {}
 }
 
-// ── Hook useAlerts (sense canvis funcionals) ──────────────────────────────────
+// ── Hook useAlerts ────────────────────────────────────────────────────────────
 export function useAlerts(uid) {
   const [alerts, setAlerts] = useState([])
   const notifiedRef = useRef(new Set())
@@ -75,33 +75,31 @@ export function useAlerts(uid) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALERT_TYPES = [
-  { id:'price_above', label:'Preu per sobre de', icon:'↑', color:COLORS.neonGreen,  bg:'rgba(0,255,136,0.08)',  border:'rgba(0,255,136,0.20)'  },
-  { id:'price_below', label:'Preu per sota de',  icon:'↓', color:COLORS.neonRed,    bg:'rgba(255,59,59,0.08)',  border:'rgba(255,59,59,0.20)'  },
-  { id:'milestone',   label:'Portfoli supera',   icon:'★', color:COLORS.neonAmber,  bg:'rgba(255,149,0,0.08)',  border:'rgba(255,149,0,0.20)'  },
-  { id:'drift',       label:'Desviació objectiu', icon:'⚡', color:COLORS.neonPurple, bg:'rgba(123,97,255,0.08)', border:'rgba(123,97,255,0.20)' },
+  { id:'price_above', label:'Preu per sobre de', icon:'↑', color:COLORS.neonGreen,  bg:'var(--c-bg-green)',  border:'var(--c-border-green)'  },
+  { id:'price_below', label:'Preu per sota de',  icon:'↓', color:COLORS.neonRed,    bg:'var(--c-bg-red)',    border:'var(--c-border-red)'    },
+  { id:'milestone',   label:'Portfoli supera',   icon:'★', color:COLORS.neonAmber,  bg:'var(--c-bg-amber)', border:'var(--c-border-amber)'  },
+  { id:'drift',       label:'Desviació objectiu', icon:'⚡', color:COLORS.neonPurple, bg:'var(--c-bg-purple)',border:'var(--c-border-purple)' },
 ]
 
 function getTypeMeta(type) {
-  return ALERT_TYPES.find(t=>t.id===type) || { icon:'!', color:COLORS.textMuted, bg:COLORS.elevated, border:COLORS.border }
+  return ALERT_TYPES.find(t=>t.id===type) || { icon:'!', color:'var(--c-text-muted)', bg:'var(--c-elevated)', border:'var(--c-border)' }
 }
-
 
 const styles = `
   .als { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .als-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .als-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(255,59,59,0.06) 0%,transparent 70%); pointer-events:none; }
+  .als-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .als-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-red) 0%,transparent 70%); pointer-events:none; }
   .als-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
-  .als-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .als-hero-count { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
-  .als-hero-sub { font-size:12px; color:rgba(255,255,255,0.28); margin-top:4px; }
+  .als-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .als-hero-count { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
+  .als-hero-sub { font-size:12px; color:var(--c-text-muted); margin-top:4px; }
   .als-hero-pills { display:flex; gap:6px; flex-wrap:wrap; }
   .als-hero-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; }
-  .als-hero-pill.activa   { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.22); }
-  .als-hero-pill.disparada { color:rgba(255,255,255,0.40); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+  .als-hero-pill.activa    { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .als-hero-pill.disparada { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
 
-  /* Botó afegir */
   .als-btn-add { display:flex; align-items:center; gap:5px; padding:8px 14px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:opacity 100ms; }
   .als-btn-add:hover { opacity:0.85; }
 
@@ -109,77 +107,74 @@ const styles = `
   .als-banner { display:flex; align-items:center; gap:10px; padding:13px 14px; border-radius:10px; font-size:12px; cursor:pointer; transition:opacity 100ms; -webkit-tap-highlight-color:transparent; }
   .als-banner-text { flex:1; line-height:1.55; }
   .als-banner-text strong { font-weight:600; }
-  .als-banner.granted  { background:rgba(0,255,136,0.06); border:1px solid rgba(0,255,136,0.18); color:rgba(255,255,255,0.45); }
+  .als-banner.granted  { background:var(--c-bg-green); border:1px solid var(--c-border-green); color:var(--c-text-secondary); }
   .als-banner.granted strong { color:${COLORS.neonGreen}; }
-  .als-banner.default  { background:rgba(255,149,0,0.07); border:1px solid rgba(255,149,0,0.20); color:rgba(255,255,255,0.45); }
+  .als-banner.default  { background:var(--c-bg-amber); border:1px solid var(--c-border-amber); color:var(--c-text-secondary); }
   .als-banner.default strong { color:${COLORS.neonAmber}; }
-  .als-banner.denied   { background:rgba(255,59,59,0.06); border:1px solid rgba(255,59,59,0.18); color:rgba(255,255,255,0.35); cursor:default; }
+  .als-banner.denied   { background:var(--c-bg-red); border:1px solid var(--c-border-red); color:var(--c-text-secondary); cursor:default; }
 
   /* Panel genèric */
-  .als-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .als-panel-hdr { padding:13px 16px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; }
-  .als-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.14em; }
-  .als-panel-count { font-size:10px; font-family:${FONTS.num}; color:rgba(255,255,255,0.22); }
+  .als-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .als-panel-hdr { padding:13px 16px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between; }
+  .als-panel-title { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; }
+  .als-panel-count { font-size:10px; font-family:${FONTS.num}; color:var(--c-text-muted); }
   .als-panel-body { padding:0; }
 
   /* Card d'alerta */
-  .als-card { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 80ms; }
+  .als-card { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
   .als-card:last-child { border-bottom:none; }
-  .als-card:hover { background:rgba(255,255,255,0.02); }
+  .als-card:hover { background:var(--c-elevated); }
   .als-card-ico { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
   .als-card-body { flex:1; min-width:0; }
-  .als-card-title { font-size:13px; font-weight:500; color:rgba(255,255,255,0.75); margin-bottom:3px; }
-  .als-card-sub { font-size:11px; color:rgba(255,255,255,0.28); font-family:${FONTS.mono}; margin-bottom:6px; }
+  .als-card-title { font-size:13px; font-weight:500; color:var(--c-text-secondary); margin-bottom:3px; }
+  .als-card-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; margin-bottom:6px; }
   .als-card-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .als-status { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:700; padding:3px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:0.08em; }
   .als-status-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-  .als-status.activa    { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
+  .als-status.activa    { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .als-status.activa .als-status-dot { background:${COLORS.neonGreen}; animation:alspulse 1.5s ease-in-out infinite; }
-  .als-status.disparada { color:rgba(255,255,255,0.30); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+  .als-status.disparada { color:var(--c-text-muted); background:var(--c-elevated); border:1px solid var(--c-border); }
   @keyframes alspulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .als-triggered-at { font-size:10px; color:rgba(255,255,255,0.20); font-style:italic; }
-  .als-card-del { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:6px; cursor:pointer; color:rgba(255,255,255,0.20); flex-shrink:0; margin-top:2px; transition:all 80ms; }
-  .als-card-del:hover { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); }
+  .als-triggered-at { font-size:10px; color:var(--c-text-disabled); font-style:italic; }
+  .als-card-del { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:6px; cursor:pointer; color:var(--c-text-disabled); flex-shrink:0; margin-top:2px; transition:all 80ms; }
+  .als-card-del:hover { color:${COLORS.neonRed}; background:var(--c-bg-red); }
 
   /* Empty */
   .als-empty { padding:40px 16px; text-align:center; }
   .als-empty-icon { font-size:32px; margin-bottom:10px; }
-  .als-empty-main { font-size:13px; color:rgba(255,255,255,0.28); font-weight:500; margin-bottom:5px; }
-  .als-empty-sub { font-size:11px; color:rgba(255,255,255,0.16); }
+  .als-empty-main { font-size:13px; color:var(--c-text-muted); font-weight:500; margin-bottom:5px; }
+  .als-empty-sub { font-size:11px; color:var(--c-text-disabled); }
 
-  /* ── Modal formulari — bottom sheet ── */
+  /* ── Modal formulari ── */
   .als-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); animation:alsFadeIn 150ms ease; }
   @keyframes alsFadeIn { from{opacity:0} to{opacity:1} }
   @media (min-width:640px) { .als-overlay { align-items:center; padding:16px; } }
-  .als-modal { background:#131313; border:1px solid rgba(255,255,255,0.09); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.70); animation:alsSlide 220ms cubic-bezier(0.34,1.2,0.64,1); }
+  .als-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.40); animation:alsSlide 220ms cubic-bezier(0.34,1.2,0.64,1); transition:background-color 220ms ease; }
   @keyframes alsSlide { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
   @media (min-width:640px) { .als-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
-  .als-modal-drag { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.10); margin:0 auto 18px; display:block; }
+  .als-modal-drag { width:36px; height:4px; border-radius:2px; background:var(--c-border); margin:0 auto 18px; display:block; }
   @media (min-width:640px) { .als-modal-drag { display:none; } }
   .als-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .als-modal-title { font-size:16px; font-weight:600; color:#fff; letter-spacing:-0.3px; }
-  .als-modal-x { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:rgba(255,255,255,0.45); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .als-modal-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
+  .als-modal-x { width:28px; height:28px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-  /* Form elements */
   .als-fgroup { display:flex; flex-direction:column; gap:14px; }
-  .als-lbl { display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:7px; }
-  .als-inp { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:#fff; outline:none; box-sizing:border-box; -webkit-appearance:none; transition:border-color 120ms; }
+  .als-lbl { display:block; font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:7px; }
+  .als-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:var(--c-text-primary); outline:none; box-sizing:border-box; -webkit-appearance:none; transition:border-color 120ms; }
   .als-inp:focus { border-color:rgba(0,255,136,0.35); }
-  .als-inp::placeholder { color:rgba(255,255,255,0.20); }
+  .als-inp::placeholder { color:var(--c-text-disabled); }
   .als-inp.mono { font-family:${FONTS.mono}; text-align:right; }
-  .als-sel { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:#fff; outline:none; cursor:pointer; -webkit-appearance:none; }
-  .als-sel option { background:#1a1a1a; }
+  .als-sel { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:var(--c-text-primary); outline:none; cursor:pointer; -webkit-appearance:none; }
+  .als-sel option { background:var(--c-elevated); }
   .als-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  /* Selector de tipus — pills */
   .als-type-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-  .als-type-btn { padding:11px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); cursor:pointer; font-family:${FONTS.sans}; font-size:12px; font-weight:500; color:rgba(255,255,255,0.35); transition:all 100ms; display:flex; align-items:center; gap:7px; -webkit-tap-highlight-color:transparent; }
-  .als-type-btn:hover { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.60); }
-  .als-type-btn.on { border-color:rgba(0,255,136,0.30); background:rgba(0,255,136,0.07); color:${COLORS.neonGreen}; }
+  .als-type-btn { padding:11px 12px; border-radius:10px; border:1px solid var(--c-border); background:var(--c-elevated); cursor:pointer; font-family:${FONTS.sans}; font-size:12px; font-weight:500; color:var(--c-text-secondary); transition:all 100ms; display:flex; align-items:center; gap:7px; -webkit-tap-highlight-color:transparent; }
+  .als-type-btn:hover { background:var(--c-border); }
+  .als-type-btn.on { border-color:rgba(0,255,136,0.30); background:var(--c-bg-green); color:${COLORS.neonGreen}; }
 
-  /* Footer modal */
   .als-modal-footer { display:flex; gap:8px; margin-top:20px; }
-  .als-btn-cancel { flex:1; padding:13px; border:1px solid rgba(255,255,255,0.09); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; color:rgba(255,255,255,0.45); cursor:pointer; }
+  .als-btn-cancel { flex:1; padding:13px; border:1px solid var(--c-border); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; color:var(--c-text-secondary); cursor:pointer; }
   .als-btn-ok { flex:1; padding:13px; border:none; border-radius:10px; font-family:${FONTS.sans}; font-size:14px; font-weight:700; background:${COLORS.neonGreen}; color:#000; cursor:pointer; transition:opacity 100ms; }
   .als-btn-ok:hover { opacity:0.85; }
 `
@@ -269,7 +264,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
     <div className="als">
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
-      {/* ── Hero ── */}
       <div className="als-hero">
         <div className="als-hero-top">
           <div>
@@ -289,7 +283,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
         </div>
       </div>
 
-      {/* Banner notificacions */}
       {notifPerm!=='unsupported' && (
         notifPerm==='granted' ? (
           <div className="als-banner granted" style={{cursor:'default'}}>
@@ -310,7 +303,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
         )
       )}
 
-      {/* ── Alertes actives ── */}
       <div className="als-panel">
         <div className="als-panel-hdr">
           <span className="als-panel-title">Alertes actives</span>
@@ -327,7 +319,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
         </div>
       </div>
 
-      {/* ── Historial ── */}
       {triggered.length>0 && (
         <div className="als-panel">
           <div className="als-panel-hdr">
@@ -342,7 +333,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
 
       <div style={{height:16}}/>
 
-      {/* ── Modal formulari ── */}
       {showForm && (
         <div className="als-overlay" onClick={e=>e.target===e.currentTarget&&setShowForm(false)}>
           <div className="als-modal">
@@ -351,9 +341,7 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
               <h3 className="als-modal-title">Nova alerta</h3>
               <button className="als-modal-x" onClick={()=>setShowForm(false)}>×</button>
             </div>
-
             <div className="als-fgroup">
-              {/* Tipus */}
               <div>
                 <label className="als-lbl">Tipus d'alerta</label>
                 <div className="als-type-grid">
@@ -366,14 +354,10 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
                   ))}
                 </div>
               </div>
-
-              {/* Nom */}
               <div>
                 <label className="als-lbl">Nom (opcional)</label>
                 <input className="als-inp" placeholder="ex: Bitcoin per sota de 50k" value={form.label} onChange={e=>set('label',e.target.value)}/>
               </div>
-
-              {/* Preu actiu */}
               {(form.type==='price_above'||form.type==='price_below') && (
                 <div className="als-grid2">
                   <div>
@@ -389,16 +373,12 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
                   </div>
                 </div>
               )}
-
-              {/* Fita portfoli */}
               {form.type==='milestone' && (
                 <div>
                   <label className="als-lbl">Valor total objectiu (€)</label>
                   <input type="number" inputMode="decimal" step="1000" className="als-inp mono" placeholder="50000" value={form.targetValue} onChange={e=>set('targetValue',e.target.value)}/>
                 </div>
               )}
-
-              {/* Desviació */}
               {form.type==='drift' && (
                 <div className="als-grid2">
                   <div>
@@ -417,7 +397,6 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
                 </div>
               )}
             </div>
-
             <div className="als-modal-footer">
               <button className="als-btn-cancel" onClick={()=>setShowForm(false)}>Cancel·lar</button>
               <button className="als-btn-ok" onClick={handleSubmit}>Crear alerta</button>

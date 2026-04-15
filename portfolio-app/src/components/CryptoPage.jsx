@@ -24,7 +24,7 @@ function currentValue(c) {
 
 const PriceTip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
-  return <div style={{ background:COLORS.elevated, border:`1px solid rgba(255,255,255,0.08)`, borderRadius:5, padding:'5px 9px', fontFamily:FONTS.mono, fontSize:11, color:'#fff' }}>{fmtEur(payload[0]?.value)}</div>
+  return <div style={{ background:COLORS.elevated, border:`1px solid var(--c-border)`, borderRadius:5, padding:'5px 9px', fontFamily:FONTS.mono, fontSize:11, color:'var(--c-text-primary)' }}>{fmtEur(payload[0]?.value)}</div>
 }
 const TrashIcon = ({ size=12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -36,25 +36,25 @@ const ChevronDown = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="
 const styles = `
   .cr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  .cr-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
-  .cr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(255,149,0,0.07) 0%,transparent 70%); pointer-events:none; }
-  .cr-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .cr-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .cr-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
+  .cr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-amber) 0%,transparent 70%); pointer-events:none; }
+  .cr-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .cr-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .cr-hero-total span { font-size:30px; opacity:0.7; }
   .cr-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .cr-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
-  .cr-hero-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
+  .cr-hero-badge.pos { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .cr-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .cr-hero-sub { font-size:11px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .cr-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
 
   .cr-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .cr-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .cr-metric-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
-  .cr-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
+  .cr-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
+  .cr-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
+  .cr-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
   .cr-metric-val.g { color:${COLORS.neonGreen}; }
   .cr-metric-val.r { color:${COLORS.neonRed}; }
   .cr-metric-val.a { color:${COLORS.neonAmber}; }
-  .cr-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.25); }
+  .cr-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
 
   .cr-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
   .cr-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
@@ -63,35 +63,35 @@ const styles = `
   .cr-btn-add:hover { opacity:0.85; }
 
   .cr-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .cr-section-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .cr-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
-  .cr-cards { display:flex; flex-direction:column; background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .cr-card { border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .cr-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .cr-card { border-bottom:1px solid var(--c-border); cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .cr-card:last-child { border-bottom:none; }
 
   .cr-card-main { display:flex; align-items:center; gap:12px; padding:14px; transition:background 80ms; }
-  .cr-card-main:active { background:rgba(255,255,255,0.02); }
+  .cr-card-main:active { background:var(--c-elevated); }
   .cr-av { width:36px; height:36px; border-radius:10px; background:rgba(255,149,0,0.12); border:1px solid rgba(255,149,0,0.20); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COLORS.neonAmber}; }
   .cr-card-info { flex:1; min-width:0; }
-  .cr-card-name { font-size:14px; font-weight:500; color:#fff; margin-bottom:3px; }
+  .cr-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; }
   .cr-card-meta { display:flex; align-items:center; gap:6px; }
   .cr-sym-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:3px; background:rgba(255,149,0,0.12); color:${COLORS.neonAmber}; }
-  .cr-card-price { font-size:10px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
+  .cr-card-price { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .cr-card-right { text-align:right; flex-shrink:0; }
-  .cr-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .cr-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
   .cr-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
   .cr-card-pct.pos { color:${COLORS.neonGreen}; }
   .cr-card-pct.neg { color:${COLORS.neonRed}; }
-  .cr-card-chevron { color:rgba(255,255,255,0.20); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
+  .cr-card-chevron { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
   .cr-card-chevron.open { transform:rotate(180deg); }
 
-  .cr-expand { border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.015); }
+  .cr-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .cr-expand-inner { padding:16px 14px; }
-  .cr-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:14px; }
+  .cr-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
   .cr-stat { position:relative; padding-right:12px; }
-  .cr-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:rgba(255,255,255,0.06); }
-  .cr-stat-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
-  .cr-stat-v { font-size:13px; font-family:${FONTS.mono}; color:#fff; font-weight:500; font-variant-numeric:tabular-nums; }
+  .cr-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
+  .cr-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
+  .cr-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
   .cr-stat-v.pos { color:${COLORS.neonGreen}; }
   .cr-stat-v.neg { color:${COLORS.neonRed}; }
 
@@ -99,14 +99,14 @@ const styles = `
   .cr-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
 
   .cr-tx-list { display:flex; flex-direction:column; }
-  .cr-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .cr-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .cr-tx:last-child { border-bottom:none; }
-  .cr-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:rgba(255,255,255,0.20); margin-left:8px; transition:all 80ms; }
+  .cr-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
   .cr-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
   .cr-empty { padding:48px 0; text-align:center; }
-  .cr-empty-main { font-size:14px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
-  .cr-empty-sub { font-size:12px; color:rgba(255,255,255,0.15); }
+  .cr-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
+  .cr-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
   .cr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
   @media (min-width:640px) { .cr-overlay { align-items:center; padding:16px; } }
@@ -136,8 +136,8 @@ const styles = `
   .cr-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; }
   .cr-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
   .cr-popular-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:14px; }
-  .cr-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:11px; font-weight:700; transition:all 100ms; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.40); }
-  .cr-pop-btn:hover { color:rgba(255,255,255,0.70); border-color:rgba(255,255,255,0.15); }
+  .cr-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:11px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
+  .cr-pop-btn:hover { color:rgba(255,255,255,0.70); border-color:var(--c-text-disabled); }
   .cr-pop-btn.sel { background:rgba(255,149,0,0.12); border-color:rgba(255,149,0,0.30); color:${COLORS.neonAmber}; }
 `
 
@@ -304,18 +304,18 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
                         </div>
                         {c.txs&&c.txs.length>0 && (
                           <>
-                            <p style={{fontSize:9,fontWeight:500,color:'rgba(255,255,255,0.25)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:8}}>Operacions</p>
+                            <p style={{fontSize:9,fontWeight:500,color:'var(--c-text-muted)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:8}}>Operacions</p>
                             <div className="cr-tx-list" style={{maxHeight:180,overflowY:'auto'}}>
                               {[...c.txs].reverse().map(tx=>(
                                 <div key={tx.id} className="cr-tx">
                                   <div style={{width:6,height:6,borderRadius:'50%',background:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber,flexShrink:0,marginRight:10}}/>
                                   <div style={{flex:1,minWidth:0}}>
-                                    <p style={{fontSize:12,fontWeight:500,color:'rgba(255,255,255,0.55)',margin:'0 0 2px',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{tx.note||(tx.type==='buy'?'Compra':'Venda')}</p>
-                                    <p style={{fontSize:10,color:'rgba(255,255,255,0.25)',margin:0}}>{tx.date||'—'}</p>
+                                    <p style={{fontSize:12,fontWeight:500,color:'var(--c-text-secondary)',margin:'0 0 2px',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{tx.note||(tx.type==='buy'?'Compra':'Venda')}</p>
+                                    <p style={{fontSize:10,color:'var(--c-text-muted)',margin:0}}>{tx.date||'—'}</p>
                                   </div>
                                   <div style={{textAlign:'right',flexShrink:0,marginLeft:10}}>
                                     <p style={{fontSize:12,fontWeight:600,fontFamily:FONTS.mono,color:tx.type==='buy'?COLORS.neonGreen:COLORS.neonAmber,margin:0}}>{tx.type==='buy'?'+':'−'}{fmtQty(tx.qty)}</p>
-                                    <p style={{fontSize:10,color:'rgba(255,255,255,0.30)',fontFamily:FONTS.mono,marginTop:2}}>{fmtEur(tx.totalCost)}</p>
+                                    <p style={{fontSize:10,color:'var(--c-text-muted)',fontFamily:FONTS.mono,marginTop:2}}>{fmtEur(tx.totalCost)}</p>
                                   </div>
                                   {onRemoveTransaction&&<button className="cr-tx-del" onClick={()=>onRemoveTransaction(c.id,tx.id)}><TrashIcon size={11}/></button>}
                                 </div>

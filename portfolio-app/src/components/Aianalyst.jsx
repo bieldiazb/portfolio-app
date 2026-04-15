@@ -38,11 +38,11 @@ function buildPortfolioContext({ investments, savings, cryptos, commodities, tot
 }
 
 const QUICK_PROMPTS = [
-  { icon:'🔍', label:'Analitza el portfoli',    prompt:'Fes una anàlisi completa del meu portfoli: riscos, diversificació, punts forts i febles. Dona recomanacions concretes per millorar-lo.' },
-  { icon:'⚖️', label:'Diversificació',           prompt:'Analitza la diversificació del meu portfoli. Estic massa concentrat en algun actiu o sector? Quins ETFs podria afegir?' },
-  { icon:'📈', label:'Alternatives millors',     prompt:'Compara els meus actius amb alternatives similars però amb millors comissions o rendiment.' },
-  { icon:'⚠️', label:'Riscos',                   prompt:'Quins són els principals riscos del meu portfoli? Considera volatilitat, concentració geogràfica i sectorial.' },
-  { icon:'💡', label:'Explica els actius',       prompt:'Explica breument cadascun dels meus actius: què fan, quins índexs repliquen i per a quin perfil inversor.' },
+  { icon:'🔍', label:'Analitza el portfoli',     prompt:'Fes una anàlisi completa del meu portfoli: riscos, diversificació, punts forts i febles. Dona recomanacions concretes per millorar-lo.' },
+  { icon:'⚖️', label:'Diversificació',            prompt:'Analitza la diversificació del meu portfoli. Estic massa concentrat en algun actiu o sector? Quins ETFs podria afegir?' },
+  { icon:'📈', label:'Alternatives millors',      prompt:'Compara els meus actius amb alternatives similars però amb millors comissions o rendiment.' },
+  { icon:'⚠️', label:'Riscos',                    prompt:'Quins són els principals riscos del meu portfoli? Considera volatilitat, concentració geogràfica i sectorial.' },
+  { icon:'💡', label:'Explica els actius',        prompt:'Explica breument cadascun dels meus actius: què fan, quins índexs repliquen i per a quin perfil inversor.' },
   { icon:'🎯', label:'Estratègia a llarg termini',prompt:'Basant-te en el meu portfoli, quina estratègia a llarg termini recomanaries? DCA, rebalanceig o canvis?' },
 ]
 
@@ -59,9 +59,9 @@ function formatResponse(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, `<code style="font-family:'Geist Mono',monospace;font-size:11px;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:2px">$1</code>`)
+    .replace(/`(.+?)`/g, `<code style="font-family:'Geist Mono',monospace;font-size:11px;background:var(--c-surface);padding:1px 4px;border-radius:2px">$1</code>`)
     .replace(/^#{1,3}\s+(.+)$/gm, `<strong style="display:block;margin-top:8px">$1</strong>`)
-    .replace(/^[-•]\s+(.+)$/gm, `<div style="display:flex;gap:6px;margin-top:3px"><span style="color:#00ff88;flex-shrink:0">•</span><span>$1</span></div>`)
+    .replace(/^[-•]\s+(.+)$/gm, `<div style="display:flex;gap:6px;margin-top:3px"><span style="color:var(--c-green);flex-shrink:0">•</span><span>$1</span></div>`)
     .replace(/\n\n/g, '<br/><br/>')
     .replace(/\n/g, '<br/>')
 }
@@ -80,7 +80,6 @@ const styles = `
     transition: transform 150ms, box-shadow 150ms, background 150ms, opacity 150ms;
     -webkit-tap-highlight-color: transparent;
   }
-  /* En mòbil quan el panel és obert, amaguem el FAB — el X és al header del panel */
   @media (max-width: 1023px) {
     .ai-fab.open { opacity: 0; pointer-events: none; }
   }
@@ -90,7 +89,7 @@ const styles = `
   }
   .ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(123,97,255,0.65); }
   .ai-fab:active { transform: scale(0.95); }
-  .ai-fab.open { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .ai-fab.open { background: var(--c-elevated); border: 1px solid var(--c-border-mid); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
   .ai-fab-pulse {
     position: absolute; inset: -4px; border-radius: 50%;
@@ -102,23 +101,22 @@ const styles = `
     100% { transform: scale(1.7); opacity: 0; }
   }
 
-  /* ── Panel — MÒBIL: full screen amb marge ── */
+  /* ── Panel ── */
   .ai-panel {
     position: fixed;
-    /* Mòbil: ocupa tota la pantalla excepte top safe area i bottom nav */
     top: max(env(safe-area-inset-top), 8px);
     left: 8px; right: 8px;
     bottom: calc(64px + 12px + 8px + env(safe-area-inset-bottom));
-    background: #111;
-    border: 1px solid rgba(255,255,255,0.09);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
     border-radius: 16px;
     display: flex; flex-direction: column;
     z-index: 44;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.70);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.30);
     animation: aiPanelIn 200ms cubic-bezier(0.34,1.2,0.64,1);
+    transition: background-color 220ms ease;
   }
-  /* Desktop: panel flotant a la cantonada */
   @media (min-width: 1024px) {
     .ai-panel {
       top: auto; left: auto;
@@ -136,28 +134,30 @@ const styles = `
   /* ── Header ── */
   .ai-hdr {
     display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.07);
-    flex-shrink: 0; background: #131313;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--c-border);
+    flex-shrink: 0;
+    background: var(--c-bg);
+    transition: background-color 220ms ease;
   }
   .ai-hdr-icon {
     width: 30px; height: 30px; border-radius: 50%;
-    background: rgba(123,97,255,0.15); border: 1px solid rgba(123,97,255,0.30);
+    background: var(--c-bg-purple); border: 1px solid var(--c-border-purple);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .ai-hdr-info { flex: 1; min-width: 0; }
-  .ai-hdr-title { font-family: ${FONTS.sans}; font-size: 14px; font-weight: 600; color: #fff; }
-  .ai-hdr-sub   { font-family: ${FONTS.sans}; font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 1px; }
-  /* Botó tancar — separat, no tapa res */
+  .ai-hdr-title { font-family: ${FONTS.sans}; font-size: 14px; font-weight: 600; color: var(--c-text-primary); }
+  .ai-hdr-sub   { font-family: ${FONTS.sans}; font-size: 10px; color: var(--c-text-muted); margin-top: 1px; }
   .ai-hdr-close {
     width: 30px; height: 30px; border-radius: 8px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.50); font-size: 16px;
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-secondary); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 100ms; flex-shrink: 0;
     margin-left: 4px;
   }
-  .ai-hdr-close:hover { background: rgba(255,59,59,0.10); border-color: rgba(255,59,59,0.25); color: ${COLORS.neonRed}; }
+  .ai-hdr-close:hover { background: var(--c-bg-red); border-color: var(--c-border-red); color: ${COLORS.neonRed}; }
 
   /* ── Missatges ── */
   .ai-msgs {
@@ -165,7 +165,7 @@ const styles = `
     display: flex; flex-direction: column; gap: 14px;
   }
   .ai-msgs::-webkit-scrollbar { width: 3px; }
-  .ai-msgs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .ai-msgs::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
 
   .ai-msg { display: flex; gap: 9px; animation: aiMsgIn 200ms ease; }
   @keyframes aiMsgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -175,32 +175,32 @@ const styles = `
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 700; font-family: ${FONTS.mono};
   }
-  .ai-msg-av.user { background: rgba(123,97,255,0.15); color: ${COLORS.neonPurple}; }
-  .ai-msg-av.ai   { background: rgba(0,255,136,0.12); color: ${COLORS.neonGreen}; }
+  .ai-msg-av.user { background: var(--c-bg-purple); color: var(--c-purple); }
+  .ai-msg-av.ai   { background: var(--c-bg-green);  color: var(--c-green);  }
 
   .ai-msg-body { flex: 1; min-width: 0; }
   .ai-msg-name {
-    font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.25);
+    font-size: 9px; font-weight: 600; color: var(--c-text-muted);
     margin-bottom: 5px; font-family: ${FONTS.sans}; text-transform: uppercase; letter-spacing: 0.10em;
   }
   .ai-bubble {
     font-family: ${FONTS.sans}; font-size: 13px; line-height: 1.65;
-    color: rgba(255,255,255,0.65); padding: 11px 13px;
-    border-radius: 10px; background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--c-text-secondary); padding: 11px 13px;
+    border-radius: 10px; background: var(--c-elevated);
+    border: 1px solid var(--c-border);
   }
   .ai-bubble.user {
-    background: rgba(123,97,255,0.09);
-    border-color: rgba(123,97,255,0.18);
-    color: rgba(255,255,255,0.85);
+    background: var(--c-bg-purple);
+    border-color: var(--c-border-purple);
+    color: var(--c-text-primary);
   }
-  .ai-bubble strong { color: #fff; font-weight: 600; }
-  .ai-bubble em { color: ${COLORS.neonGreen}; font-style: normal; }
+  .ai-bubble strong { color: var(--c-text-primary); font-weight: 600; }
+  .ai-bubble em { color: var(--c-green); font-style: normal; }
 
   /* Typing dots */
   .ai-typing { display: flex; align-items: center; gap: 4px; padding: 4px 2px; }
   .ai-typing span {
-    width: 5px; height: 5px; border-radius: 50%; background: ${COLORS.neonPurple};
+    width: 5px; height: 5px; border-radius: 50%; background: var(--c-purple);
     animation: aiDot 1.2s ease-in-out infinite;
   }
   .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -208,41 +208,42 @@ const styles = `
   @keyframes aiDot { 0%,80%,100% { opacity:0.2; transform:scale(0.8); } 40% { opacity:1; transform:scale(1); } }
 
   /* ── Quick prompts ── */
-  .ai-quick { padding: 8px 14px 10px; border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-  .ai-quick-title { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; font-family: ${FONTS.sans}; }
+  .ai-quick { padding: 8px 14px 10px; border-top: 1px solid var(--c-border); flex-shrink: 0; }
+  .ai-quick-title { font-size: 9px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; font-family: ${FONTS.sans}; }
   .ai-quick-chips { display: flex; gap: 5px; flex-wrap: wrap; }
   .ai-quick-chip {
     display: flex; align-items: center; gap: 4px;
     font-family: ${FONTS.sans}; font-size: 11px; font-weight: 500;
-    color: rgba(255,255,255,0.50); background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07); border-radius: 20px;
+    color: var(--c-text-secondary); background: var(--c-elevated);
+    border: 1px solid var(--c-border); border-radius: 20px;
     padding: 5px 10px; cursor: pointer; transition: all 100ms;
     -webkit-tap-highlight-color: transparent;
   }
-  .ai-quick-chip:hover { border-color: rgba(123,97,255,0.35); color: ${COLORS.neonPurple}; background: rgba(123,97,255,0.08); }
+  .ai-quick-chip:hover { border-color: var(--c-border-purple); color: var(--c-purple); background: var(--c-bg-purple); }
   .ai-quick-chip:active { transform: scale(0.97); }
 
-  /* ── Input row — CLAU: botó tancar FORA de l'input row ── */
+  /* ── Input row ── */
   .ai-input-row {
     display: flex; align-items: flex-end; gap: 8px;
     padding: 10px 14px 14px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    flex-shrink: 0; background: #131313;
+    border-top: 1px solid var(--c-border);
+    flex-shrink: 0;
+    background: var(--c-bg);
+    transition: background-color 220ms ease;
   }
   .ai-input {
-    flex: 1; background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.09);
+    flex: 1; background: var(--c-elevated);
+    border: 1px solid var(--c-border);
     border-radius: 12px; padding: 10px 14px;
-    font-family: ${FONTS.sans}; font-size: 14px; color: #fff;
+    font-family: ${FONTS.sans}; font-size: 14px; color: var(--c-text-primary);
     outline: none; resize: none;
     min-height: 42px; max-height: 100px;
     line-height: 1.45; transition: border-color 120ms;
     overflow-y: auto;
   }
-  .ai-input:focus { border-color: rgba(123,97,255,0.40); }
-  .ai-input::placeholder { color: rgba(255,255,255,0.20); }
+  .ai-input:focus { border-color: var(--c-border-purple); }
+  .ai-input::placeholder { color: var(--c-text-disabled); }
 
-  /* Botó enviar — sempre visible, no es tapa */
   .ai-send {
     width: 42px; height: 42px; border-radius: 12px; border: none;
     background: ${COLORS.neonPurple}; color: #fff;
@@ -253,22 +254,22 @@ const styles = `
   .ai-send:active { transform: scale(0.97); }
   .ai-send:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
 
-  .ai-error { font-size: 11px; color: ${COLORS.neonRed}; background: rgba(255,59,59,0.08); border: 1px solid rgba(255,59,59,0.20); border-radius: 8px; padding: 8px 12px; margin: 0 14px 8px; }
+  .ai-error { font-size: 11px; color: ${COLORS.neonRed}; background: var(--c-bg-red); border: 1px solid var(--c-border-red); border-radius: 8px; padding: 8px 12px; margin: 0 14px 8px; }
 
   /* Welcome screen */
   .ai-welcome { text-align: center; padding: 28px 20px; }
   .ai-welcome-icon { font-size: 36px; margin-bottom: 12px; }
-  .ai-welcome-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px; font-family: ${FONTS.sans}; }
-  .ai-welcome-sub { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.65; font-family: ${FONTS.sans}; }
+  .ai-welcome-title { font-size: 15px; font-weight: 600; color: var(--c-text-primary); margin-bottom: 8px; font-family: ${FONTS.sans}; }
+  .ai-welcome-sub { font-size: 13px; color: var(--c-text-muted); line-height: 1.65; font-family: ${FONTS.sans}; }
 `
 
 export default function AIAnalyst({ investments=[], savings=[], cryptos=[], commodities=[], totalAll=0, totalCost=0, pg=0, pgPct=0 }) {
-  const [open, setOpen]         = useState(false)
-  const [msgs, setMsgs]         = useState([])
-  const [input, setInput]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const [hasGreeted, setGreeted]= useState(false)
+  const [open, setOpen]          = useState(false)
+  const [msgs, setMsgs]          = useState([])
+  const [input, setInput]        = useState('')
+  const [loading, setLoading]    = useState(false)
+  const [error, setError]        = useState('')
+  const [hasGreeted, setGreeted] = useState(false)
   const msgsEndRef = useRef(null)
   const inputRef   = useRef(null)
 
@@ -323,7 +324,6 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
   }
 
-  // Auto-resize textarea
   const handleInput = e => {
     const ta = e.target
     ta.style.height = 'auto'
@@ -337,10 +337,9 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
 
       {open && (
         <div className="ai-panel">
-          {/* Header — X aquí, no en l'input row */}
           <div className="ai-hdr">
             <div className="ai-hdr-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7b61ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
@@ -348,11 +347,9 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
               <p className="ai-hdr-title">Assessor AI</p>
               <p className="ai-hdr-sub">Powered by Claude · {fmtEur(totalAll)}</p>
             </div>
-            {/* Botó tancar — separat de l'input */}
             <button className="ai-hdr-close" onClick={() => setOpen(false)}>×</button>
           </div>
 
-          {/* Missatges */}
           <div className="ai-msgs">
             {msgs.length === 0 && (
               <div className="ai-welcome">
@@ -389,7 +386,6 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
 
           {error && <p className="ai-error">{error}</p>}
 
-          {/* Quick prompts — només si hi ha pocs missatges */}
           {msgs.length <= 1 && (
             <div className="ai-quick">
               <p className="ai-quick-title">Suggeriments ràpids</p>
@@ -403,7 +399,6 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
             </div>
           )}
 
-          {/* Input row — SENSE botó X, ara és al header */}
           <div className="ai-input-row">
             <textarea
               ref={inputRef}
@@ -428,11 +423,10 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
         </div>
       )}
 
-      {/* FAB */}
       <button className={`ai-fab${open?' open':''}`} onClick={open?()=>setOpen(false):handleOpen}>
         {!open && <div className="ai-fab-pulse"/>}
         {open ? (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.70)" strokeWidth="2.2" strokeLinecap="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-text-secondary)" strokeWidth="2.2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         ) : (

@@ -30,6 +30,8 @@ import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
 import { useRebalancingGoals } from './hooks/useRebalancingGoals'
 import { useAlerts } from './components/AlertsSystem'
+import { useTheme } from './hooks/useTheme'
+import ThemeToggleIcon from './components/ThemeToggle'
 
 export const PAGES = {
   dashboard:   'Inici',
@@ -50,28 +52,77 @@ export const PAGES = {
   goals:       'Objectius',
 }
 
+// ── Tot el CSS de l'app ara usa variables CSS → light/dark automàtic ─────────
 const appStyles = `
-  .mob-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); background: #0d0d0d; position: sticky; top: 0; z-index: 10; font-family: 'Geist',sans-serif; flex-shrink: 0; }
+  .mob-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--c-border);
+    background: var(--c-bg);
+    position: sticky; top: 0; z-index: 10;
+    font-family: 'Geist', sans-serif; flex-shrink: 0;
+    /* Transició suau quan canvia el tema */
+    transition: background-color 220ms ease, border-color 220ms ease;
+  }
   @media (min-width: 1024px) { .mob-hdr { display: none; } }
+
   .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
-  .mob-hdr-logo { width:24px; height:24px; border-radius:6px; background:rgb(255,255,255); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .mob-menu-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: 5px; transition: background 100ms; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
-  .mob-menu-btn:hover { background: rgba(255,255,255,0.05); }
-  .mob-hdr-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.82); letter-spacing: -0.3px; }
-  .mob-av { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; overflow: hidden; cursor: pointer; transition: background 100ms; }
-  .mob-av:hover { background: rgba(255,255,255,0.10); }
-  .mob-av img { width: 100%; height: 100%; object-fit: cover; }
-  .app-spinner { min-height: 100vh; background: #0a0a0a; display: flex; align-items: center; justify-content: center; }
-  .app-spinner-ring { width: 18px; height: 18px; border: 1px solid rgba(255,255,255,0.15); border-top-color: rgba(255,255,255,0.6); border-radius: 50%; animation: appSpin 0.6s linear infinite; }
+
+  .mob-hdr-logo {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: var(--c-text-primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  /* En mode clar el logo inverteix per llegibilitat */
+  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
+
+  .mob-hdr-title {
+    font-size: 14px; font-weight: 500;
+    color: var(--c-text-primary); letter-spacing: -0.3px;
+  }
+
+  .mob-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; overflow: hidden;
+    cursor: pointer; transition: background 100ms;
+  }
+  .mob-av:hover { background: var(--c-border-hi); }
+  .mob-av img   { width: 100%; height: 100%; object-fit: cover; }
+
+  .app-spinner {
+    min-height: 100vh;
+    background: var(--c-bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app-spinner-ring {
+    width: 18px; height: 18px;
+    border: 1px solid var(--c-border-hi);
+    border-top-color: var(--c-text-primary);
+    border-radius: 50%;
+    animation: appSpin 0.6s linear infinite;
+  }
   @keyframes appSpin { to { transform: rotate(360deg); } }
-  .swipe-hint { position: fixed; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 0 2px 2px 0; z-index: 5; }
+
+  .swipe-hint {
+    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 40px;
+    background: var(--c-border);
+    border-radius: 0 2px 2px 0; z-index: 5;
+  }
   @media (min-width: 1024px) { .swipe-hint { display: none; } }
+
+  /* Pàgina de nom al header mòbil */
+  .mob-page-name {
+    font-size: 12px;
+    font-family: 'Geist Mono', monospace;
+    color: var(--c-text-muted);
+  }
 `
 
-// ── Funció canònica de valor per inversió ────────────────────────────────────
-// IDÈNTICA al calcVal d'InvestmentsTable.jsx (doc 17)
-// origCurr !== EUR → usa originalPrice × fxRates (taxa live)
-// sinó              → usa currentPrice (en EUR, guardat per usePriceFetcher)
 function calcInvVal(inv, fxRates = {}) {
   const origCurr = inv.originalCurrency || inv.currency || 'EUR'
   const qty = inv.totalQty || 0
@@ -81,7 +132,6 @@ function calcInvVal(inv, fxRates = {}) {
   return inv.totalCostEur || inv.totalCost || 0
 }
 
-// Helpers per crypto i commodities
 const cryVal = c => {
   const qty = c.totalQty ?? c.qty ?? 0
   if (qty > 0 && c.currentPrice != null) return +(qty * c.currentPrice).toFixed(2)
@@ -98,9 +148,7 @@ export default function App() {
   const { user, login, logout, error: authError, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // ── FIX: fxRates carregats a App.jsx ─────────────────────────────────────
-  // Idèntic al useEffect d'InvestmentsTable → tots dos usen el MATEIX FX
+  const { theme, toggleTheme } = useTheme()
   const [fxRates, setFxRates] = useState({})
 
   const {
@@ -129,7 +177,6 @@ export default function App() {
   const { goals: rebalGoals, saveGoals } = useRebalancingGoals(user?.uid)
   const { alerts, addAlert, removeAlert, checkAlerts } = useAlerts(user?.uid)
 
-  // ── Compatibilitat legacy ─────────────────────────────────────────────────
   const investmentsCompat = investments.map(inv => ({
     ...inv, qty: inv.totalQty || 0, initialValue: inv.totalCostEur || inv.totalCost || 0,
   }))
@@ -137,7 +184,6 @@ export default function App() {
     id: a.id, name: a.name, amount: a.balance, rate: a.rate || 0,
   }))
 
-  // ── Carrega fxRates per monedes no-EUR (idèntic a InvestmentsTable) ───────
   useEffect(() => {
     if (!investments.length) return
     const pairs = [...new Set(
@@ -152,9 +198,6 @@ export default function App() {
     })
   }, [investments.length]) // eslint-disable-line
 
-  // ── TOTALS ─────────────────────────────────────────────────────────────────
-  // calcInvVal usa la mateixa lògica que InvestmentsTable (fxRates en temps real)
-  // → Dashboard i InvestmentsTable mostren EXACTAMENT els mateixos valors
   const totalInv     = investments.reduce((s,i) => s + calcInvVal(i, fxRates), 0)
   const totalInvCost = investments.reduce((s,i) => s + (i.totalCostEur || i.totalCost || 0), 0)
   const totalSav     = accounts.reduce((s,a) => s + a.balance, 0)
@@ -167,7 +210,6 @@ export default function App() {
   const pgPct        = (totalInvCost + cryCost) > 0 ? (pg / (totalInvCost + cryCost)) * 100 : 0
   const totalCost    = totalInvCost + cryCost + comCost + totalSav
 
-  // currentPcts per alertes de rebalanceig
   const currentPcts = (() => {
     const vals = { etf: 0, estalvi: 0, crypto: 0, robo: 0 }
     investments.forEach(inv => {
@@ -184,7 +226,6 @@ export default function App() {
     return pcts
   })()
 
-  // ── Fetch preus inversions ────────────────────────────────────────────────
   useEffect(() => {
     if (!investments.length) return
     investments.forEach(async inv => {
@@ -201,7 +242,6 @@ export default function App() {
     })
   }, [investments.length]) // eslint-disable-line
 
-  // ── Fetch preus crypto ────────────────────────────────────────────────────
   useEffect(() => {
     if (!cryptos.length) return
     refreshCryptoPrices()
@@ -209,7 +249,6 @@ export default function App() {
     return () => clearInterval(interval)
   }, [cryptos.length]) // eslint-disable-line
 
-  // ── Snapshot + alertes ────────────────────────────────────────────────────
   useEffect(() => {
     if (totalAll > 0 && user) {
       saveSnapshot(totalAll, totalInv + totalCom, totalSav, totalCry)
@@ -341,13 +380,30 @@ export default function App() {
   return (
     <>
       <style>{appStyles}</style>
-      <Sidebar active={activeTab} onChange={id => { setActiveTab(id); setSidebarOpen(false) }}
-        user={user} onLogout={logout} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}
-        activeAlertsCount={activeAlertsCount}/>
+      <Sidebar
+        active={activeTab}
+        onChange={id => { setActiveTab(id); setSidebarOpen(false) }}
+        user={user} onLogout={logout}
+        isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}
+        activeAlertsCount={activeAlertsCount}
+        theme={theme} onToggleTheme={toggleTheme}
+      />
 
-      <div style={{ height:'100dvh', background:'#0a0a0a', display:'flex', flexDirection:'column', overflow:'hidden' }} className="lg:ml-[220px]">
+      {/* ── Contenidor principal — fons via CSS var ── */}
+      <div
+        style={{
+          height: '100dvh',
+          background: 'var(--c-bg)',         
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          transition: 'background-color 220ms ease',  // transició suau
+        }}
+        className="lg:ml-[220px]"
+      >
         <div className="swipe-hint"/>
 
+        {/* ── Header mòbil ── */}
         <div className="mob-hdr">
           <div className="mob-hdr-left">
             <div className="mob-hdr-logo">
@@ -356,16 +412,22 @@ export default function App() {
             <span className="mob-hdr-title">Cartera</span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <span style={{fontSize:12,fontFamily:'var(--font-mono,monospace)',color:'rgba(255,255,255,0.45)'}}>{PAGES[activeTab]}</span>
+            <span className="mob-page-name">{PAGES[activeTab]}</span>
+            <ThemeToggleIcon/>
             <div className="mob-av" onClick={() => setSidebarOpen(true)}>
-              {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"/> : initials}
+              {user.photoURL
+                ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"/>
+                : initials}
             </div>
           </div>
         </div>
 
+        {/* ── Contingut pàgina ── */}
         <div style={{flex:1,overflowY:'auto',overflowX:'hidden',display:'flex',flexDirection:'column'}}>
-          <main style={{flex:1,padding:'22px 18px',paddingBottom:'calc(22px + 60px + env(safe-area-inset-bottom))'}} className="lg:px-8 lg:py-7 lg:pb-7">
-
+          <main
+            style={{flex:1,padding:'22px 18px',paddingBottom:'calc(22px + 60px + env(safe-area-inset-bottom))'}}
+            className="lg:px-8 lg:py-7 lg:pb-7"
+          >
             {activeTab === 'dashboard' && (
               <DashboardPage
                 totalAll={totalAll} totalInvCost={totalInvCost}
@@ -382,7 +444,6 @@ export default function App() {
                 onNavigate={id => setActiveTab(id)}
               />
             )}
-
             {activeTab === 'investments' && (
               <InvestmentsTable
                 investments={investments} onAddInvestment={handleAddInvestment}
@@ -391,68 +452,28 @@ export default function App() {
                 onRefresh={handleRefreshPrices} onImportCSV={handleImportCSV}
               />
             )}
-
             {activeTab === 'savings' && (
               <SavingsList accounts={accounts} onAddAccount={addAccount}
                 onRemoveAccount={removeAccount} onAddTransaction={addSavTx}
                 onRemoveTransaction={removeSavTx}/>
             )}
-
             {activeTab === 'crypto' && (
               <CryptoPage cryptos={cryptos} onAdd={addCrypto} onRemove={removeCrypto}
                 onUpdate={updateCrypto} onRefresh={refreshCryptoPrices}
                 onAddTransaction={addCryptoTx} onRemoveTransaction={removeCryptoTx}/>
             )}
-
-            {activeTab === 'movements' && (
-              <MovementsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>
-            )}
-            {activeTab === 'timeline' && (
-              <NetWorthTimeline snapshots={snapshots} currentTotal={totalAll} totalCost={totalCost}/>
-            )}
-            {activeTab === 'projections' && (
-              <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>
-            )}
-            {activeTab === 'chart' && (
-              <AllocationChart investments={investmentsCompat} savings={savingsCompat}
-                cryptos={cryptos} commodities={commodities}/>
-            )}
-            {activeTab === 'benchmark' && (
-              <BenchmarkPage snapshots={snapshots} investments={investments}/>
-            )}
-            {activeTab === 'rebalancing' && (
-              <RebalancingPage investments={investmentsCompat} savings={savingsCompat}
-                cryptos={cryptos} goals={rebalGoals} onSaveGoals={saveGoals}/>
-            )}
-            {activeTab === 'alerts' && (
-              <AlertsPage investments={investmentsCompat} cryptos={cryptos}
-                alerts={alerts} onAdd={addAlert} onRemove={removeAlert}/>
-            )}
-            {activeTab === 'report' && (
-              <MonthlyReport investments={investments} savings={savingsCompat}
-                cryptos={cryptos} commodities={commodities}
-                snapshots={snapshots} userEmail={user?.email||''}/>
-            )}
-            {activeTab === 'goals' && (
-              <GoalsPage goals={financialGoals} addGoal={addGoal} removeGoal={removeGoal}
-                currentTotal={totalAll} totalDividendsYear={totalDivAll}
-                investments={investmentsCompat}/>
-            )}
-            {activeTab === 'news' && (
-              <NewsPage investments={investmentsCompat} cryptos={cryptos} commodities={commodities}/>
-            )}
-            {activeTab === 'dividends' && (
-              <DividendsPage dividends={dividends} addDividend={addDividend}
-                removeDividend={removeDividend} byMonth={byMonth}
-                totalThisYear={totalThisYear} totalAll={totalDivAll}
-                investments={investmentsCompat}/>
-            )}
-            {activeTab === 'commodities' && (
-              <CommoditiesPage commodities={commodities} onAdd={addCommodity}
-                onRemove={removeCommodity} onAddTransaction={addComTx}
-                onRemoveTransaction={removeComTx} onRefresh={refreshCom}/>
-            )}
-
+            {activeTab === 'movements'   && <MovementsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>}
+            {activeTab === 'timeline'    && <NetWorthTimeline snapshots={snapshots} currentTotal={totalAll} totalCost={totalCost}/>}
+            {activeTab === 'projections' && <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>}
+            {activeTab === 'chart'       && <AllocationChart investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} commodities={commodities}/>}
+            {activeTab === 'benchmark'   && <BenchmarkPage snapshots={snapshots} investments={investments}/>}
+            {activeTab === 'rebalancing' && <RebalancingPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} goals={rebalGoals} onSaveGoals={saveGoals}/>}
+            {activeTab === 'alerts'      && <AlertsPage investments={investmentsCompat} cryptos={cryptos} alerts={alerts} onAdd={addAlert} onRemove={removeAlert}/>}
+            {activeTab === 'report'      && <MonthlyReport investments={investments} savings={savingsCompat} cryptos={cryptos} commodities={commodities} snapshots={snapshots} userEmail={user?.email||''}/>}
+            {activeTab === 'goals'       && <GoalsPage goals={financialGoals} addGoal={addGoal} removeGoal={removeGoal} currentTotal={totalAll} totalDividendsYear={totalDivAll} investments={investmentsCompat}/>}
+            {activeTab === 'news'        && <NewsPage investments={investmentsCompat} cryptos={cryptos} commodities={commodities}/>}
+            {activeTab === 'dividends'   && <DividendsPage dividends={dividends} addDividend={addDividend} removeDividend={removeDividend} byMonth={byMonth} totalThisYear={totalThisYear} totalAll={totalDivAll} investments={investmentsCompat}/>}
+            {activeTab === 'commodities' && <CommoditiesPage commodities={commodities} onAdd={addCommodity} onRemove={removeCommodity} onAddTransaction={addComTx} onRemoveTransaction={removeComTx} onRefresh={refreshCom}/>}
           </main>
         </div>
       </div>

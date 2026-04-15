@@ -65,99 +65,99 @@ const styles = `
   .pr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .pr-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .pr-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
   .pr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(123,97,255,0.07) 0%,transparent 70%); pointer-events:none; }
-  .pr-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .pr-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
   .pr-hero-total {
-    font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; line-height:1;
+    font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; line-height:1;
     font-family:${FONTS.num}; font-variant-numeric:tabular-nums; margin-bottom:4px;
   }
   .pr-hero-total span { font-size:30px; opacity:0.7; }
-  .pr-hero-sub { font-size:12px; color:rgba(255,255,255,0.30); margin-bottom:14px; }
+  .pr-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:14px; }
   .pr-hero-sub strong { color:${COLORS.neonGreen}; font-weight:600; }
-  .pr-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); }
-  .pr-hero-m-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:3px; }
+  .pr-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:14px; border-top:1px solid var(--c-border); }
+  .pr-hero-m-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:3px; }
   .pr-hero-m-val {
-    font-size:20px; font-weight:400; color:#fff; letter-spacing:0px; font-variant-numeric:tabular-nums;
+    font-size:20px; font-weight:400; color:var(--c-text-primary); letter-spacing:0px; font-variant-numeric:tabular-nums;
     font-family:${FONTS.num};
   }
   .pr-hero-m-val.g { color:${COLORS.neonGreen}; }
   .pr-hero-m-val.p { color:${COLORS.neonPurple}; }
-  .pr-hero-m-sub { font-size:10px; color:rgba(255,255,255,0.25); margin-top:1px; }
+  .pr-hero-m-sub { font-size:10px; color:var(--c-text-muted); margin-top:1px; }
 
   /* ── Slider ── */
-  .pr-slider { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:18px 16px; }
+  .pr-slider { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:18px 16px; }
   .pr-slider-top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
-  .pr-slider-lbl { font-size:10px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
+  .pr-slider-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
   .pr-slider-val {
-    font-size:36px; font-weight:600; letter-spacing:0.5px; color:#fff; font-variant-numeric:tabular-nums;
+    font-size:36px; font-weight:600; letter-spacing:0.5px; color:var(--c-text-primary); font-variant-numeric:tabular-nums;
     font-family:${FONTS.num};
   }
-  .pr-slider-val span { font-size:16px; color:rgba(255,255,255,0.30); font-weight:300; margin-left:4px; }
-  .pr-track { position:relative; height:2px; background:rgba(255,255,255,0.06); border-radius:2px; margin-bottom:16px; }
+  .pr-slider-val span { font-size:16px; color:var(--c-text-muted); font-weight:300; margin-left:4px; }
+  .pr-track { position:relative; height:2px; background:var(--c-surface); border-radius:2px; margin-bottom:16px; }
   .pr-fill  { position:absolute; left:0; top:0; height:100%; background:${COLORS.neonPurple}; border-radius:2px; pointer-events:none; }
   .pr-thumb { position:absolute; width:12px; height:12px; border-radius:50%; background:${COLORS.neonPurple}; top:-5px; transform:translateX(-50%); pointer-events:none; }
   .pr-range { position:absolute; inset:0; width:100%; opacity:0; cursor:pointer; height:18px; top:-7px; -webkit-appearance:none; appearance:none; margin:0; }
   .pr-quick { display:flex; gap:4px; flex-wrap:wrap; }
-  .pr-qbtn { padding:5px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.07); background:transparent; font-family:${FONTS.num}; font-size:12px; font-weight:500; color:rgba(255,255,255,0.35); cursor:pointer; transition:all 100ms; }
-  .pr-qbtn:hover { color:rgba(255,255,255,0.70); border-color:rgba(255,255,255,0.15); }
+  .pr-qbtn { padding:5px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
+  .pr-qbtn:hover { color:rgba(255,255,255,0.70); border-color:var(--c-text-disabled); }
   .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:rgba(123,97,255,0.30); color:${COLORS.neonPurple}; }
 
   /* ── Panel genèric ── */
-  .pr-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
-  .pr-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+  .pr-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
+  .pr-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
 
   /* ── Llegenda gràfic ── */
   .pr-legend { display:flex; gap:12px; }
-  .pr-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.30); }
+  .pr-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--c-text-muted); }
   .pr-legend-dot { width:7px; height:2px; border-radius:1px; flex-shrink:0; }
 
   /* ── Taula anual ── */
-  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
-  .pr-col-hdr span { font-size:9px; font-weight:500; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.10em; }
+  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid var(--c-border); }
+  .pr-col-hdr span { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; }
   .pr-col-hdr span:not(:first-child) { text-align:right; }
-  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 80ms; }
+  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
   .pr-yr-row:last-child { border-bottom:none; }
-  .pr-yr-row:hover { background:rgba(255,255,255,0.02); }
+  .pr-yr-row:hover { background:var(--c-elevated); }
   .pr-yr-row.last { background:rgba(123,97,255,0.07); border-top:1px solid rgba(123,97,255,0.15); }
-  .pr-yr-n { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); font-family:${FONTS.num}; }
-  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:rgba(255,255,255,0.55); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
+  .pr-yr-n { font-size:11px; font-weight:500; color:var(--c-text-muted); font-family:${FONTS.num}; }
+  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-secondary); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
   .pr-yr-v.g { color:${COLORS.neonGreen}; }
   .pr-yr-row.last .pr-yr-n { color:${COLORS.neonPurple}; font-weight:600; }
-  .pr-yr-row.last .pr-yr-v { color:#fff; font-weight:500; }
+  .pr-yr-row.last .pr-yr-v { color:var(--c-text-primary); font-weight:500; }
   .pr-yr-row.last .pr-yr-v.g { color:${COLORS.neonGreen}; }
 
   /* ── Aportació per actiu ── */
-  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); }
   .pr-asset-row:last-of-type { border-bottom:none; }
-  .pr-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); flex-shrink:0; font-family:${FONTS.mono}; }
-  .pr-asset-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
-  .pr-asset-meta { font-size:10px; color:rgba(255,255,255,0.25); }
+  .pr-asset-av { width:28px; height:28px; border-radius:8px; background:var(--c-border); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
+  .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .pr-asset-meta { font-size:10px; color:var(--c-text-muted); }
   .pr-asset-meta .historical { color:${COLORS.neonGreen}; opacity:0.7; }
   .pr-asset-meta .fallback { color:${COLORS.neonAmber}; opacity:0.7; }
-  .pr-inp { width:68px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:7px 9px; font-family:${FONTS.num}; font-size:14px; font-weight:400; color:#fff; outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
+  .pr-inp { width:68px; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:6px; padding:7px 9px; font-family:${FONTS.num}; font-size:14px; font-weight:400; color:var(--c-text-primary); outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
   .pr-inp:focus { border-color:${COLORS.neonPurple}; }
-  .pr-unit { font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap; flex-shrink:0; }
-  .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid rgba(255,255,255,0.06); }
-  .pr-total-l { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
-  .pr-total-v { font-size:18px; font-weight:300; color:#fff; font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
+  .pr-unit { font-size:10px; color:var(--c-text-muted); white-space:nowrap; flex-shrink:0; }
+  .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid var(--c-border); }
+  .pr-total-l { font-size:11px; color:var(--c-text-secondary); font-weight:500; }
+  .pr-total-v { font-size:18px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
 
   /* ── Rate override input ── */
   .pr-rate-row { display:flex; align-items:center; gap:6px; margin-top:4px; }
-  .pr-rate-inp { width:52px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:4px 7px; font-family:${FONTS.num}; font-size:12px; color:#fff; outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
+  .pr-rate-inp { width:52px; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:5px; padding:4px 7px; font-family:${FONTS.num}; font-size:12px; color:var(--c-text-primary); outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
   .pr-rate-inp:focus { border-color:${COLORS.neonPurple}; }
-  .pr-rate-unit { font-size:10px; color:rgba(255,255,255,0.25); }
+  .pr-rate-unit { font-size:10px; color:var(--c-text-muted); }
 `
 
 const PrTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#1a1a1a', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '9px 12px', fontFamily: FONTS.sans }}>
-      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 7 }}>{label}</p>
+    <div style={{ background: 'var(--c-elevated)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '9px 12px', fontFamily: FONTS.sans }}>
+      <p style={{ fontSize: 10, color: 'var(--c-text-muted)', marginBottom: 7 }}>{label}</p>
       {payload.map((p, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 3 }}>
           <span style={{ fontSize: 11, color: p.color }}>{p.name}</span>
-          <span style={{ fontSize: 12, color: '#fff', fontFamily: FONTS.num, fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>{fmtEur(p.value)}</span>
+          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontFamily: FONTS.num, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtEur(p.value)}</span>
         </div>
       ))}
     </div>
@@ -168,7 +168,7 @@ const GainTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   const val = payload[0]?.value || 0
   return (
-    <div style={{ background: '#1a1a1a', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '7px 10px' }}>
+    <div style={{ background: 'var(--c-elevated)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '7px 10px' }}>
       <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 3 }}>Any {label}</p>
       <p style={{ fontSize: 14, color: val >= 0 ? COLORS.neonGreen : COLORS.neonRed, fontFamily: FONTS.num, fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>{val >= 0 ? '+' : ''}{fmtEur(val)}</p>
     </div>
@@ -341,17 +341,17 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
           <p className="pr-panel-title" style={{ margin: 0 }}>Evolució del portfoli</p>
           <div className="pr-legend">
             <div className="pr-legend-item"><div className="pr-legend-dot" style={{ background: COLORS.neonGreen }} />Valor</div>
-            <div className="pr-legend-item"><div className="pr-legend-dot" style={{ background: 'rgba(255,255,255,0.25)' }} />Capital</div>
+            <div className="pr-legend-item"><div className="pr-legend-dot" style={{ background: 'var(--c-text-muted)' }} />Capital</div>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="any" tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'rgba(255,255,255,0.25)' }} axisLine={false} tickLine={false} />
-            <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'rgba(255,255,255,0.25)' }} axisLine={false} tickLine={false} width={32} />
-            <Tooltip content={<PrTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }} />
+            <CartesianGrid strokeDasharray="2 4" stroke="var(--c-border)" />
+            <XAxis dataKey="any" tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'var(--c-text-muted)' }} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'var(--c-text-muted)' }} axisLine={false} tickLine={false} width={32} />
+            <Tooltip content={<PrTooltip />} cursor={{ stroke: 'var(--c-border)', strokeWidth: 1 }} />
             <Line type="monotone" dataKey="Valor" stroke={COLORS.neonGreen} strokeWidth={1.5} dot={false} />
-            <Line type="monotone" dataKey="Capital" stroke="rgba(255,255,255,0.20)" strokeWidth={1} dot={false} strokeDasharray="4 3" />
+            <Line type="monotone" dataKey="Capital" stroke="var(--c-text-disabled)" strokeWidth={1} dot={false} strokeDasharray="4 3" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -361,10 +361,10 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
         <p className="pr-panel-title">Guany net per any</p>
         <ResponsiveContainer width="100%" height={Math.min(years * 16 + 40, 180)}>
           <BarChart data={yearlyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
-            <XAxis dataKey="year" tickFormatter={v => `${v}a`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'rgba(255,255,255,0.25)' }} axisLine={false} tickLine={false} interval={Math.max(0, Math.floor(years / 10) - 1)} />
-            <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'rgba(255,255,255,0.25)' }} axisLine={false} tickLine={false} width={32} />
-            <Tooltip content={<GainTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+            <CartesianGrid strokeDasharray="2 4" stroke="var(--c-border)" vertical={false} />
+            <XAxis dataKey="year" tickFormatter={v => `${v}a`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'var(--c-text-muted)' }} axisLine={false} tickLine={false} interval={Math.max(0, Math.floor(years / 10) - 1)} />
+            <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fontFamily: FONTS.num, fill: 'var(--c-text-muted)' }} axisLine={false} tickLine={false} width={32} />
+            <Tooltip content={<GainTooltip />} cursor={{ fill: 'var(--c-elevated)' }} />
             <Bar dataKey="yearGain" radius={[2, 2, 0, 0]}>
               {yearlyData.map((e, i) => <Cell key={i} fill={e.yearGain >= 0 ? COLORS.neonGreen : COLORS.neonRed} fillOpacity={0.55} />)}
             </Bar>
@@ -374,7 +374,7 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
 
       {/* Taula anual */}
       <div className="pr-panel" style={{ padding: 0, overflow: 'hidden' }}>
-        <p className="pr-panel-title" style={{ padding: '14px 14px 10px', borderBottom: '1px solid rgba(255,255,255,0.05)', margin: 0 }}>Desglossament per any</p>
+        <p className="pr-panel-title" style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--c-border)', margin: 0 }}>Desglossament per any</p>
         <div className="pr-col-hdr">
           <span>Any</span><span>Valor total</span><span>Guany any</span><span>% any</span>
         </div>

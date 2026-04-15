@@ -13,11 +13,12 @@ const TrashIcon = ({ size=12 }) => (
 const ChevronLeft = () => <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
 const ChevronRight = () => <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
 
+// Tooltip usa var(--c-*) directament — s'adapta al tema
 const DivTooltip = ({ active, payload, label }) => {
   if (!active||!payload?.length) return null
   return (
-    <div style={{background:COLORS.elevated,border:`1px solid rgba(255,255,255,0.08)`,borderRadius:5,padding:'6px 10px',fontFamily:FONTS.sans}}>
-      <p style={{fontSize:10,color:COLORS.textMuted,marginBottom:3}}>{label}</p>
+    <div style={{background:'var(--c-elevated)',border:`1px solid var(--c-border)`,borderRadius:5,padding:'6px 10px',fontFamily:FONTS.sans}}>
+      <p style={{fontSize:10,color:'var(--c-text-muted)',marginBottom:3}}>{label}</p>
       <p style={{fontSize:13,fontWeight:500,fontFamily:FONTS.mono,color:COLORS.neonGreen}}>{fmtEur(payload[0]?.value)}</p>
     </div>
   )
@@ -39,19 +40,19 @@ const styles = `
   .dv { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .dv-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .dv-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(0,255,136,0.07) 0%,transparent 70%); pointer-events:none; }
+  .dv-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .dv-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-green) 0%,transparent 70%); pointer-events:none; }
   .dv-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-  .dv-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .dv-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; }
+  .dv-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .dv-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; }
   .dv-hero-total span { font-size:30px; opacity:0.7; }
   .dv-btn-add { display:flex; align-items:center; gap:5px; padding:7px 13px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:6px; font-family:${FONTS.sans}; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0; }
   .dv-btn-add:hover { opacity:0.85; }
-  .dv-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); }
-  .dv-hero-metric-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
-  .dv-hero-metric-v { font-size:18px; font-weight:500; font-family:${FONTS.num}; color:#fff; font-variant-numeric:tabular-nums; }
+  .dv-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; padding-top:14px; border-top:1px solid var(--c-border); }
+  .dv-hero-metric-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
+  .dv-hero-metric-v { font-size:18px; font-weight:500; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; }
   .dv-hero-metric-v.g { color:${COLORS.neonGreen}; }
-  .dv-hero-metric-sub { font-size:12px; color:rgba(255,255,255,0.25); font-family:${FONTS.num}; margin-top:2px; }
+  .dv-hero-metric-sub { font-size:12px; color:var(--c-text-muted); font-family:${FONTS.num}; margin-top:2px; }
 
   /* ── Layout 2 columnes (desktop) ── */
   .dv-layout { display:grid; grid-template-columns:1fr; gap:12px; }
@@ -60,100 +61,101 @@ const styles = `
   .dv-col-side { display:flex; flex-direction:column; gap:12px; }
 
   /* ── Panel genèric ── */
-  .dv-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
-  .dv-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
+  .dv-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
+  .dv-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
 
   /* ── Per actiu ── */
-  .dv-asset-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; margin-bottom:8px; }
+  .dv-asset-card { background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; overflow:hidden; margin-bottom:8px; }
   .dv-asset-card:last-child { margin-bottom:0; }
-  .dv-asset-hdr { display:flex; align-items:center; gap:10px; padding:11px 13px; background:rgba(255,255,255,0.03); }
-  .dv-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(0,255,136,0.10); color:${COLORS.neonGreen}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
-  .dv-asset-name { flex:1; font-size:13px; font-weight:600; color:#fff; }
-  .dv-asset-ticker { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.30); }
+  .dv-asset-hdr { display:flex; align-items:center; gap:10px; padding:11px 13px; background:var(--c-elevated); }
+  .dv-asset-av { width:28px; height:28px; border-radius:8px; background:var(--c-bg-green); color:${COLORS.neonGreen}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; }
+  .dv-asset-name { flex:1; font-size:13px; font-weight:600; color:var(--c-text-primary); }
+  .dv-asset-ticker { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
   .dv-asset-body { padding:10px 13px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .dv-asset-stat-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:3px; }
-  .dv-asset-stat-v { font-size:12px; font-weight:500; font-family:${FONTS.num}; color:#fff; font-variant-numeric:tabular-nums; }
+  .dv-asset-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:3px; }
+  .dv-asset-stat-v { font-size:12px; font-weight:500; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; }
   .dv-asset-stat-v.g { color:${COLORS.neonGreen}; }
   .dv-asset-dates { padding:0 13px 11px; display:flex; gap:6px; flex-wrap:wrap; }
   .dv-date-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; }
-  .dv-date-pill.ex  { background:rgba(255,149,0,0.08); border:1px solid rgba(255,149,0,0.20); }
-  .dv-date-pill.pay { background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.20); }
+  .dv-date-pill.ex  { background:var(--c-bg-amber); border:1px solid var(--c-border-amber); }
+  .dv-date-pill.pay { background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .dv-date-pill-type { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
   .dv-date-pill.ex .dv-date-pill-type { color:${COLORS.neonAmber}; }
   .dv-date-pill.pay .dv-date-pill-type { color:${COLORS.neonGreen}; }
-  .dv-date-pill-date { font-size:11px; font-weight:600; font-family:${FONTS.num}; color:#fff; }
-  .dv-date-pill-days { font-size:10px; color:rgba(255,255,255,0.35); font-family:${FONTS.mono}; }
-  .dv-earn-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; background:rgba(123,97,255,0.08); border:1px solid rgba(123,97,255,0.22); }
-  .dv-earn-type { font-size:9px; font-weight:700; color:#7b61ff; text-transform:uppercase; letter-spacing:0.08em; }
-  .dv-earn-date { font-size:11px; font-weight:600; font-family:${FONTS.mono}; color:#fff; }
-  .dv-earn-eps { font-size:10px; color:rgba(255,255,255,0.35); font-family:${FONTS.mono}; }
+  .dv-date-pill-date { font-size:11px; font-weight:600; font-family:${FONTS.num}; color:var(--c-text-primary); }
+  .dv-date-pill-days { font-size:10px; color:var(--c-text-secondary); font-family:${FONTS.mono}; }
+  .dv-earn-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; background:var(--c-bg-purple); border:1px solid var(--c-border-purple); }
+  .dv-earn-type { font-size:9px; font-weight:700; color:var(--c-purple); text-transform:uppercase; letter-spacing:0.08em; }
+  .dv-earn-date { font-size:11px; font-weight:600; font-family:${FONTS.mono}; color:var(--c-text-primary); }
+  .dv-earn-eps { font-size:10px; color:var(--c-text-secondary); font-family:${FONTS.mono}; }
 
   /* ── Calendari compacte ── */
   .dv-cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .dv-cal-month { font-size:12px; font-weight:500; color:#fff; text-transform:capitalize; }
-  .dv-cal-nav-btn { width:22px; height:22px; background:transparent; border:1px solid rgba(255,255,255,0.08); border-radius:3px; color:rgba(255,255,255,0.40); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
-  .dv-cal-nav-btn:hover { border-color:rgba(255,255,255,0.20); color:#fff; }
+  .dv-cal-month { font-size:12px; font-weight:500; color:var(--c-text-primary); text-transform:capitalize; }
+  .dv-cal-nav-btn { width:22px; height:22px; background:transparent; border:1px solid var(--c-border); border-radius:3px; color:var(--c-text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .dv-cal-nav-btn:hover { border-color:var(--c-text-disabled); color:var(--c-text-primary); }
   .dv-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-  .dv-cal-dow { font-size:8px; font-weight:600; color:rgba(255,255,255,0.20); text-align:center; padding:0 0 5px; }
-  .dv-cal-cell { aspect-ratio:1; border-radius:3px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:10px; font-family:${FONTS.num}; color:rgba(255,255,255,0.30); min-height:24px; position:relative; transition:background 80ms; }
+  .dv-cal-dow { font-size:8px; font-weight:600; color:var(--c-text-disabled); text-align:center; padding:0 0 5px; }
+  .dv-cal-cell { aspect-ratio:1; border-radius:3px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:10px; font-family:${FONTS.num}; color:var(--c-text-muted); min-height:24px; position:relative; transition:background 80ms; }
   .dv-cal-cell.other { opacity:0.18; }
-  .dv-cal-cell.today { color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); }
-  .dv-cal-cell.pay   { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.25); cursor:pointer; font-weight:700; }
-  .dv-cal-cell.ex    { color:${COLORS.neonAmber}; background:rgba(255,149,0,0.10); border:1px solid rgba(255,149,0,0.25); cursor:pointer; font-weight:700; }
-  .dv-cal-cell.past  { color:${COLORS.neonCyan}; background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.20); cursor:pointer; }
-  .dv-cal-cell.rec   { color:${COLORS.neonCyan}; background:rgba(0,212,255,0.12); border:1px solid rgba(0,212,255,0.30); cursor:pointer; }
-  .dv-cal-cell.earn  { color:#7b61ff; background:rgba(123,97,255,0.10); border:1px solid rgba(123,97,255,0.25); cursor:pointer; }
+  .dv-cal-cell.today { color:var(--c-text-primary); background:var(--c-surface); border:1px solid var(--c-border-mid); }
+  .dv-cal-cell.pay   { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); cursor:pointer; font-weight:700; }
+  .dv-cal-cell.ex    { color:${COLORS.neonAmber}; background:var(--c-bg-amber); border:1px solid var(--c-border-amber); cursor:pointer; font-weight:700; }
+  .dv-cal-cell.past  { color:${COLORS.neonCyan}; background:var(--c-bg-cyan); border:1px solid var(--c-border-cyan); cursor:pointer; }
+  .dv-cal-cell.rec   { color:${COLORS.neonCyan}; background:var(--c-bg-cyan); border:1px solid var(--c-border-cyan); cursor:pointer; }
+  .dv-cal-cell.earn  { color:var(--c-purple); background:var(--c-bg-purple); border:1px solid var(--c-border-purple); cursor:pointer; }
   .dv-cal-cell-num { font-size:10px; font-weight:500; line-height:1; }
   .dv-cal-dot { width:3px; height:3px; border-radius:50%; background:currentColor; margin-top:2px; }
 
-  .dv-cal-pop { position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:${COLORS.elevated}; border:1px solid rgba(255,255,255,0.10); border-radius:6px; padding:8px 10px; white-space:nowrap; z-index:20; pointer-events:none; min-width:160px; }
-  .dv-cal-pop::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:rgba(255,255,255,0.10); }
+  /* Popup del calendari — usa variables CSS */
+  .dv-cal-pop { position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:var(--c-elevated); border:1px solid var(--c-border); border-radius:6px; padding:8px 10px; white-space:nowrap; z-index:20; pointer-events:none; min-width:160px; box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+  .dv-cal-pop::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:var(--c-border); }
   .dv-cal-pop-type { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:4px; display:block; }
-  .dv-cal-pop-name { font-size:11px; font-weight:600; color:#fff; margin-bottom:2px; }
-  .dv-cal-pop-meta { font-size:10px; color:rgba(255,255,255,0.40); font-family:${FONTS.mono}; }
+  .dv-cal-pop-name { font-size:11px; font-weight:600; color:var(--c-text-primary); margin-bottom:2px; }
+  .dv-cal-pop-meta { font-size:10px; color:var(--c-text-secondary); font-family:${FONTS.mono}; }
   .dv-cal-pop-amt  { font-size:11px; color:${COLORS.neonGreen}; font-family:${FONTS.mono}; font-weight:600; }
 
-  .dv-cal-legend { display:flex; gap:10px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); flex-wrap:wrap; }
-  .dv-cal-legend-item { display:flex; align-items:center; gap:4px; font-size:9px; color:rgba(255,255,255,0.30); }
+  .dv-cal-legend { display:flex; gap:10px; margin-top:10px; padding-top:10px; border-top:1px solid var(--c-border); flex-wrap:wrap; }
+  .dv-cal-legend-item { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--c-text-muted); }
   .dv-cal-legend-dot  { width:6px; height:6px; border-radius:2px; flex-shrink:0; }
 
   /* ── Upcoming ── */
-  .dv-up-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .dv-up-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .dv-up-row:last-child { border-bottom:none; }
   .dv-up-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:2px 7px; border-radius:10px; flex-shrink:0; }
-  .dv-up-badge.pay  { background:rgba(0,255,136,0.10); color:${COLORS.neonGreen}; }
-  .dv-up-badge.ex   { background:rgba(255,149,0,0.10); color:${COLORS.neonAmber}; }
-  .dv-up-badge.soon { background:rgba(255,59,59,0.10); color:${COLORS.neonRed}; }
-  .dv-up-name { flex:1; font-size:12px; font-weight:500; color:rgba(255,255,255,0.70); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .dv-up-meta { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .dv-up-badge.pay  { background:var(--c-bg-green); color:${COLORS.neonGreen}; }
+  .dv-up-badge.ex   { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
+  .dv-up-badge.soon { background:var(--c-bg-red); color:${COLORS.neonRed}; }
+  .dv-up-name { flex:1; font-size:12px; font-weight:500; color:var(--c-text-secondary); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dv-up-meta { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .dv-up-amt  { font-size:12px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; flex-shrink:0; }
 
   /* ── Yield ── */
-  .dv-yield-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .dv-yield-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .dv-yield-row:last-child { border-bottom:none; }
-  .dv-yield-name { flex:1; font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); }
-  .dv-yield-bar-wrap { width:60px; height:2px; background:rgba(255,255,255,0.06); border-radius:1px; overflow:hidden; margin:0 10px; flex-shrink:0; }
+  .dv-yield-name { flex:1; font-size:12px; font-weight:500; color:var(--c-text-secondary); }
+  .dv-yield-bar-wrap { width:60px; height:2px; background:var(--c-border); border-radius:1px; overflow:hidden; margin:0 10px; flex-shrink:0; }
   .dv-yield-bar { height:100%; background:${COLORS.neonGreen}; border-radius:1px; }
   .dv-yield-val { font-size:12px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; min-width:44px; text-align:right; }
 
   /* ── Historial ── */
-  .dv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .dv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .dv-tx:last-child { border-bottom:none; }
   .dv-tx-dot { width:5px; height:5px; border-radius:50%; background:${COLORS.neonGreen}; flex-shrink:0; margin-right:10px; }
   .dv-tx-info { flex:1; min-width:0; }
-  .dv-tx-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .dv-tx-date { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .dv-tx-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dv-tx-date { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .dv-tx-amount { font-size:13px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; flex-shrink:0; margin-left:10px; font-variant-numeric:tabular-nums; }
-  .dv-tx-per { font-size:10px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; text-align:right; }
-  .dv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:rgba(255,255,255,0.20); margin-left:6px; transition:all 80ms; }
+  .dv-tx-per { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; text-align:right; }
+  .dv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:6px; transition:all 80ms; }
   .dv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
   .dv-empty { padding:32px 0; text-align:center; }
-  .dv-empty-main { font-size:13px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
-  .dv-empty-sub  { font-size:11px; color:rgba(255,255,255,0.15); }
+  .dv-empty-main { font-size:13px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
+  .dv-empty-sub  { font-size:11px; color:var(--c-text-disabled); }
 
-  .dv-spin-wrap { display:flex; align-items:center; gap:8px; padding:12px 0; font-size:11px; color:rgba(255,255,255,0.30); }
-  .dv-spin { width:11px; height:11px; border:1.5px solid rgba(255,255,255,0.10); border-top-color:rgba(255,255,255,0.50); border-radius:50%; animation:dvspin .7s linear infinite; flex-shrink:0; }
+  .dv-spin-wrap { display:flex; align-items:center; gap:8px; padding:12px 0; font-size:11px; color:var(--c-text-muted); }
+  .dv-spin { width:11px; height:11px; border:1.5px solid var(--c-border); border-top-color:var(--c-text-secondary); border-radius:50%; animation:dvspin .7s linear infinite; flex-shrink:0; }
   @keyframes dvspin { to { transform:rotate(360deg); } }
 
   /* ── Modal ── */
@@ -182,7 +184,6 @@ const styles = `
   .dv-hint { font-size:11px; color:${COLORS.textMuted}; padding:7px 10px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; border-radius:4px; font-family:${FONTS.mono}; }
 `
 
-// ── Secció per actiu ──────────────────────────────────────────────────────────
 function AssetDividendInfo({ inv, info, dividends }) {
   if (!info || typeof info !== 'object') return null
   const safeInfo = {
@@ -193,7 +194,6 @@ function AssetDividendInfo({ inv, info, dividends }) {
   }
   info = safeInfo
 
-  const today   = new Date().toISOString().split('T')[0]
   const qty     = inv.totalQty || inv.qty || 0
   const freq    = info.frequency || 4
   const rate    = info.dividendRate || info.trailingRate || 0
@@ -209,8 +209,7 @@ function AssetDividendInfo({ inv, info, dividends }) {
   const showExDate  = nextExDate  || lastExDate
   const showPayDate = nextPayDate || lastPayDate
   const isProjected = !!(nextExDate || nextPayDate)
-
-  const recentHist = safeInfo.histDivs.filter(h=>h?.exDate||h?.payDate||h?.date).slice(0,3)
+  const recentHist  = safeInfo.histDivs.filter(h=>h?.exDate||h?.payDate||h?.date).slice(0,3)
 
   return (
     <div className="dv-asset-card">
@@ -252,7 +251,7 @@ function AssetDividendInfo({ inv, info, dividends }) {
         {recentHist.length>0 && (
           <div style={{display:'flex',flexDirection:'column',gap:2,alignSelf:'center',marginLeft:4}}>
             {recentHist.map((h,i)=>(
-              <span key={i} style={{fontSize:9,fontFamily:FONTS.mono,color:'rgba(255,255,255,0.25)'}}>
+              <span key={i} style={{fontSize:9,fontFamily:FONTS.mono,color:'var(--c-text-muted)'}}>
                 {(h.payDate||h.exDate||h.date||'').slice(0,7)} ${(typeof h.amount==='number'?h.amount:0).toFixed(2)}
               </span>
             ))}
@@ -263,7 +262,6 @@ function AssetDividendInfo({ inv, info, dividends }) {
   )
 }
 
-// ── Calendari compacte ────────────────────────────────────────────────────────
 function CalendarSection({ dividends, upcomingData, loading }) {
   const today = new Date()
   const [view, setView] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -353,12 +351,12 @@ function CalendarSection({ dividends, upcomingData, loading }) {
             const hasEvent=hasRec||hasPay||hasEx||hasEarn
             const hasPast=hasPay&&cell.pay.every(p=>p.isPast)
             let cls='dv-cal-cell'
-            if(hasRec)       cls+=' rec'
-            else if(hasEarn) cls+=' earn'
+            if(hasRec)            cls+=' rec'
+            else if(hasEarn)      cls+=' earn'
             else if(hasPay&&!hasPast) cls+=' pay'
-            else if(hasPast) cls+=' past'
-            else if(hasEx)   cls+=' ex'
-            else if(isToday) cls+=' today'
+            else if(hasPast)      cls+=' past'
+            else if(hasEx)        cls+=' ex'
+            else if(isToday)      cls+=' today'
             return (
               <div key={i} className={cls}
                 onMouseEnter={()=>hasEvent&&setHovered(i)}
@@ -378,7 +376,7 @@ function CalendarSection({ dividends, upcomingData, loading }) {
                     ))}
                     {hasEarn&&cell.earn.map(({inv,info},j)=>(
                       <div key={j} style={{marginBottom:4}}>
-                        <span className="dv-cal-pop-type" style={{color:'#7b61ff'}}>📊 Earnings</span>
+                        <span className="dv-cal-pop-type" style={{color:'var(--c-purple)'}}>📊 Earnings</span>
                         <p className="dv-cal-pop-name">{inv.name}</p>
                         {info.epsEstimate&&<p className="dv-cal-pop-meta">EPS est: ${info.epsEstimate.toFixed(2)}</p>}
                       </div>
@@ -411,10 +409,10 @@ function CalendarSection({ dividends, upcomingData, loading }) {
       )}
       <div className="dv-cal-legend">
         {[
-          {color:'rgba(255,149,0,0.12)',border:'rgba(255,149,0,0.25)',label:'Ex-div'},
-          {color:'rgba(0,255,136,0.10)',border:'rgba(0,255,136,0.25)',label:'Pay date'},
-          {color:'rgba(123,97,255,0.10)',border:'rgba(123,97,255,0.25)',label:'Earnings'},
-          {color:'rgba(0,212,255,0.12)',border:'rgba(0,212,255,0.30)',label:'Cobrat'},
+          {color:'var(--c-bg-amber)',  border:'var(--c-border-amber)', label:'Ex-div'},
+          {color:'var(--c-bg-green)',  border:'var(--c-border-green)', label:'Pay date'},
+          {color:'var(--c-bg-purple)', border:'var(--c-border-purple)',label:'Earnings'},
+          {color:'var(--c-bg-cyan)',   border:'var(--c-border-cyan)',  label:'Cobrat'},
         ].map((l,i)=>(
           <div key={i} className="dv-cal-legend-item">
             <div className="dv-cal-legend-dot" style={{background:l.color,border:`1px solid ${l.border}`}}/>
@@ -426,7 +424,6 @@ function CalendarSection({ dividends, upcomingData, loading }) {
   )
 }
 
-// ── UpcomingList ──────────────────────────────────────────────────────────────
 function UpcomingList({ upcomingData }) {
   const today=new Date().toISOString().split('T')[0]
   const items=useMemo(()=>{
@@ -466,7 +463,6 @@ function UpcomingList({ upcomingData }) {
   )
 }
 
-// ── YieldSection ──────────────────────────────────────────────────────────────
 function YieldSection({ investments, dividends }) {
   const data=useMemo(()=>{
     return investments
@@ -492,7 +488,7 @@ function YieldSection({ investments, dividends }) {
           <div className="dv-yield-bar-wrap"><div className="dv-yield-bar" style={{width:`${(yoc/maxYoc)*100}%`}}/></div>
           <div style={{textAlign:'right',flexShrink:0}}>
             <p className="dv-yield-val">{yoc.toFixed(2)}%</p>
-            <p style={{fontSize:9,color:'rgba(255,255,255,0.25)',fontFamily:FONTS.mono}}>{fmtEur(total)}</p>
+            <p style={{fontSize:9,color:'var(--c-text-muted)',fontFamily:FONTS.mono}}>{fmtEur(total)}</p>
           </div>
         </div>
       ))}
@@ -500,7 +496,6 @@ function YieldSection({ investments, dividends }) {
   )
 }
 
-// ── DividendsPage ─────────────────────────────────────────────────────────────
 export default function DividendsPage({
   dividends, addDividend, removeDividend,
   byMonth, totalThisYear, totalAll,
@@ -535,13 +530,11 @@ export default function DividendsPage({
   const sorted   =[...dividends].sort((a,b)=>(b.payDate||'').localeCompare(a.payDate||''))
   const numAssets=new Set(dividends.map(d=>d.assetId)).size
   const eligible =investments.filter(i=>i.ticker&&['etf','stock'].includes(i.type))
-  const monthlyAvg=totalThisYear>0?totalThisYear/new Date().getMonth()+1:0
 
   return (
     <div className="dv">
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
-      {/* Hero */}
       <div className="dv-hero">
         <div className="dv-hero-top">
           <div>
@@ -572,11 +565,8 @@ export default function DividendsPage({
         </div>
       </div>
 
-      {/* Layout 2 columnes en desktop */}
       <div className="dv-layout">
-        {/* Columna principal */}
         <div className="dv-col-main">
-          {/* Per actiu */}
           {eligible.length>0 && (
             <div className="dv-panel">
               <p className="dv-panel-title">Per actiu — Dividends &amp; Earnings</p>
@@ -590,28 +580,24 @@ export default function DividendsPage({
             </div>
           )}
 
-          {/* Propers pagaments */}
           <UpcomingList upcomingData={upcomingData}/>
 
-          {/* Gràfic mensual */}
           <div className="dv-panel">
             <p className="dv-panel-title">Ingressos per mes (últims 12)</p>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={chartData} margin={{top:4,right:0,left:0,bottom:0}}>
-                <XAxis dataKey="lbl" tick={{fontSize:9,fontFamily:FONTS.mono,fill:'rgba(255,255,255,0.25)'}} axisLine={false} tickLine={false}/>
-                <YAxis tick={{fontSize:9,fontFamily:FONTS.mono,fill:'rgba(255,255,255,0.25)'}} axisLine={false} tickLine={false} width={30} tickFormatter={v=>v>0?`${v}€`:''}/>
-                <Tooltip content={<DivTooltip/>} cursor={{fill:'rgba(255,255,255,0.03)'}}/>
+                <XAxis dataKey="lbl" tick={{fontSize:9,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false}/>
+                <YAxis tick={{fontSize:9,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={30} tickFormatter={v=>v>0?`${v}€`:''}/>
+                <Tooltip content={<DivTooltip/>} cursor={{fill:'var(--c-elevated)'}}/>
                 <Bar dataKey="amount" radius={[2,2,0,0]}>
-                  {chartData.map((e,i)=><Cell key={i} fill={e.amount>0?COLORS.neonGreen:'rgba(255,255,255,0.04)'} fillOpacity={e.amount>0?0.7:1}/>)}
+                  {chartData.map((e,i)=><Cell key={i} fill={e.amount>0?COLORS.neonGreen:'var(--c-border)'} fillOpacity={e.amount>0?0.7:1}/>)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Yield */}
           <YieldSection investments={investments} dividends={dividends}/>
 
-          {/* Historial */}
           <div className="dv-panel">
             <p className="dv-panel-title">Historial de pagaments</p>
             {sorted.length===0 ? (
@@ -636,7 +622,6 @@ export default function DividendsPage({
           </div>
         </div>
 
-        {/* Columna lateral — Calendari */}
         <div className="dv-col-side">
           <CalendarSection dividends={dividends} upcomingData={upcomingData} loading={loadingCal}/>
         </div>
@@ -655,7 +640,6 @@ export default function DividendsPage({
   )
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
 function AddDividendModal({ investments, onAdd, onClose }) {
   const eligible=investments.filter(i=>['etf','stock'].includes(i.type))
   const [form,setForm]=useState({assetId:eligible[0]?.id||'',amount:'',shares:'',payDate:new Date().toISOString().split('T')[0],note:''})

@@ -8,8 +8,8 @@ const styles = `
 
   /* ── Hero ── */
   .sv-hero {
-    background: linear-gradient(135deg, #0f0f0f 0%, #141414 100%);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(135deg, var(--c-bg) 0%, var(--c-overlay) 100%);
+    border: 1px solid var(--c-border);
     border-radius: 12px; padding: 20px; margin-bottom: 12px;
     position: relative; overflow: hidden;
   }
@@ -19,21 +19,21 @@ const styles = `
     background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, transparent 70%);
     pointer-events:none;
   }
-  .sv-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.30); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .sv-hero-total { font-size:36px; font-weight:600; color:#fff; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .sv-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .sv-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
   .sv-hero-total span { font-size:30px; opacity:0.7; }
   .sv-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .sv-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
-  .sv-hero-sub { font-size:11px; color:rgba(255,255,255,0.25); font-family:${FONTS.mono}; }
+  .sv-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .sv-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
 
   /* ── Mètriques ── */
   .sv-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .sv-metric { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .sv-metric-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.30); text-transform:uppercase; letter-spacing:0.12em; }
-  .sv-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
+  .sv-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
+  .sv-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
+  .sv-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
   .sv-metric-val.g { color:${COLORS.neonGreen}; }
   .sv-metric-val.c { color:${COLORS.neonCyan}; }
-  .sv-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:rgba(255,255,255,0.25); }
+  .sv-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
 
   /* ── Accions ── */
   .sv-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
@@ -44,29 +44,29 @@ const styles = `
 
   /* ── Secció ── */
   .sv-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .sv-section-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .sv-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
   /* ── Cards ── */
-  .sv-cards { display:flex; flex-direction:column; gap:0; background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
-  .sv-card { border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  .sv-cards { display:flex; flex-direction:column; gap:0; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .sv-card { border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
   .sv-card:last-child { border-bottom:none; }
-  .sv-card:active { background:rgba(255,255,255,0.02); }
+  .sv-card:active { background:var(--c-elevated); }
 
   .sv-card-main { display:flex; align-items:center; gap:12px; padding:14px; }
-  .sv-av { width:36px; height:36px; border-radius:10px; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sv-av { width:36px; height:36px; border-radius:10px; background:var(--c-bg-green); border:1px solid var(--c-border-green); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .sv-card-info { flex:1; min-width:0; }
-  .sv-card-name { font-size:14px; font-weight:500; color:#fff; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sv-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sv-card-meta { display:flex; align-items:center; gap:6px; }
-  .sv-rate-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); padding:1px 6px; border-radius:3px; }
-  .sv-card-notes { font-size:10px; color:rgba(255,255,255,0.25); }
+  .sv-rate-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); padding:1px 6px; border-radius:3px; }
+  .sv-card-notes { font-size:10px; color:var(--c-text-muted); }
   .sv-card-right { text-align:right; flex-shrink:0; }
-  .sv-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .sv-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
   .sv-card-int { font-size:11px; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; font-weight:500; }
-  .sv-card-chevron { color:rgba(255,255,255,0.20); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
+  .sv-card-chevron { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
   .sv-card-chevron.open { transform:rotate(180deg); }
 
   /* ── Expand ── */
-  .sv-expand { border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.015); }
+  .sv-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .sv-expand-inner { padding:16px 14px; }
   .sv-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
   .sv-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
@@ -74,21 +74,21 @@ const styles = `
   /* ── Progress bar del saldo ── */
   .sv-progress { margin-bottom:14px; }
   .sv-progress-row { display:flex; justify-content:space-between; margin-bottom:5px; }
-  .sv-progress-label { font-size:10px; color:rgba(255,255,255,0.30); font-family:${FONTS.mono}; }
-  .sv-progress-track { height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+  .sv-progress-label { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
+  .sv-progress-track { height:4px; background:var(--c-border); border-radius:2px; overflow:hidden; }
   .sv-progress-fill { height:100%; background:${COLORS.neonGreen}; border-radius:2px; transition:width 600ms; }
 
   /* ── Txs ── */
   .sv-tx-list { display:flex; flex-direction:column; }
-  .sv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .sv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .sv-tx:last-child { border-bottom:none; }
-  .sv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:rgba(255,255,255,0.20); margin-left:8px; transition:all 80ms; }
+  .sv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
   .sv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
 
   /* ── Empty ── */
   .sv-empty { padding:48px 0; text-align:center; }
-  .sv-empty-main { font-size:14px; color:rgba(255,255,255,0.30); font-weight:500; margin-bottom:4px; }
-  .sv-empty-sub { font-size:12px; color:rgba(255,255,255,0.15); }
+  .sv-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
+  .sv-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
   /* ── Modals ── */
   .sv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
@@ -277,14 +277,14 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
                         {/* Historial de moviments */}
                         {acc.txs && acc.txs.length > 0 && (
                           <>
-                            <p style={{ fontSize:9, fontWeight:500, color:'rgba(255,255,255,0.25)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:8 }}>Moviments</p>
+                            <p style={{ fontSize:9, fontWeight:500, color:'var(--c-text-muted)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:8 }}>Moviments</p>
                             <div className="sv-tx-list" style={{ maxHeight:200, overflowY:'auto' }}>
                               {[...acc.txs].reverse().map(tx => (
                                 <div key={tx.id} className="sv-tx">
                                   <div style={{ width:6, height:6, borderRadius:'50%', background:tx.amount>=0?COLORS.neonGreen:COLORS.neonAmber, flexShrink:0, marginRight:10 }}/>
                                   <div style={{ flex:1, minWidth:0 }}>
-                                    <p style={{ fontSize:12, fontWeight:500, color:'rgba(255,255,255,0.55)', margin:'0 0 2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{tx.note||(tx.amount>=0?'Ingrés':'Retirada')}</p>
-                                    <p style={{ fontSize:10, color:'rgba(255,255,255,0.25)', margin:0 }}>{formatDate(tx.createdAt)}</p>
+                                    <p style={{ fontSize:12, fontWeight:500, color:'var(--c-text-secondary)', margin:'0 0 2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{tx.note||(tx.amount>=0?'Ingrés':'Retirada')}</p>
+                                    <p style={{ fontSize:10, color:'var(--c-text-muted)', margin:0 }}>{formatDate(tx.createdAt)}</p>
                                   </div>
                                   <p style={{ fontSize:12, fontWeight:600, fontFamily:FONTS.mono, color:tx.amount>=0?COLORS.neonGreen:COLORS.neonAmber, flexShrink:0, marginLeft:10, fontVariantNumeric:'tabular-nums' }}>
                                     {tx.amount>=0?'+':''}{fmtEur(tx.amount)}

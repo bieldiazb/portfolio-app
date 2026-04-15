@@ -17,61 +17,61 @@ const styles = `
   .rb { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .rb-hero { background:linear-gradient(135deg,#0f0f0f 0%,#141414 100%); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .rb-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
   .rb-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(0,255,136,0.06) 0%,transparent 70%); pointer-events:none; }
-  .rb-hero-label { font-size:11px; font-weight:500; color:rgba(255,255,255,0.28); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .rb-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
   .rb-hero-row { display:flex; align-items:center; gap:16px; margin-bottom:14px; }
   .rb-hero-score-wrap { flex-shrink:0; }
   .rb-hero-info { flex:1; min-width:0; }
-  .rb-hero-score-label { font-size:15px; font-weight:600; color:#fff; margin-bottom:3px; }
-  .rb-hero-score-sub { font-size:12px; color:rgba(255,255,255,0.30); }
-  .rb-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); }
-  .rb-hero-m-l { font-size:9px; font-weight:500; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
-  .rb-hero-m-v { font-size:16px; font-weight:300; color:#fff; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
+  .rb-hero-score-label { font-size:15px; font-weight:600; color:var(--c-text-primary); margin-bottom:3px; }
+  .rb-hero-score-sub { font-size:12px; color:var(--c-text-muted); }
+  .rb-hero-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:14px; border-top:1px solid var(--c-border); }
+  .rb-hero-m-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px; }
+  .rb-hero-m-v { font-size:16px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
   .rb-hero-m-v.g { color:${COLORS.neonGreen}; }
   .rb-hero-m-v.r { color:${COLORS.neonRed}; }
   .rb-hero-m-v.a { color:${COLORS.neonAmber}; }
 
   /* ── Panel ── */
-  .rb-panel { background:#111; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; }
+  .rb-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
   .rb-panel-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .rb-panel-title { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.14em; }
+  .rb-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
-  .rb-edit-btn { padding:5px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.09); background:transparent; font-family:${FONTS.sans}; font-size:11px; font-weight:500; color:rgba(255,255,255,0.40); cursor:pointer; transition:all 100ms; }
-  .rb-edit-btn:hover { border-color:rgba(255,255,255,0.20); color:rgba(255,255,255,0.70); }
+  .rb-edit-btn { padding:5px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.sans}; font-size:11px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
+  .rb-edit-btn:hover { border-color:var(--c-text-disabled); color:rgba(255,255,255,0.70); }
 
   /* Category row */
-  .rb-cat { padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .rb-cat { padding:12px 0; border-bottom:1px solid var(--c-border); }
   .rb-cat:last-child { border-bottom:none; }
   .rb-cat-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .rb-cat-name { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.65); }
+  .rb-cat-name { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:500; color:var(--c-text-secondary); }
   .rb-cat-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-  .rb-cat-val { font-size:11px; color:rgba(255,255,255,0.28); font-family:${FONTS.num}; }
+  .rb-cat-val { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.num}; }
   .rb-cat-pcts { display:flex; align-items:center; gap:8px; }
   .rb-cat-actual { font-size:14px; font-weight:400; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; }
-  .rb-cat-sep { font-size:11px; color:rgba(255,255,255,0.15); }
-  .rb-cat-goal { font-size:12px; font-family:${FONTS.num}; color:rgba(255,255,255,0.30); font-variant-numeric:tabular-nums; }
+  .rb-cat-sep { font-size:11px; color:var(--c-text-disabled); }
+  .rb-cat-goal { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-muted); font-variant-numeric:tabular-nums; }
   .rb-cat-diff { font-size:10px; font-weight:700; font-family:${FONTS.num}; padding:2px 8px; border-radius:10px; }
 
   /* Doble barra */
   .rb-bars { display:flex; flex-direction:column; gap:4px; }
   .rb-bar-row { display:flex; align-items:center; gap:6px; }
-  .rb-bar-lbl { font-size:9px; color:rgba(255,255,255,0.22); width:24px; text-align:right; flex-shrink:0; }
-  .rb-bar-track { flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+  .rb-bar-lbl { font-size:9px; color:var(--c-text-muted); width:24px; text-align:right; flex-shrink:0; }
+  .rb-bar-track { flex:1; height:4px; background:var(--c-border); border-radius:2px; overflow:hidden; }
   .rb-bar-fill { height:100%; border-radius:2px; transition:width 600ms cubic-bezier(0.4,0,0.2,1); }
 
   /* Edit form */
-  .rb-edit-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .rb-edit-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--c-border); }
   .rb-edit-row:last-of-type { border-bottom:none; }
-  .rb-edit-label { flex:1; font-size:13px; font-weight:500; color:rgba(255,255,255,0.55); display:flex; align-items:center; gap:7px; }
-  .rb-edit-inp { width:60px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:8px; padding:8px 10px; font-family:${FONTS.num}; font-size:14px; color:#fff; outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
+  .rb-edit-label { flex:1; font-size:13px; font-weight:500; color:var(--c-text-secondary); display:flex; align-items:center; gap:7px; }
+  .rb-edit-inp { width:60px; background:var(--c-border); border:1px solid var(--c-border); border-radius:8px; padding:8px 10px; font-family:${FONTS.num}; font-size:14px; color:var(--c-text-primary); outline:none; text-align:right; transition:border-color 120ms; -webkit-appearance:none; }
   .rb-edit-inp:focus { border-color:rgba(0,255,136,0.35); }
-  .rb-edit-pct { font-size:12px; color:rgba(255,255,255,0.30); }
+  .rb-edit-pct { font-size:12px; color:var(--c-text-muted); }
   .rb-total-row { display:flex; justify-content:flex-end; margin-top:8px; }
   .rb-total-ok  { font-size:11px; font-family:${FONTS.num}; color:${COLORS.neonGreen}; }
   .rb-total-err { font-size:11px; font-family:${FONTS.num}; color:${COLORS.neonRed}; }
   .rb-edit-footer { display:flex; gap:8px; margin-top:14px; }
-  .rb-btn-cancel { flex:1; padding:12px; border:1px solid rgba(255,255,255,0.09); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:13px; color:rgba(255,255,255,0.40); cursor:pointer; }
+  .rb-btn-cancel { flex:1; padding:12px; border:1px solid var(--c-border); background:transparent; border-radius:10px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; }
   .rb-btn-save { flex:1; padding:12px; border:none; border-radius:10px; font-family:${FONTS.sans}; font-size:13px; font-weight:700; background:${COLORS.neonGreen}; color:#000; cursor:pointer; }
   .rb-btn-save:disabled { opacity:0.25; cursor:not-allowed; }
 
@@ -82,9 +82,9 @@ const styles = `
   .rb-suggestion.warn { background:rgba(255,149,0,0.06); border:1px solid rgba(255,149,0,0.15); }
   .rb-suggestion.info { background:rgba(0,212,255,0.06); border:1px solid rgba(0,212,255,0.15); }
   .rb-sug-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
-  .rb-sug-title { font-size:13px; font-weight:600; color:#fff; margin-bottom:3px; }
-  .rb-sug-desc  { font-size:11px; color:rgba(255,255,255,0.40); line-height:1.65; }
-  .rb-sug-action { font-size:11px; font-family:${FONTS.num}; color:rgba(255,255,255,0.55); margin-top:5px; font-weight:500; }
+  .rb-sug-title { font-size:13px; font-weight:600; color:var(--c-text-primary); margin-bottom:3px; }
+  .rb-sug-desc  { font-size:11px; color:var(--c-text-secondary); line-height:1.65; }
+  .rb-sug-action { font-size:11px; font-family:${FONTS.num}; color:var(--c-text-secondary); margin-top:5px; font-weight:500; }
 `
 
 function ScoreGauge({ score }) {
@@ -94,13 +94,13 @@ function ScoreGauge({ score }) {
   const color = score>=80?COLORS.neonGreen:score>=50?COLORS.neonAmber:COLORS.neonRed
   return (
     <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6"/>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--c-border)" strokeWidth="6"/>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="6"
         strokeDasharray={circ} strokeDashoffset={offset}
         strokeLinecap="round" transform={`rotate(-90 ${cx} ${cy})`}
         style={{transition:'stroke-dashoffset 700ms ease'}}/>
       <text x={cx} y={cy-5} textAnchor="middle" fontSize="22" fontFamily="DM Sans, system-ui" fontWeight="600" fill={color}>{score}</text>
-      <text x={cx} y={cy+11} textAnchor="middle" fontSize="9" fontFamily="DM Sans, system-ui" fontWeight="500" fill="rgba(255,255,255,0.28)">/ 100</text>
+      <text x={cx} y={cy+11} textAnchor="middle" fontSize="9" fontFamily="DM Sans, system-ui" fontWeight="500" fill="var(--c-text-muted)">/ 100</text>
     </svg>
   )
 }
