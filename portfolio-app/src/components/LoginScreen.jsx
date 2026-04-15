@@ -162,7 +162,7 @@ const styles = `
   .lg-live-dot { width: 4px; height: 4px; border-radius: 50%; background: #22c55e; animation: lgblink 2.4s ease-in-out infinite; }
 
   .lg-preview-val {
-    font-family: ${FONTS.mono};
+    font-family: ${FONTS.num};
     font-size: 44px; font-weight: 600; color: var(--c-text-primary);
     letter-spacing: -1.5px; line-height: 1; margin-bottom: 8px;
   }
