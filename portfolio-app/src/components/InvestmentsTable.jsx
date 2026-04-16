@@ -123,7 +123,7 @@ const styles = `
   /* Hero value */
   .adm-value-section { padding:20px 20px 0; }
   .adm-value-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
-  .adm-value-num { font-size:40px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0.5px; margin-bottom:10px; }
+  .adm-value-num { font-size:40px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-1px; margin-bottom:10px; }
   .adm-value-num span { font-size:28px; opacity:0.5; }
   .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
   .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
@@ -506,13 +506,16 @@ export default function InvestmentsTable({
     return currentValue(inv)
   }
 
-  const totalValue   = investments.reduce((s, i) => s + calcVal(i), 0)
-  const totalCostEur = investments.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
+  // Filtra posicions amb qty ~0 (totalment venudes) — no es mostren a la taula
+  const activeInvestments = investments.filter(i => (i.totalQty || 0) > 0.00001)
+
+  const totalValue   = activeInvestments.reduce((s, i) => s + calcVal(i), 0)
+  const totalCostEur = activeInvestments.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
   const totalGain    = totalValue - totalCostEur
   const gainPct      = totalCostEur > 0 ? (totalGain / totalCostEur) * 100 : 0
   const isPos        = totalGain >= 0
-  const posCount     = investments.filter(i => calcVal(i) > (i.totalCostEur || i.totalCost || 0)).length
-  const sorted       = [...investments].sort((a, b) => sortDir === 'desc' ? calcVal(b) - calcVal(a) : calcVal(a) - calcVal(b))
+  const posCount     = activeInvestments.filter(i => calcVal(i) > (i.totalCostEur || i.totalCost || 0)).length
+  const sorted       = [...activeInvestments].sort((a, b) => sortDir === 'desc' ? calcVal(b) - calcVal(a) : calcVal(a) - calcVal(b))
 
   const distrib = useMemo(() => {
     const map = {}
@@ -551,7 +554,7 @@ export default function InvestmentsTable({
           <span className={`inv-hero-badge ${isPos ? 'pos' : 'neg'}`}>
             {isPos ? '▲' : '▼'} {isPos ? '+' : ''}{fmtEur(totalGain)} ({Math.abs(gainPct).toFixed(2)}%)
           </span>
-          <span className="inv-hero-sub">{investments.length} posicions · {posCount} en positiu</span>
+          <span className="inv-hero-sub">{activeInvestments.length} posicions · {posCount} en positiu</span>
         </div>
       </div>
 
@@ -616,7 +619,7 @@ export default function InvestmentsTable({
       </div>
 
       {/* ── Llista ── */}
-      {investments.length === 0 ? (
+      {activeInvestments.length === 0 ? (
         <div className="inv-empty">
           <p className="inv-empty-main">Cap inversió registrada</p>
           <p className="inv-empty-sub">Afegeix la teva primera posició o importa un CSV</p>

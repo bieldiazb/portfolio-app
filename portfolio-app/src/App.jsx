@@ -74,7 +74,7 @@ const appStyles = `
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   /* En mode clar el logo inverteix per llegibilitat */
-  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
+  [data-theme="light"] .mob-hdr-logo { background: #111; }
 
   .mob-hdr-title {
     font-size: 14px; font-weight: 500;
@@ -303,10 +303,23 @@ export default function App() {
       byAsset[key].txs.push(t)
     })
     for (const [key, asset] of Object.entries(byAsset)) {
-      let existingInv = investments.find(i =>
+      // ── Calcula el net de compres - vendes ─────────────────────────────────
+      const netQty = asset.txs.reduce((sum, tx) => {
+        return sum + (tx.action === 'sell' ? -tx.qty : tx.qty)
+      }, 0)
+
+      // Si el net és ≤ 0 (tot venut), comprova si ja existeix la inversió:
+      // - Si existeix → afegir igualment les txs (vendes incloses)
+      // - Si NO existeix → NO crear-la (evita posicions amb €0)
+      const existingInv = investments.find(i =>
         (i.ticker && i.ticker.toUpperCase() === asset.ticker?.toUpperCase()) ||
         (i.name && i.name.toLowerCase() === asset.name?.toLowerCase())
       )
+
+      // Si tot és venda i no existeix al portfoli, saltem — no creem una posició
+      const onlySells = asset.txs.every(tx => tx.action === 'sell')
+      if (onlySells && !existingInv) continue
+
       let invId
       if (existingInv) {
         invId = existingInv.id
