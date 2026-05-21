@@ -343,6 +343,15 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
       shares: parseFloat(form.shares) || 0,
       buyPrice: parseFloat(form.buyPrice) || 0
     })
+    await addDoc(collection(db, 'users', uid, 'investments', investmentId, 'txs'), {
+      type: 'buy',
+      qty: investment.shares,
+      pricePerUnit: investment.buyPrice,
+      totalCost: investment.shares * investment.buyPrice,
+      currency: investment.currency,
+      date: new Date().toISOString().split('T')[0],
+      createdAt: new Date()
+    })
   }
 
   return (
