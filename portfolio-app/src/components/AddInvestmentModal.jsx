@@ -213,6 +213,7 @@ const modalStyles = `
   .aim-inp:focus { border-color:rgba(0,255,136,0.35); }
   .aim-inp::placeholder { color:var(--c-text-disabled); }
   .aim-inp.mono { font-family:${FONTS.mono}; }
+  .aim-inp.invalid { border-color: ${COLORS.neonRed} !important; background: var(--c-bg-red); }
   .aim-inp.sm { padding:10px 11px; font-size:14px; }
 
   .aim-error {
@@ -374,10 +375,16 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const handleSubmit = () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
 
-    // Si hi ha compra, valida
-    if (addBuy && (buyQty || buyPrice)) {
-      if (!buyQty || parseFloat(buyQty) <= 0) return setError('Introdueix la quantitat de la compra')
-      if (!buyPrice || parseFloat(buyPrice) <= 0) return setError('Introdueix el preu per unitat')
+    // Validació compra — si addBuy actiu, els camps són obligatoris
+    if (addBuy && hasQty && (selectedResult || (manualMode && form.name))) {
+      const q = parseFloat(buyQty)
+      const p = parseFloat(buyPrice)
+      if (!buyQty || isNaN(q) || q <= 0)
+        return setError('La quantitat ha de ser major que 0')
+      if (!buyPrice || isNaN(p) || p <= 0)
+        return setError('El preu per unitat ha de ser major que 0')
+      if (!buyDate)
+        return setError('Selecciona una data de compra')
     }
     setError('')
 
@@ -546,7 +553,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                       <label className="aim-lbl">Quantitat (unitats)</label>
                       <input
                         type="number" inputMode="decimal" step="any"
-                        className="aim-inp aim-inp-sm mono"
+                        className={`aim-inp aim-inp-sm mono${addBuy && buyQty && parseFloat(buyQty) <= 0 ? ' invalid' : ''}`}
                         value={buyQty}
                         onChange={e => setBuyQty(e.target.value)}
                         placeholder="0.00"
@@ -556,7 +563,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                       <label className="aim-lbl">Preu per unitat ({currSym})</label>
                       <input
                         type="number" inputMode="decimal" step="any"
-                        className="aim-inp aim-inp-sm mono"
+                        className={`aim-inp aim-inp-sm mono${addBuy && buyPrice && parseFloat(buyPrice) <= 0 ? ' invalid' : ''}`}
                         value={buyPrice}
                         onChange={e => setBuyPrice(e.target.value)}
                         placeholder={resultPrices[form.ticker]?.price ? resultPrices[form.ticker].price.toString() : '0.00'}

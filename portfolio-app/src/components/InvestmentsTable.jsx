@@ -123,8 +123,8 @@ const styles = `
   /* Hero value */
   .adm-value-section { padding:20px 20px 0; }
   .adm-value-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
-  .adm-value-num { font-size:40px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-1px; margin-bottom:10px; }
-  .adm-value-num span { font-size:28px; opacity:0.5; }
+  .adm-value-num { font-size:40px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
+  .adm-value-num span { font-size:28px; opacity:0.9; }
   .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
   .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
   .adm-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
