@@ -13,12 +13,11 @@ const modalStyles = `
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.82);
     display: flex; align-items: flex-end; justify-content: center;
-    z-index: 50;
-    backdrop-filter: blur(6px);
+    z-index: 50; backdrop-filter: blur(6px);
     animation: aimFade 150ms ease;
   }
-  @keyframes aimFade { from { opacity:0 } to { opacity:1 } }
-  @media (min-width: 640px) { .aim-overlay { align-items: center; padding: 16px; } }
+  @keyframes aimFade { from{opacity:0} to{opacity:1} }
+  @media (min-width:640px) { .aim-overlay { align-items:center; padding:16px; } }
 
   .aim-modal {
     font-family: ${FONTS.sans};
@@ -32,189 +31,213 @@ const modalStyles = `
     transition: background-color 220ms ease;
   }
   @keyframes aimSlide {
-    from { transform: translateY(24px); opacity:0 }
-    to   { transform: translateY(0);    opacity:1 }
+    from { transform:translateY(24px); opacity:0 }
+    to   { transform:translateY(0);    opacity:1 }
   }
-  @media (min-width: 640px) {
-    .aim-modal { border-radius: 14px; max-width: 440px; padding: 24px 22px 28px; }
+  @media (min-width:640px) {
+    .aim-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; }
   }
 
   .aim-drag {
-    width: 36px; height: 4px; border-radius: 2px;
-    background: var(--c-border);
-    margin: 0 auto 18px; display: block;
+    width:36px; height:4px; border-radius:2px;
+    background:var(--c-border); margin:0 auto 18px; display:block;
   }
-  @media (min-width: 640px) { .aim-drag { display: none; } }
+  @media (min-width:640px) { .aim-drag { display:none; } }
 
   .aim-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .aim-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
   .aim-close {
-    width: 28px; height: 28px; border-radius: 8px;
-    background: var(--c-elevated);
-    border: 1px solid var(--c-border);
-    color: var(--c-text-secondary); font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 100ms;
+    width:28px; height:28px; border-radius:8px;
+    background:var(--c-elevated); border:1px solid var(--c-border);
+    color:var(--c-text-secondary); font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 100ms;
   }
-  .aim-close:hover { color: var(--c-text-primary); border-color: var(--c-border-hi); }
+  .aim-close:hover { color:var(--c-text-primary); border-color:var(--c-border-hi); }
 
-  /* Tipus — 4 botons grid */
+  /* Tipus */
   .aim-tgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:20px; }
   .aim-tbtn {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 12px 4px 10px; border-radius: 10px;
-    border: 1px solid var(--c-border);
-    background: var(--c-elevated);
-    cursor: pointer; gap: 6px; transition: all 100ms;
-    font-family: ${FONTS.sans}; -webkit-tap-highlight-color: transparent;
+    display:flex; flex-direction:column; align-items:center;
+    padding:12px 4px 10px; border-radius:10px;
+    border:1px solid var(--c-border); background:var(--c-elevated);
+    cursor:pointer; gap:6px; transition:all 100ms;
+    font-family:${FONTS.sans}; -webkit-tap-highlight-color:transparent;
   }
-  .aim-tbtn:hover { border-color: var(--c-border-mid); background: var(--c-border); }
-  .aim-tbtn.sel { border-color: rgba(0,255,136,0.28); background: rgba(0,255,136,0.07); }
+  .aim-tbtn:hover { border-color:var(--c-border-mid); background:var(--c-border); }
+  .aim-tbtn.sel { border-color:rgba(0,255,136,0.28); background:rgba(0,255,136,0.07); }
   .aim-tav {
-    width: 30px; height: 30px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 700; font-family: ${FONTS.mono};
+    width:30px; height:30px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; font-family:${FONTS.mono};
   }
-  .aim-tlbl { font-size: 10px; font-weight: 500; color: var(--c-text-muted); }
-  .aim-tbtn.sel .aim-tlbl { color: ${COLORS.neonGreen}; }
+  .aim-tlbl { font-size:10px; font-weight:500; color:var(--c-text-muted); }
+  .aim-tbtn.sel .aim-tlbl { color:${COLORS.neonGreen}; }
 
-  /* Search */
-  .aim-search-wrap { position: relative; margin-bottom: 8px; }
+  /* Cercador */
+  .aim-search-wrap { position:relative; margin-bottom:8px; }
   .aim-search-inp {
-    width: 100%; background: var(--c-elevated);
-    border: 1px solid var(--c-border);
-    border-radius: 10px; padding: 11px 36px 11px 38px;
-    font-family: ${FONTS.sans}; font-size: 15px;
-    color: var(--c-text-primary); outline: none; transition: border-color 120ms;
-    box-sizing: border-box; -webkit-appearance: none;
+    width:100%; background:var(--c-elevated);
+    border:1px solid var(--c-border); border-radius:10px;
+    padding:11px 36px 11px 38px;
+    font-family:${FONTS.sans}; font-size:15px;
+    color:var(--c-text-primary); outline:none; transition:border-color 120ms;
+    box-sizing:border-box; -webkit-appearance:none;
   }
-  .aim-search-inp:focus { border-color: rgba(0,255,136,0.35); }
-  .aim-search-inp::placeholder { color: var(--c-text-disabled); }
-  .aim-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); pointer-events: none; }
+  .aim-search-inp:focus { border-color:rgba(0,255,136,0.35); }
+  .aim-search-inp::placeholder { color:var(--c-text-disabled); }
+  .aim-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--c-text-muted); pointer-events:none; }
   .aim-search-spin {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    width: 13px; height: 13px;
-    border: 1.5px solid var(--c-border);
-    border-top-color: ${COLORS.neonGreen};
-    border-radius: 50%; animation: aimspin .7s linear infinite;
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    width:13px; height:13px;
+    border:1.5px solid var(--c-border); border-top-color:${COLORS.neonGreen};
+    border-radius:50%; animation:aimspin .7s linear infinite;
   }
-  @keyframes aimspin { to { transform: translateY(-50%) rotate(360deg); } }
+  @keyframes aimspin { to { transform:translateY(-50%) rotate(360deg); } }
 
   /* Results */
   .aim-results {
-    background: var(--c-elevated);
-    border: 1px solid var(--c-border);
-    border-radius: 10px; overflow: hidden; margin-bottom: 8px;
+    background:var(--c-elevated); border:1px solid var(--c-border);
+    border-radius:10px; overflow:hidden; margin-bottom:8px;
   }
   .aim-result {
-    display: flex; align-items: center; padding: 11px 12px;
-    cursor: pointer; border-bottom: 1px solid var(--c-border);
-    transition: background 80ms; gap: 10px;
-    -webkit-tap-highlight-color: transparent;
+    display:flex; align-items:center; padding:11px 12px;
+    cursor:pointer; border-bottom:1px solid var(--c-border);
+    transition:background 80ms; gap:10px;
+    -webkit-tap-highlight-color:transparent;
   }
-  .aim-result:last-child { border-bottom: none; }
-  .aim-result:hover { background: var(--c-border); }
-  .aim-result:active { background: rgba(0,255,136,0.05); }
+  .aim-result:last-child { border-bottom:none; }
+  .aim-result:hover { background:var(--c-border); }
   .aim-result-av {
-    width: 30px; height: 30px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: ${FONTS.mono};
-    background: var(--c-bg-cyan); color: ${COLORS.neonCyan};
+    width:30px; height:30px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono};
+    background:var(--c-bg-cyan); color:${COLORS.neonCyan};
   }
-  .aim-result-info { flex: 1; min-width: 0; }
-  .aim-result-name { font-size: 13px; font-weight: 500; color: var(--c-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .aim-result-meta { font-size: 10px; color: var(--c-text-muted); font-family: ${FONTS.mono}; }
+  .aim-result-info { flex:1; min-width:0; }
+  .aim-result-name { font-size:13px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .aim-result-meta { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .aim-result-curr {
-    font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px;
-    flex-shrink: 0; font-family: ${FONTS.mono};
+    font-size:9px; font-weight:700; padding:2px 6px; border-radius:20px;
+    flex-shrink:0; font-family:${FONTS.mono};
   }
-  .aim-result-curr.usd { color: ${COLORS.neonAmber}; background: var(--c-bg-amber); }
-  .aim-result-curr.gbp { color: ${COLORS.neonGreen}; background: var(--c-bg-green); }
-  .aim-result-curr.eur { color: ${COLORS.neonCyan};  background: var(--c-bg-cyan);  }
-  .aim-result-price { font-size: 12px; font-family: ${FONTS.mono}; color: var(--c-text-secondary); text-align: right; flex-shrink: 0; min-width: 52px; }
-  .aim-result-price.loading { color: var(--c-text-disabled); letter-spacing: 2px; }
-  .aim-no-results { padding: 16px; text-align: center; font-size: 12px; color: var(--c-text-muted); }
+  .aim-result-curr.usd { color:${COLORS.neonAmber}; background:var(--c-bg-amber); }
+  .aim-result-curr.gbp { color:${COLORS.neonGreen}; background:var(--c-bg-green); }
+  .aim-result-curr.eur { color:${COLORS.neonCyan};  background:var(--c-bg-cyan);  }
+  .aim-result-price { font-size:12px; font-family:${FONTS.mono}; color:var(--c-text-secondary); text-align:right; flex-shrink:0; min-width:52px; }
+  .aim-result-price.loading { color:var(--c-text-disabled); letter-spacing:2px; }
+  .aim-no-results { padding:16px; text-align:center; font-size:12px; color:var(--c-text-muted); }
 
   /* Chip actiu seleccionat */
   .aim-chip {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px;
-    background: var(--c-bg-green);
-    border: 1px solid var(--c-border-green);
-    border-radius: 10px; margin-bottom: 10px;
+    display:flex; align-items:center; gap:10px;
+    padding:12px 14px;
+    background:var(--c-bg-green); border:1px solid var(--c-border-green);
+    border-radius:10px; margin-bottom:16px;
   }
-  .aim-chip-info { flex: 1; min-width: 0; }
-  .aim-chip-name { font-size: 14px; font-weight: 500; color: var(--c-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .aim-chip-meta { font-size: 11px; color: ${COLORS.neonGreen}; font-family: ${FONTS.mono}; }
+  .aim-chip-info { flex:1; min-width:0; }
+  .aim-chip-name { font-size:14px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .aim-chip-meta { font-size:11px; color:${COLORS.neonGreen}; font-family:${FONTS.mono}; }
   .aim-chip-clear {
-    width: 24px; height: 24px; border-radius: 6px;
-    background: var(--c-elevated); border: 1px solid var(--c-border);
-    color: var(--c-text-secondary); font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 100ms; flex-shrink: 0;
+    width:24px; height:24px; border-radius:6px;
+    background:var(--c-elevated); border:1px solid var(--c-border);
+    color:var(--c-text-secondary); font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 100ms; flex-shrink:0;
   }
-  .aim-chip-clear:hover { color: ${COLORS.neonRed}; border-color: var(--c-border-red); }
+  .aim-chip-clear:hover { color:${COLORS.neonRed}; border-color:var(--c-border-red); }
 
   .aim-manual-link {
-    font-size: 11px; color: var(--c-text-muted); text-align: center;
-    margin-bottom: 12px; cursor: pointer; text-decoration: underline;
-    text-decoration-color: var(--c-border); transition: color 100ms;
+    font-size:11px; color:var(--c-text-muted); text-align:center;
+    margin-bottom:12px; cursor:pointer; text-decoration:underline;
+    text-decoration-color:var(--c-border); transition:color 100ms;
   }
-  .aim-manual-link:hover { color: var(--c-text-secondary); }
+  .aim-manual-link:hover { color:var(--c-text-secondary); }
 
-  /* Camps manuals */
-  .aim-space { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  /* ── Secció compra inline ── */
+  .aim-buy-section {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .aim-buy-title {
+    font-size: 10px; font-weight: 600; color: var(--c-text-muted);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .aim-buy-toggle {
+    font-size: 10px; color: var(--c-text-muted);
+    cursor: pointer; text-decoration: underline;
+    text-decoration-color: var(--c-border);
+    background: none; border: none; font-family: ${FONTS.sans};
+    padding: 0;
+  }
+  .aim-buy-toggle:hover { color: var(--c-text-secondary); }
+
+  .aim-buy-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .aim-buy-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+
+  .aim-buy-hint {
+    margin-top:10px;
+    padding:9px 11px;
+    background:var(--c-elevated);
+    border:1px solid var(--c-border);
+    border-radius:8px;
+    font-size:11px; color:var(--c-text-muted);
+    font-family:${FONTS.mono};
+    font-variant-numeric:tabular-nums;
+    display:flex; align-items:center; gap:6px;
+  }
+  .aim-buy-skip {
+    padding:10px; text-align:center;
+    font-size:11px; color:var(--c-text-muted);
+  }
+
+  /* Camps */
+  .aim-space { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
   .aim-lbl {
-    display: block; font-size: 10px; font-weight: 600;
-    color: var(--c-text-muted); text-transform: uppercase;
-    letter-spacing: 0.12em; margin-bottom: 6px;
+    display:block; font-size:10px; font-weight:600;
+    color:var(--c-text-muted); text-transform:uppercase;
+    letter-spacing:0.12em; margin-bottom:6px;
   }
   .aim-inp {
-    width: 100%; background: var(--c-elevated);
-    border: 1px solid var(--c-border); border-radius: 10px;
-    padding: 11px 13px; font-family: ${FONTS.sans}; font-size: 15px;
-    color: var(--c-text-primary); outline: none; transition: border-color 120ms;
-    box-sizing: border-box; -webkit-appearance: none;
+    width:100%; background:var(--c-elevated);
+    border:1px solid var(--c-border); border-radius:10px;
+    padding:11px 13px; font-family:${FONTS.sans}; font-size:15px;
+    color:var(--c-text-primary); outline:none; transition:border-color 120ms;
+    box-sizing:border-box; -webkit-appearance:none;
   }
-  .aim-inp:focus { border-color: rgba(0,255,136,0.35); }
-  .aim-inp::placeholder { color: var(--c-text-disabled); }
-  .aim-inp.mono { font-family: ${FONTS.mono}; }
-
-  /* Hint info */
-  .aim-hint {
-    display: flex; align-items: flex-start; gap: 9px;
-    padding: 11px 13px;
-    background: var(--c-bg-cyan);
-    border: 1px solid var(--c-border-cyan);
-    border-radius: 10px; margin-bottom: 4px;
-  }
-  .aim-hint-text { font-size: 12px; color: var(--c-text-secondary); line-height: 1.65; }
+  .aim-inp:focus { border-color:rgba(0,255,136,0.35); }
+  .aim-inp::placeholder { color:var(--c-text-disabled); }
+  .aim-inp.mono { font-family:${FONTS.mono}; }
+  .aim-inp.sm { padding:10px 11px; font-size:14px; }
 
   .aim-error {
-    font-size: 12px; color: ${COLORS.neonRed};
-    background: var(--c-bg-red);
-    border: 1px solid var(--c-border-red);
-    border-radius: 8px; padding: 10px 13px; margin-bottom: 4px;
+    font-size:12px; color:${COLORS.neonRed};
+    background:var(--c-bg-red); border:1px solid var(--c-border-red);
+    border-radius:8px; padding:10px 13px; margin-bottom:4px;
   }
 
   /* Footer */
-  .aim-footer { display: flex; gap: 8px; margin-top: 20px; }
+  .aim-footer { display:flex; gap:8px; margin-top:20px; }
   .aim-cancel {
-    flex: 1; padding: 13px;
-    border: 1px solid var(--c-border);
-    background: transparent; border-radius: 10px;
-    font-family: ${FONTS.sans}; font-size: 14px;
-    color: var(--c-text-secondary); cursor: pointer; transition: all 100ms;
+    flex:1; padding:13px; border:1px solid var(--c-border);
+    background:transparent; border-radius:10px;
+    font-family:${FONTS.sans}; font-size:14px;
+    color:var(--c-text-secondary); cursor:pointer; transition:all 100ms;
   }
-  .aim-cancel:hover { border-color: var(--c-border-hi); color: var(--c-text-primary); }
+  .aim-cancel:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
   .aim-submit {
-    flex: 1; background: ${COLORS.neonGreen}; border: none;
-    color: #000; padding: 13px; border-radius: 10px;
-    font-family: ${FONTS.sans}; font-size: 14px; font-weight: 700;
-    cursor: pointer; transition: opacity 100ms;
+    flex:2; background:${COLORS.neonGreen}; border:none;
+    color:#000; padding:13px; border-radius:10px;
+    font-family:${FONTS.sans}; font-size:14px; font-weight:700;
+    cursor:pointer; transition:opacity 100ms;
   }
-  .aim-submit:hover { opacity: 0.85; }
-  .aim-submit:active { opacity: 0.75; transform: scale(0.99); }
+  .aim-submit:hover { opacity:0.85; }
+  .aim-submit:active { opacity:0.75; transform:scale(0.99); }
 `
 
 async function searchYahoo(q) {
@@ -263,26 +286,38 @@ function guessCurrency(ticker) {
   return 'EUR'
 }
 
-export default function AddInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({
-    type: 'etf',
-    name: '',
-    ticker: '',
-    shares: '',
-    buyPrice: ''
-  })
-  const [inputCurrency, setInputCurrency] = useState('EUR')
-  const [searchQuery, setSearchQuery]     = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [searching, setSearching]         = useState(false)
-  const [selectedResult, setSelectedResult] = useState(null)
-  const [manualMode, setManualMode]       = useState(false)
-  const [resultPrices, setResultPrices]   = useState({})
-  const [error, setError]                 = useState('')
-  const debounceRef = useRef(null)
+function calcTotal(qty, price) {
+  const q = parseFloat(qty), p = parseFloat(price)
+  if (!q || !p || q <= 0 || p <= 0) return null
+  return (q * p).toFixed(2)
+}
 
-  const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
+export default function AddInvestmentModal({ onAdd, onClose }) {
+  const [form, setForm]                     = useState({ type:'etf', name:'', ticker:'' })
+  const [inputCurrency, setInputCurrency]   = useState('EUR')
+  const [searchQuery, setSearchQuery]       = useState('')
+  const [searchResults, setSearchResults]   = useState([])
+  const [searching, setSearching]           = useState(false)
+  const [selectedResult, setSelectedResult] = useState(null)
+  const [manualMode, setManualMode]         = useState(false)
+  const [resultPrices, setResultPrices]     = useState({})
+  const [error, setError]                   = useState('')
+
+  // ── Camp de compra inline ────────────────────────────────────────────────
+  const [addBuy, setAddBuy]       = useState(true)   // visible per defecte
+  const [buyQty, setBuyQty]       = useState('')
+  const [buyPrice, setBuyPrice]   = useState('')
+  const [buyDate, setBuyDate]     = useState(new Date().toISOString().split('T')[0])
+
+  const debounceRef = useRef(null)
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const hasQty = !['efectiu','robo'].includes(form.type)
+
+  // Autofill del preu si hi ha preu de mercat
+  const autofillPrice = (ticker) => {
+    const pd = resultPrices[ticker]
+    if (pd?.price && !buyPrice) setBuyPrice(pd.price.toString())
+  }
 
   const handleSearch = useCallback((val) => {
     setSearchQuery(val)
@@ -322,28 +357,52 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
     const curr = r.currency || guessCurrency(r.ticker)
     setInputCurrency(['USD','GBP'].includes(curr) ? curr : 'EUR')
     setSearchQuery(''); setSearchResults([])
+    // Autofill del preu de mercat si ja el tenim
+    const pd = resultPrices[r.ticker]
+    if (pd?.price) setBuyPrice(pd.price.toString())
   }
 
   const clearSelection = () => {
     setSelectedResult(null); setInputCurrency('EUR')
     setForm(f => ({ ...f, name:'', ticker:'' }))
+    setBuyPrice('')
   }
 
-  const handleSubmit = async () => {
+  const totalEst = calcTotal(buyQty, buyPrice)
+  const hasBuy   = addBuy && buyQty && buyPrice && parseFloat(buyQty) > 0 && parseFloat(buyPrice) > 0
+
+  const handleSubmit = () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
-    setError('')
-    if (hasQty && (!form.shares || !form.buyPrice)) {
-      return setError('Introdueix el número d’accions i el preu')
+
+    // Si hi ha compra, valida
+    if (addBuy && (buyQty || buyPrice)) {
+      if (!buyQty || parseFloat(buyQty) <= 0) return setError('Introdueix la quantitat de la compra')
+      if (!buyPrice || parseFloat(buyPrice) <= 0) return setError('Introdueix el preu per unitat')
     }
-    onAdd({
-      name: form.name.trim(),
-      ticker: form.ticker.trim().toUpperCase(),
-      type: form.type,
+    setError('')
+
+    const payload = {
+      name:     form.name.trim(),
+      ticker:   form.ticker.trim().toUpperCase(),
+      type:     form.type,
       currency: inputCurrency,
-      shares: parseFloat(form.shares) || 0,
-      buyPrice: parseFloat(form.buyPrice) || 0
-    })
+    }
+
+    // Afegir dades de compra si s'han introduït
+    if (hasBuy) {
+      payload.initialBuy = {
+        qty:          parseFloat(buyQty),
+        pricePerUnit: parseFloat(buyPrice),
+        totalCost:    parseFloat(totalEst),
+        currency:     inputCurrency,
+        date:         buyDate,
+      }
+    }
+
+    onAdd(payload)
   }
+
+  const currSym = inputCurrency === 'USD' ? '$' : inputCurrency === 'GBP' ? '£' : '€'
 
   return (
     <>
@@ -356,7 +415,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             <button className="aim-close" onClick={onClose}>×</button>
           </div>
 
-          {/* Tipus */}
+          {/* ── Tipus ── */}
           <div className="aim-tgrid">
             {TYPE_OPTIONS.map(t => {
               const isSel = form.type === t.value
@@ -368,7 +427,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                   onClick={() => set('type', t.value)}
                 >
                   <div className="aim-tav"
-                    style={{ background: isSel?tc.bg:'var(--c-elevated)', color: isSel?tc.color:'var(--c-text-muted)' }}>
+                    style={{ background:isSel?tc.bg:'var(--c-elevated)', color:isSel?tc.color:'var(--c-text-muted)' }}>
                     {t.short}
                   </div>
                   <span className="aim-tlbl" style={isSel?{color:tc.color}:{}}>{t.label}</span>
@@ -377,52 +436,21 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             })}
           </div>
 
-          {/* Cercador */}
+          {/* ── Cercador ── */}
           {hasQty && !manualMode && (
             <>
               {selectedResult ? (
-                <>
-                  <div className="aim-chip">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    <div className="aim-chip-info">
-                      <p className="aim-chip-name">{selectedResult.name}</p>
-                      <p className="aim-chip-meta">
-                        {selectedResult.ticker} · {selectedResult.exchange}
-                        {inputCurrency !== 'EUR' && <span style={{marginLeft:8,color:COLORS.neonAmber}}>· {inputCurrency}</span>}
-                      </p>
-                    </div>
-                    <button className="aim-chip-clear" onClick={clearSelection}>×</button>
+                <div className="aim-chip">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div className="aim-chip-info">
+                    <p className="aim-chip-name">{selectedResult.name}</p>
+                    <p className="aim-chip-meta">
+                      {selectedResult.ticker} · {selectedResult.exchange}
+                      {inputCurrency !== 'EUR' && <span style={{marginLeft:8,color:COLORS.neonAmber}}>· {inputCurrency}</span>}
+                    </p>
                   </div>
-                  <div className="aim-space" style={{ marginTop: '12px' }}>
-                    <div>
-                      <label className="aim-lbl">Quantitat</label>
-
-                      <input
-                        type="number"
-                        className="aim-inp mono"
-                        value={form.shares}
-                        onChange={e => set('shares', e.target.value)}
-                        placeholder="10"
-                        min="0"
-                        step="0.0001"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="aim-lbl">Preu de compra</label>
-
-                      <input
-                        type="number"
-                        className="aim-inp mono"
-                        value={form.buyPrice}
-                        onChange={e => set('buyPrice', e.target.value)}
-                        placeholder="145.50"
-                        min="0"
-                        step="0.0001"
-                      />
-                    </div>
-                  </div>
-                </>
+                  <button className="aim-chip-clear" onClick={clearSelection}>×</button>
+                </div>
               ) : (
                 <>
                   <div className="aim-search-wrap">
@@ -468,63 +496,29 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                       <div className="aim-no-results">Cap resultat per "{searchQuery}"</div>
                     </div>
                   )}
+                  <p className="aim-manual-link" onClick={() => setManualMode(true)}>
+                    Introduir manualment sense cercador
+                  </p>
                 </>
               )}
-              <p className="aim-manual-link" onClick={() => setManualMode(true)}>
-                Introduir manualment sense cercador
-              </p>
             </>
           )}
 
-          {/* Mode manual */}
+          {/* ── Mode manual ── */}
           {(manualMode || !hasQty) && (
             <div className="aim-space">
               <div>
                 <label className="aim-lbl">Nom</label>
-                <input className="aim-inp" value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: Revolut Robo Advisor..." autoFocus={!hasQty}/>
+                <input className="aim-inp" value={form.name} onChange={e => set('name', e.target.value)}
+                  placeholder="ex: Revolut Robo Advisor..." autoFocus={!hasQty}/>
               </div>
               {hasQty && (
-                <>
-                  <div>
-                    <label className="aim-lbl">Ticker Yahoo Finance</label>
-                    <input
-                      className="aim-inp mono"
-                      value={form.ticker}
-                      onChange={e => {
-                        const t = e.target.value.toUpperCase()
-                        set('ticker', t)
-                        setInputCurrency(guessCurrency(t))
-                      }}
-                      placeholder="EUNL.DE, AAPL..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="aim-lbl">Número d'accions</label>
-                    <input
-                      type="number"
-                      className="aim-inp mono"
-                      value={form.shares}
-                      onChange={e => set('shares', e.target.value)}
-                      placeholder="10"
-                      min="0"
-                      step="0.0001"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="aim-lbl">Preu de compra</label>
-                    <input
-                      type="number"
-                      className="aim-inp mono"
-                      value={form.buyPrice}
-                      onChange={e => set('buyPrice', e.target.value)}
-                      placeholder="145.50"
-                      min="0"
-                      step="0.0001"
-                    />
-                  </div>
-                </>
+                <div>
+                  <label className="aim-lbl">Ticker Yahoo Finance</label>
+                  <input className="aim-inp mono" value={form.ticker}
+                    onChange={e => { const t=e.target.value.toUpperCase(); set('ticker',t); setInputCurrency(guessCurrency(t)) }}
+                    placeholder="EUNL.DE, AAPL..."/>
+                </div>
               )}
               {manualMode && (
                 <p className="aim-manual-link" onClick={() => { setManualMode(false); clearSelection() }}>
@@ -534,17 +528,71 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
             </div>
           )}
 
-          {/* Hint */}
-          {hasQty && selectedResult && (
-            <div className="aim-hint">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonCyan} strokeWidth="1.8" strokeLinecap="round" style={{flexShrink:0,marginTop:1}}>
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <span className="aim-hint-text">
-                Un cop creada la posició, afegeix les teves compres amb el botó{' '}
-                <strong style={{color:COLORS.neonGreen}}>Comprar</strong>{' '}
-                per registrar quantitat, preu i data exactes.
-              </span>
+          {/* ── Compra inline — apareix un cop l'actiu està seleccionat ── */}
+          {hasQty && (selectedResult || (manualMode && form.name)) && (
+            <div className="aim-buy-section">
+              <div className="aim-buy-title">
+                <span>Registrar compra</span>
+                <button className="aim-buy-toggle" onClick={() => setAddBuy(v => !v)}>
+                  {addBuy ? 'Ometre' : 'Afegir compra'}
+                </button>
+              </div>
+
+              {addBuy ? (
+                <>
+                  {/* Fila 1: Quantitat + Preu */}
+                  <div className="aim-buy-grid" style={{marginBottom:10}}>
+                    <div>
+                      <label className="aim-lbl">Quantitat (unitats)</label>
+                      <input
+                        type="number" inputMode="decimal" step="any"
+                        className="aim-inp aim-inp-sm mono"
+                        value={buyQty}
+                        onChange={e => setBuyQty(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="aim-lbl">Preu per unitat ({currSym})</label>
+                      <input
+                        type="number" inputMode="decimal" step="any"
+                        className="aim-inp aim-inp-sm mono"
+                        value={buyPrice}
+                        onChange={e => setBuyPrice(e.target.value)}
+                        placeholder={resultPrices[form.ticker]?.price ? resultPrices[form.ticker].price.toString() : '0.00'}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fila 2: Data */}
+                  <div style={{marginBottom: totalEst ? 0 : 0}}>
+                    <label className="aim-lbl">Data de compra</label>
+                    <input
+                      type="date"
+                      className="aim-inp aim-inp-sm"
+                      value={buyDate}
+                      onChange={e => setBuyDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Total estimat */}
+                  {totalEst && (
+                    <div className="aim-buy-hint">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="2" strokeLinecap="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      Total: <strong style={{color:'var(--c-text-primary)'}}>{currSym}{parseFloat(totalEst).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+                      <span style={{marginLeft:'auto',color:'var(--c-text-disabled)'}}>
+                        {parseFloat(buyQty).toLocaleString('ca-ES',{maximumFractionDigits:6})} u. × {currSym}{parseFloat(buyPrice).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:4})}
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="aim-buy-skip">
+                  Podràs afegir compres des del detall de la posició
+                </div>
+              )}
             </div>
           )}
 
@@ -552,7 +600,9 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
 
           <div className="aim-footer">
             <button className="aim-cancel" onClick={onClose}>Cancel·lar</button>
-            <button className="aim-submit" onClick={handleSubmit}>Crear posició</button>
+            <button className="aim-submit" onClick={handleSubmit}>
+              {hasBuy ? 'Crear i registrar compra' : 'Crear posició'}
+            </button>
           </div>
         </div>
       </div>

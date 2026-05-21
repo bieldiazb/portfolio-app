@@ -32,7 +32,6 @@ import { useRebalancingGoals } from './hooks/useRebalancingGoals'
 import { useAlerts } from './components/AlertsSystem'
 import { useTheme } from './hooks/useTheme'
 import ThemeToggleIcon from './components/ThemeToggle'
-import { addDoc, collection } from 'firebase/firestore'
 
 export const PAGES = {
   dashboard:   'Inici',
@@ -279,35 +278,56 @@ export default function App() {
     } catch {}
   }, [cryptos, updateCryptoPrice])
 
-  const handleAddInvestment = useCallback(async ({
-    name,
-    ticker,
-    type,
-    currency,
-    shares,
-    buyPrice
-  }) => {
-    const investmentId = await addInvestment({
-      name,
-      ticker,
-      type,
-      currency
-    })
-    if (shares > 0 && buyPrice > 0) {
-      await addDoc(
-        collection(db, 'users', uid, 'investments', investmentId, 'txs'),
-        {
-          type: 'buy',
-          qty: shares,
-          pricePerUnit: buyPrice,
-          totalCost: shares * buyPrice,
-          currency: currency || 'EUR',
-          date: new Date().toISOString().split('T')[0],
-          createdAt: new Date()
+  const handleAddInvestment = useCallback(async ({ name, ticker, type, currency, initialBuy }) => {
+    await addInvestment({ name, ticker, type, currency: currency || 'EUR' })
+    if (ticker && !['efectiu','estalvi','robo'].includes(type)) {
+      setStatus('obtenint preu per ' + ticker + '...')
+      try {
+        const price = await fetchOne(ticker)
+        if (price != null) {
+          setTimeout(async () => {
+            const fresh = investments.find(i => i.ticker === ticker && i.name === name)
+            if (fresh) {
+              updateCurrentPrice(fresh.id, price)
+              // Si hi ha compra inicial, registra-la
+              if (initialBuy && initialBuy.qty > 0 && initialBuy.pricePerUnit > 0) {
+                await addInvTx(fresh.id, {
+                  qty:          initialBuy.qty,
+                  pricePerUnit: initialBuy.pricePerUnit,
+                  totalCost:    initialBuy.totalCost,
+                  totalCostEur: initialBuy.totalCost,
+                  currency:     initialBuy.currency || currency || 'EUR',
+                  fxRate:       1,
+                  type:         'buy',
+                  date:         initialBuy.date || new Date().toISOString().split('T')[0],
+                  note:         'Compra inicial',
+                })
+              }
+            }
+          }, 1500)
         }
-      )
+      } catch {}
+      setStatus('llest')
+    } else if (initialBuy && initialBuy.qty > 0) {
+      // Actiu sense preu (robo, efectiu) — registra compra inicial igualment
+      setTimeout(async () => {
+        const fresh = investments.find(i => i.name === name)
+        if (fresh) {
+          await addInvTx(fresh.id, {
+            qty:          initialBuy.qty,
+            pricePerUnit: initialBuy.pricePerUnit,
+            totalCost:    initialBuy.totalCost,
+            totalCostEur: initialBuy.totalCost,
+            currency:     initialBuy.currency || 'EUR',
+            fxRate:       1,
+            type:         'buy',
+            date:         initialBuy.date || new Date().toISOString().split('T')[0],
+            note:         'Compra inicial',
+          })
+        }
+      }, 1500)
     }
-  }, [addInvestment, fetchOne, setStatus, updateCurrentPrice, investments])
+  }, [addInvestment, addInvTx, fetchOne, setStatus, updateCurrentPrice, investments])
 
   const handleImportCSV = useCallback(async (transactions, broker) => {
     const byAsset = {}
