@@ -381,17 +381,48 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
           {hasQty && !manualMode && (
             <>
               {selectedResult ? (
-                <div className="aim-chip">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  <div className="aim-chip-info">
-                    <p className="aim-chip-name">{selectedResult.name}</p>
-                    <p className="aim-chip-meta">
-                      {selectedResult.ticker} · {selectedResult.exchange}
-                      {inputCurrency !== 'EUR' && <span style={{marginLeft:8,color:COLORS.neonAmber}}>· {inputCurrency}</span>}
-                    </p>
+                <>
+                  <div className="aim-chip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div className="aim-chip-info">
+                      <p className="aim-chip-name">{selectedResult.name}</p>
+                      <p className="aim-chip-meta">
+                        {selectedResult.ticker} · {selectedResult.exchange}
+                        {inputCurrency !== 'EUR' && <span style={{marginLeft:8,color:COLORS.neonAmber}}>· {inputCurrency}</span>}
+                      </p>
+                    </div>
+                    <button className="aim-chip-clear" onClick={clearSelection}>×</button>
                   </div>
-                  <button className="aim-chip-clear" onClick={clearSelection}>×</button>
-                </div>
+                  <div className="aim-space" style={{ marginTop: '12px' }}>
+                    <div>
+                      <label className="aim-lbl">Quantitat</label>
+
+                      <input
+                        type="number"
+                        className="aim-inp mono"
+                        value={form.shares}
+                        onChange={e => set('shares', e.target.value)}
+                        placeholder="10"
+                        min="0"
+                        step="0.0001"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="aim-lbl">Preu de compra</label>
+
+                      <input
+                        type="number"
+                        className="aim-inp mono"
+                        value={form.buyPrice}
+                        onChange={e => set('buyPrice', e.target.value)}
+                        placeholder="145.50"
+                        min="0"
+                        step="0.0001"
+                      />
+                    </div>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="aim-search-wrap">
