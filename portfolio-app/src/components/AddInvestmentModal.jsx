@@ -264,7 +264,13 @@ function guessCurrency(ticker) {
 }
 
 export default function AddInvestmentModal({ onAdd, onClose }) {
-  const [form, setForm]                   = useState({ type:'etf', name:'', ticker:'' })
+  const [form, setForm] = useState({
+    type: 'etf',
+    name: '',
+    ticker: '',
+    shares: '',
+    buyPrice: ''
+  })
   const [inputCurrency, setInputCurrency] = useState('EUR')
   const [searchQuery, setSearchQuery]     = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -326,7 +332,17 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
   const handleSubmit = () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
     setError('')
-    onAdd({ name: form.name.trim(), ticker: form.ticker.trim().toUpperCase(), type: form.type, currency: inputCurrency })
+    if (hasQty && (!form.shares || !form.buyPrice)) {
+      return setError('Introdueix el número d’accions i el preu')
+    }
+    onAdd({
+      name: form.name.trim(),
+      ticker: form.ticker.trim().toUpperCase(),
+      type: form.type,
+      currency: inputCurrency,
+      shares: parseFloat(form.shares) || 0,
+      buyPrice: parseFloat(form.buyPrice) || 0
+    })
   }
 
   return (
@@ -437,12 +453,47 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
                 <input className="aim-inp" value={form.name} onChange={e => set('name', e.target.value)} placeholder="ex: Revolut Robo Advisor..." autoFocus={!hasQty}/>
               </div>
               {hasQty && (
-                <div>
-                  <label className="aim-lbl">Ticker Yahoo Finance</label>
-                  <input className="aim-inp mono" value={form.ticker}
-                    onChange={e => { const t=e.target.value.toUpperCase(); set('ticker',t); setInputCurrency(guessCurrency(t)) }}
-                    placeholder="EUNL.DE, AAPL..."/>
-                </div>
+                <>
+                  <div>
+                    <label className="aim-lbl">Ticker Yahoo Finance</label>
+                    <input
+                      className="aim-inp mono"
+                      value={form.ticker}
+                      onChange={e => {
+                        const t = e.target.value.toUpperCase()
+                        set('ticker', t)
+                        setInputCurrency(guessCurrency(t))
+                      }}
+                      placeholder="EUNL.DE, AAPL..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="aim-lbl">Número d'accions</label>
+                    <input
+                      type="number"
+                      className="aim-inp mono"
+                      value={form.shares}
+                      onChange={e => set('shares', e.target.value)}
+                      placeholder="10"
+                      min="0"
+                      step="0.0001"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="aim-lbl">Preu de compra</label>
+                    <input
+                      type="number"
+                      className="aim-inp mono"
+                      value={form.buyPrice}
+                      onChange={e => set('buyPrice', e.target.value)}
+                      placeholder="145.50"
+                      min="0"
+                      step="0.0001"
+                    />
+                  </div>
+                </>
               )}
               {manualMode && (
                 <p className="aim-manual-link" onClick={() => { setManualMode(false); clearSelection() }}>
