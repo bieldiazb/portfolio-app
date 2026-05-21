@@ -32,6 +32,7 @@ import { useRebalancingGoals } from './hooks/useRebalancingGoals'
 import { useAlerts } from './components/AlertsSystem'
 import { useTheme } from './hooks/useTheme'
 import ThemeToggleIcon from './components/ThemeToggle'
+import { addDoc, collection } from 'firebase/firestore'
 
 export const PAGES = {
   dashboard:   'Inici',
@@ -278,20 +279,33 @@ export default function App() {
     } catch {}
   }, [cryptos, updateCryptoPrice])
 
-  const handleAddInvestment = useCallback(async ({ name, ticker, type }) => {
-    await addInvestment({ name, ticker, type })
-    if (ticker && !['efectiu','estalvi','robo'].includes(type)) {
-      setStatus('obtenint preu per ' + ticker + '...')
-      try {
-        const price = await fetchOne(ticker)
-        if (price != null) {
-          setTimeout(() => {
-            const fresh = investments.find(i => i.ticker === ticker && i.name === name)
-            if (fresh) updateCurrentPrice(fresh.id, price)
-          }, 1500)
+  const handleAddInvestment = useCallback(async ({
+    name,
+    ticker,
+    type,
+    currency,
+    shares,
+    buyPrice
+  }) => {
+    const investmentId = await addInvestment({
+      name,
+      ticker,
+      type,
+      currency
+    })
+    if (shares > 0 && buyPrice > 0) {
+      await addDoc(
+        collection(db, 'users', uid, 'investments', investmentId, 'txs'),
+        {
+          type: 'buy',
+          qty: shares,
+          pricePerUnit: buyPrice,
+          totalCost: shares * buyPrice,
+          currency: currency || 'EUR',
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date()
         }
-      } catch {}
-      setStatus('llest')
+      )
     }
   }, [addInvestment, fetchOne, setStatus, updateCurrentPrice, investments])
 

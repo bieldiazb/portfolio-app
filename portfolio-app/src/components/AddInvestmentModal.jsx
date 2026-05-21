@@ -329,7 +329,7 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
     setForm(f => ({ ...f, name:'', ticker:'' }))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim()) return setError('Busca i selecciona un actiu, o introdueix el nom manualment')
     setError('')
     if (hasQty && (!form.shares || !form.buyPrice)) {
@@ -342,15 +342,6 @@ export default function AddInvestmentModal({ onAdd, onClose }) {
       currency: inputCurrency,
       shares: parseFloat(form.shares) || 0,
       buyPrice: parseFloat(form.buyPrice) || 0
-    })
-    await addDoc(collection(db, 'users', uid, 'investments', investmentId, 'txs'), {
-      type: 'buy',
-      qty: investment.shares,
-      pricePerUnit: investment.buyPrice,
-      totalCost: investment.shares * investment.buyPrice,
-      currency: investment.currency,
-      date: new Date().toISOString().split('T')[0],
-      createdAt: new Date()
     })
   }
 
