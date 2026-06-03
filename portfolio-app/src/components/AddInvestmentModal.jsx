@@ -17,32 +17,27 @@ const modalStyles = `
     animation: aimFade 150ms ease;
   }
   @keyframes aimFade { from{opacity:0} to{opacity:1} }
-  @media (min-width:640px) { .aim-overlay { align-items:center; padding:16px; } }
+  .aim-overlay { align-items:center !important; padding:16px; }
 
   .aim-modal {
     font-family: ${FONTS.sans};
     background: var(--c-bg);
     border: 1px solid var(--c-border);
     border-radius: 16px 16px 0 0;
-    width: 100%; padding: 20px 16px 100px;
-    max-height: 92dvh; overflow-y: auto;
-    box-shadow: 0 -20px 60px rgba(0,0,0,0.40);
+    width: 100%; max-width: 460px;
+    padding: 24px 22px 28px;
+    max-height: 90dvh; overflow-y: auto;
+    border-radius: 14px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.35);
     animation: aimSlide 220ms cubic-bezier(0.34,1.2,0.64,1);
     transition: background-color 220ms ease;
   }
   @keyframes aimSlide {
-    from { transform:translateY(24px); opacity:0 }
-    to   { transform:translateY(0);    opacity:1 }
-  }
-  @media (min-width:640px) {
-    .aim-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; }
+    from { transform:translateY(12px) scale(0.98); opacity:0 }
+    to   { transform:translateY(0)    scale(1);    opacity:1 }
   }
 
-  .aim-drag {
-    width:36px; height:4px; border-radius:2px;
-    background:var(--c-border); margin:0 auto 18px; display:block;
-  }
-  @media (min-width:640px) { .aim-drag { display:none; } }
+  .aim-drag { display: none; }
 
   .aim-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .aim-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
