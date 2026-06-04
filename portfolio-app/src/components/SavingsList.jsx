@@ -16,7 +16,7 @@ const styles = `
   .sv-hero::before {
     content:''; position:absolute; top:-50px; right:-50px;
     width:200px; height:200px; border-radius:50%;
-    background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--c-bg-green) 0%, transparent 70%);
     pointer-events:none;
   }
   .sv-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
@@ -37,8 +37,8 @@ const styles = `
 
   /* ── Accions ── */
   .sv-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
-  .sv-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
-  .sv-btn-ico:hover { border-color:${COLORS.borderHi}; color:${COLORS.textSecondary}; }
+  .sv-btn-ico { width:30px; height:30px; background:transparent; border:1px solid var(--c-border); border-radius:6px; color:var(--c-text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .sv-btn-ico:hover { border-color:var(--c-border-hi); color:var(--c-text-secondary); }
   .sv-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:6px; font-family:${FONTS.sans}; font-size:12px; font-weight:600; cursor:pointer; transition:opacity 100ms; white-space:nowrap; margin-left:auto; }
   .sv-btn-add:hover { opacity:0.85; }
 
@@ -56,7 +56,7 @@ const styles = `
   .sv-av { width:36px; height:36px; border-radius:10px; background:var(--c-bg-green); border:1px solid var(--c-border-green); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .sv-card-info { flex:1; min-width:0; }
   .sv-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sv-card-meta { display:flex; align-items:center; gap:6px; }
+  .sv-card-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .sv-rate-badge { font-size:9px; font-weight:600; font-family:${FONTS.mono}; color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); padding:1px 6px; border-radius:3px; }
   .sv-card-notes { font-size:10px; color:var(--c-text-muted); }
   .sv-card-right { text-align:right; flex-shrink:0; }
@@ -69,7 +69,57 @@ const styles = `
   .sv-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .sv-expand-inner { padding:16px 14px; }
   .sv-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .sv-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
+  .sv-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid var(--c-border); border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
+
+  /* ── Edició TAE inline ── */
+  .sv-tae-row {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 0; margin-bottom:10px;
+    border-bottom:1px solid var(--c-border);
+  }
+  .sv-tae-label {
+    font-size:10px; font-weight:500; color:var(--c-text-muted);
+    text-transform:uppercase; letter-spacing:0.10em; flex:1;
+  }
+  .sv-tae-display {
+    display:flex; align-items:center; gap:6px; cursor:pointer;
+    padding:4px 8px; border-radius:6px; transition:background 100ms;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .sv-tae-display:hover { background:var(--c-border); }
+  .sv-tae-val {
+    font-size:14px; font-weight:600; font-family:${FONTS.mono};
+    color:${COLORS.neonGreen};
+  }
+  .sv-tae-val.zero { color:var(--c-text-muted); }
+  .sv-tae-edit-icon { color:var(--c-text-disabled); }
+
+  .sv-tae-edit {
+    display:flex; align-items:center; gap:6px;
+  }
+  .sv-tae-inp {
+    width:72px; background:var(--c-bg);
+    border:1px solid var(--c-border-green);
+    border-radius:6px; padding:6px 10px;
+    font-family:${FONTS.mono}; font-size:14px; font-weight:600;
+    color:${COLORS.neonGreen}; outline:none; text-align:right;
+    -webkit-appearance:none;
+  }
+  .sv-tae-inp:focus { border-color:${COLORS.neonGreen}; box-shadow:0 0 0 3px var(--c-bg-green); }
+  .sv-tae-unit { font-size:12px; color:var(--c-text-secondary); }
+  .sv-tae-save {
+    padding:5px 10px; background:${COLORS.neonGreen}; color:#000;
+    border:none; border-radius:5px; font-family:${FONTS.sans};
+    font-size:11px; font-weight:700; cursor:pointer; transition:opacity 100ms;
+    white-space:nowrap;
+  }
+  .sv-tae-save:hover { opacity:0.85; }
+  .sv-tae-cancel {
+    padding:5px 10px; background:transparent; color:var(--c-text-muted);
+    border:1px solid var(--c-border); border-radius:5px;
+    font-family:${FONTS.sans}; font-size:11px; cursor:pointer;
+  }
+  .sv-tae-cancel:hover { color:var(--c-text-primary); border-color:var(--c-border-hi); }
 
   /* ── Progress bar del saldo ── */
   .sv-progress { margin-bottom:14px; }
@@ -83,42 +133,57 @@ const styles = `
   .sv-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .sv-tx:last-child { border-bottom:none; }
   .sv-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
-  .sv-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
+  .sv-tx-del:hover { color:${COLORS.neonRed}; background:var(--c-bg-red); }
 
   /* ── Empty ── */
   .sv-empty { padding:48px 0; text-align:center; }
   .sv-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
   .sv-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
-  /* ── Modals ── */
-  .sv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
-  @media (min-width:640px) { .sv-overlay { align-items:center; padding:16px; } }
-  .sv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 100px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
-  @media (min-width:640px) { .sv-modal { border-radius:10px; max-width:400px; padding:24px 20px; } }
-  .sv-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .sv-modal-drag { display:none; } }
+  /* ── Modals — sempre centrats ── */
+  .sv-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.82);
+    display:flex; align-items:center; justify-content:center;
+    padding:16px; z-index:50;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    animation:svFadeIn 150ms ease;
+  }
+  @keyframes svFadeIn { from{opacity:0} to{opacity:1} }
+  .sv-modal {
+    background:var(--c-bg); border:1px solid var(--c-border);
+    border-radius:14px; width:100%; max-width:400px;
+    padding:24px 20px; font-family:${FONTS.sans};
+    max-height:90dvh; overflow-y:auto;
+    box-shadow:0 24px 64px rgba(0,0,0,0.35);
+    animation:svScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1);
+    transition:background-color 220ms ease;
+  }
+  @keyframes svScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .sv-modal-drag { display:none; }
   .sv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .sv-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
-  .sv-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .sv-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .sv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  .sv-modal-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
+  .sv-modal-x { width:26px; height:26px; border-radius:4px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .sv-modal-x:hover { color:var(--c-text-primary); border-color:var(--c-border-hi); }
+  .sv-lbl { display:block; font-size:10px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
+  .sv-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
   .sv-inp:focus { border-color:${COLORS.neonGreen}; }
-  .sv-inp::placeholder { color:${COLORS.textMuted}; }
+  .sv-inp::placeholder { color:var(--c-text-disabled); }
   .sv-inp.mono { font-family:${FONTS.mono}; text-align:right; }
   .sv-inp.big { font-size:22px; padding:12px 14px; letter-spacing:-0.5px; }
   .sv-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .sv-fgroup { display:flex; flex-direction:column; gap:14px; }
   .sv-mfooter { display:flex; gap:8px; margin-top:20px; }
-  .sv-btn-cancel { flex:1; padding:11px; border:1px solid ${COLORS.border}; background:transparent; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; color:${COLORS.textSecondary}; cursor:pointer; }
-  .sv-btn-ok { flex:1; padding:11px; border:none; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
-  .sv-btn-ok.def { background:#fff; color:#000; }
+  .sv-btn-cancel { flex:1; padding:11px; border:1px solid var(--c-border); background:transparent; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
+  .sv-btn-cancel:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
+  .sv-btn-ok { flex:1; padding:11px; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; transition:opacity 100ms; }
+  .sv-btn-ok:hover { opacity:0.85; }
   .sv-btn-ok.grn { background:${COLORS.neonGreen}; color:#000; }
   .sv-btn-ok.org { background:${COLORS.neonAmber}; color:#000; }
-  .sv-error { font-size:12px; color:${COLORS.neonRed}; background:${COLORS.bgRed}; border:1px solid ${COLORS.borderRed}; border-radius:5px; padding:9px 12px; }
-  .sv-type-row { display:flex; gap:1px; background:${COLORS.border}; border-radius:6px; overflow:hidden; margin-bottom:16px; }
-  .sv-type-tab { flex:1; padding:9px; border:none; background:${COLORS.surface}; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:${COLORS.textMuted}; }
-  .sv-type-tab.grn { background:rgba(0,255,136,0.10); color:${COLORS.neonGreen}; }
-  .sv-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
+  .sv-error { font-size:12px; color:var(--c-red); background:var(--c-bg-red); border:1px solid var(--c-border-red); border-radius:6px; padding:9px 12px; }
+  .sv-type-row { display:flex; gap:1px; background:var(--c-border); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+  .sv-type-tab { flex:1; padding:9px; border:none; background:var(--c-surface); font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:var(--c-text-muted); transition:all 100ms; }
+  .sv-type-tab.grn { background:var(--c-bg-green); color:${COLORS.neonGreen}; }
+  .sv-type-tab.org { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
 `
 
 const TrashIcon = ({ size=12 }) => (
@@ -132,17 +197,25 @@ const ChevronDown = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
 )
 
+const PencilIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+)
+
 const BankIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={COLORS.neonGreen} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
   </svg>
 )
 
-export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, onAddTransaction, onRemoveTransaction }) {
-  const [showNew, setShowNew]   = useState(false)
-  const [txModal, setTxModal]   = useState(null)
-  const [expanded, setExpanded] = useState({})
-  const [sortDir, setSortDir]   = useState('desc')
+export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, onAddTransaction, onRemoveTransaction, onUpdateAccount }) {
+  const [showNew, setShowNew]       = useState(false)
+  const [txModal, setTxModal]       = useState(null)
+  const [expanded, setExpanded]     = useState({})
+  const [sortDir, setSortDir]       = useState('desc')
+  const [editingRate, setEditingRate] = useState({}) // { [accId]: string }
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   const totalBalance  = accounts.reduce((s, a) => s + a.balance, 0)
@@ -150,10 +223,24 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
   const avgRate       = accounts.filter(a => a.rate > 0).length > 0
     ? accounts.filter(a => a.rate > 0).reduce((s, a) => s + a.rate, 0) / accounts.filter(a => a.rate > 0).length
     : 0
-  const maxBalance    = Math.max(...accounts.map(a => a.balance), 1)
   const sorted        = [...accounts].sort((a, b) => sortDir === 'desc' ? b.balance - a.balance : a.balance - b.balance)
   const toggle        = id => setExpanded(e => ({ ...e, [id]: !e[id] }))
   const formatDate    = ts => !ts?.toDate ? '—' : ts.toDate().toLocaleDateString('ca-ES', { day:'2-digit', month:'short', year:'numeric' })
+
+  // ── TAE inline edit helpers ──────────────────────────────────────────────
+  const startEditRate  = (accId, currentRate) => {
+    setEditingRate(prev => ({ ...prev, [accId]: String(currentRate || '') }))
+  }
+  const cancelEditRate = accId => {
+    setEditingRate(prev => { const n = {...prev}; delete n[accId]; return n })
+  }
+  const saveRate = (acc) => {
+    const val = parseFloat(String(editingRate[acc.id] || '').replace(',', '.'))
+    if (!isNaN(val) && val >= 0 && onUpdateAccount) {
+      onUpdateAccount(acc.id, { rate: val })
+    }
+    cancelEditRate(acc.id)
+  }
 
   return (
     <div className="sv">
@@ -214,12 +301,13 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
       ) : (
         <>
           <div className="sv-section-hdr">
-            <span className="sv-section-title">Comptes</span>
+            <span className="sv-section-title">Comptes · toca per gestionar</span>
           </div>
           <div className="sv-cards">
             {sorted.map(acc => {
-              const interest    = acc.rate > 0 && acc.balance > 0 ? acc.balance * acc.rate / 100 : 0
-              const weightPct   = totalBalance > 0 ? (acc.balance / totalBalance) * 100 : 0
+              const interest  = acc.rate > 0 && acc.balance > 0 ? acc.balance * acc.rate / 100 : 0
+              const weightPct = totalBalance > 0 ? (acc.balance / totalBalance) * 100 : 0
+              const isEditingThisRate = editingRate[acc.id] !== undefined
 
               return (
                 <div key={acc.id} className="sv-card">
@@ -243,6 +331,34 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
                   {expanded[acc.id] && (
                     <div className="sv-expand">
                       <div className="sv-expand-inner">
+
+                        {/* ── Edició TAE inline ── */}
+                        <div className="sv-tae-row">
+                          <span className="sv-tae-label">Rendiment TAE</span>
+                          {isEditingThisRate ? (
+                            <div className="sv-tae-edit">
+                              <input
+                                type="number" inputMode="decimal" step="0.01" min="0" max="100"
+                                className="sv-tae-inp"
+                                value={editingRate[acc.id]}
+                                onChange={e => setEditingRate(prev => ({...prev, [acc.id]: e.target.value}))}
+                                onKeyDown={e => { if (e.key==='Enter') saveRate(acc); if (e.key==='Escape') cancelEditRate(acc.id) }}
+                                autoFocus
+                              />
+                              <span className="sv-tae-unit">%</span>
+                              <button className="sv-tae-save" onClick={() => saveRate(acc)}>Guardar</button>
+                              <button className="sv-tae-cancel" onClick={() => cancelEditRate(acc.id)}>✕</button>
+                            </div>
+                          ) : (
+                            <div className="sv-tae-display" onClick={e => { e.stopPropagation(); startEditRate(acc.id, acc.rate) }}>
+                              <span className={`sv-tae-val${!acc.rate ? ' zero' : ''}`}>
+                                {acc.rate > 0 ? `${acc.rate}%` : '0%'}
+                              </span>
+                              <span className="sv-tae-edit-icon"><PencilIcon/></span>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Barra de pes respecte al total */}
                         <div className="sv-progress">
                           <div className="sv-progress-row">
@@ -257,20 +373,20 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
                         {/* Botons */}
                         <div className="sv-expand-btns">
                           {[
-                            { label:'↑ Ingrés',   color:COLORS.neonGreen, bg:'rgba(0,255,136,0.10)', border:'rgba(0,255,136,0.25)', type:'deposit' },
-                            { label:'↓ Retirada', color:COLORS.neonAmber, bg:COLORS.bgAmber, border:COLORS.borderAmber, type:'withdraw' },
+                            { label:'↑ Ingrés',   color:COLORS.neonGreen, bg:'var(--c-bg-green)', border:'var(--c-border-green)', type:'deposit' },
+                            { label:'↓ Retirada', color:COLORS.neonAmber, bg:'var(--c-bg-amber)', border:'var(--c-border-amber)', type:'withdraw' },
                           ].map(b => (
                             <button key={b.type} className="sv-expand-btn"
                               style={{ color: b.color }}
                               onClick={() => setTxModal({ accountId: acc.id, name: acc.name, type: b.type })}
                               onMouseOver={e=>{ e.currentTarget.style.background=b.bg; e.currentTarget.style.borderColor=b.border }}
-                              onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=COLORS.border }}
+                              onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='var(--c-border)' }}
                             >{b.label}</button>
                           ))}
                           <button className="sv-expand-btn" style={{ color:COLORS.neonRed, marginLeft:'auto' }}
                             onClick={() => askConfirm({ name: acc.name, onConfirm: () => onRemoveAccount(acc.id) })}
-                            onMouseOver={e=>{ e.currentTarget.style.background=COLORS.bgRed; e.currentTarget.style.borderColor=COLORS.borderRed }}
-                            onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=COLORS.border }}
+                            onMouseOver={e=>{ e.currentTarget.style.background='var(--c-bg-red)'; e.currentTarget.style.borderColor='var(--c-border-red)' }}
+                            onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='var(--c-border)' }}
                           >Eliminar</button>
                         </div>
 
@@ -325,7 +441,6 @@ function NewAccountModal({ onAdd, onClose }) {
   return (
     <div className="sv-overlay" onClick={e => e.target===e.currentTarget&&onClose()}>
       <div className="sv-modal">
-        <div className="sv-modal-drag"/>
         <div className="sv-modal-hdr">
           <h3 className="sv-modal-title">Nou compte d'estalvi</h3>
           <button className="sv-modal-x" onClick={onClose}>×</button>
@@ -333,7 +448,7 @@ function NewAccountModal({ onAdd, onClose }) {
         <div className="sv-fgroup">
           <div>
             <label className="sv-lbl">Nom del compte</label>
-            <input className="sv-inp" value={form.name} onChange={e=>set('name',e.target.value)} placeholder="ex: N26, BBVA Estalvi..."/>
+            <input className="sv-inp" value={form.name} onChange={e=>set('name',e.target.value)} placeholder="ex: N26, BBVA Estalvi..." autoFocus/>
           </div>
           <div className="sv-grid2">
             <div>
@@ -370,12 +485,11 @@ function TransactionModal({ accountName, defaultType, onAdd, onClose }) {
     const v = parseFloat(String(amount).replace(',', '.'))
     if (!v || v <= 0) return setError('Introdueix un import vàlid')
     setError('')
-    onAdd({ amount: v, type, note })
+    onAdd({ amount: isDeposit ? v : -v, type, note })
   }
   return (
     <div className="sv-overlay" onClick={e => e.target===e.currentTarget&&onClose()}>
       <div className="sv-modal">
-        <div className="sv-modal-drag"/>
         <div className="sv-modal-hdr">
           <h3 className="sv-modal-title">{accountName}</h3>
           <button className="sv-modal-x" onClick={onClose}>×</button>
@@ -387,7 +501,7 @@ function TransactionModal({ accountName, defaultType, onAdd, onClose }) {
         <div className="sv-fgroup">
           <div>
             <label className="sv-lbl">Import (€)</label>
-            <input type="number" inputMode="decimal" step="any" className="sv-inp mono big" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/>
+            <input type="number" inputMode="decimal" step="any" className="sv-inp mono big" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" autoFocus/>
           </div>
           <div>
             <label className="sv-lbl">Descripció</label>

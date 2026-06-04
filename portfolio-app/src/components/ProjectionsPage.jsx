@@ -65,8 +65,8 @@ const styles = `
   .pr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
   /* ── Hero ── */
-  .pr-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .pr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(123,97,255,0.07) 0%,transparent 70%); pointer-events:none; }
+  .pr-hero { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .pr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-purple) 0%,transparent 70%); pointer-events:none; }
   .pr-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
   .pr-hero-total {
     font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; line-height:1;
@@ -94,13 +94,13 @@ const styles = `
     font-family:${FONTS.num};
   }
   .pr-slider-val span { font-size:16px; color:var(--c-text-muted); font-weight:300; margin-left:4px; }
-  .pr-track { position:relative; height:2px; background:var(--c-surface); border-radius:2px; margin-bottom:16px; }
+  .pr-track { position:relative; height:2px; background:var(--c-elevated); border-radius:2px; margin-bottom:16px; }
   .pr-fill  { position:absolute; left:0; top:0; height:100%; background:${COLORS.neonPurple}; border-radius:2px; pointer-events:none; }
   .pr-thumb { position:absolute; width:12px; height:12px; border-radius:50%; background:${COLORS.neonPurple}; top:-5px; transform:translateX(-50%); pointer-events:none; }
   .pr-range { position:absolute; inset:0; width:100%; opacity:0; cursor:pointer; height:18px; top:-7px; -webkit-appearance:none; appearance:none; margin:0; }
   .pr-quick { display:flex; gap:4px; flex-wrap:wrap; }
   .pr-qbtn { padding:5px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
-  .pr-qbtn:hover { color:rgba(255,255,255,0.70); border-color:var(--c-text-disabled); }
+  .pr-qbtn:hover { color:var(--c-text-secondary); border-color:rgba(255,255,255,0.15); }
   .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:rgba(123,97,255,0.30); color:${COLORS.neonPurple}; }
 
   /* ── Panel genèric ── */
@@ -113,25 +113,25 @@ const styles = `
   .pr-legend-dot { width:7px; height:2px; border-radius:1px; flex-shrink:0; }
 
   /* ── Taula anual ── */
-  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid var(--c-border); }
+  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
   .pr-col-hdr span { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; }
   .pr-col-hdr span:not(:first-child) { text-align:right; }
-  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
+  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 80ms; }
   .pr-yr-row:last-child { border-bottom:none; }
-  .pr-yr-row:hover { background:var(--c-elevated); }
-  .pr-yr-row.last { background:rgba(123,97,255,0.07); border-top:1px solid rgba(123,97,255,0.15); }
+  .pr-yr-row:hover { background:var(--c-bg); }
+  .pr-yr-row.last { background:var(--c-bg-purple); border-top:1px solid var(--c-border-purple); }
   .pr-yr-n { font-size:11px; font-weight:500; color:var(--c-text-muted); font-family:${FONTS.num}; }
-  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-secondary); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
+  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-primary); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
   .pr-yr-v.g { color:${COLORS.neonGreen}; }
   .pr-yr-row.last .pr-yr-n { color:${COLORS.neonPurple}; font-weight:600; }
   .pr-yr-row.last .pr-yr-v { color:var(--c-text-primary); font-weight:500; }
   .pr-yr-row.last .pr-yr-v.g { color:${COLORS.neonGreen}; }
 
   /* ── Aportació per actiu ── */
-  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); }
+  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
   .pr-asset-row:last-of-type { border-bottom:none; }
-  .pr-asset-av { width:28px; height:28px; border-radius:8px; background:var(--c-border); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
-  .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .pr-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
+  .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
   .pr-asset-meta { font-size:10px; color:var(--c-text-muted); }
   .pr-asset-meta .historical { color:${COLORS.neonGreen}; opacity:0.7; }
   .pr-asset-meta .fallback { color:${COLORS.neonAmber}; opacity:0.7; }
@@ -139,7 +139,7 @@ const styles = `
   .pr-inp:focus { border-color:${COLORS.neonPurple}; }
   .pr-unit { font-size:10px; color:var(--c-text-muted); white-space:nowrap; flex-shrink:0; }
   .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid var(--c-border); }
-  .pr-total-l { font-size:11px; color:var(--c-text-secondary); font-weight:500; }
+  .pr-total-l { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
   .pr-total-v { font-size:18px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
 
   /* ── Rate override input ── */
@@ -152,12 +152,12 @@ const styles = `
 const PrTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: 'var(--c-elevated)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '9px 12px', fontFamily: FONTS.sans }}>
-      <p style={{ fontSize: 10, color: 'var(--c-text-muted)', marginBottom: 7 }}>{label}</p>
+    <div style={{ background: 'var(--c-elevated)', border: `1px solid var(--c-border)`, borderRadius: 6, padding: '9px 12px', fontFamily: FONTS.sans }}>
+      <p style={{ fontSize: 10, color: 'var(--c-text-disabled)', marginBottom: 7 }}>{label}</p>
       {payload.map((p, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 3 }}>
           <span style={{ fontSize: 11, color: p.color }}>{p.name}</span>
-          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontFamily: FONTS.num, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtEur(p.value)}</span>
+          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontFamily: FONTS.num, fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>{fmtEur(p.value)}</span>
         </div>
       ))}
     </div>
@@ -168,8 +168,8 @@ const GainTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   const val = payload[0]?.value || 0
   return (
-    <div style={{ background: 'var(--c-elevated)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '7px 10px' }}>
-      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 3 }}>Any {label}</p>
+    <div style={{ background: 'var(--c-elevated)', border: `1px solid var(--c-border)`, borderRadius: 6, padding: '7px 10px' }}>
+      <p style={{ fontSize: 10, color: 'var(--c-text-disabled)', marginBottom: 3 }}>Any {label}</p>
       <p style={{ fontSize: 14, color: val >= 0 ? COLORS.neonGreen : COLORS.neonRed, fontFamily: FONTS.num, fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>{val >= 0 ? '+' : ''}{fmtEur(val)}</p>
     </div>
   )
@@ -221,7 +221,10 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
       return parseFloat(rateOverrides[a.id]) || 0
     }
     if (a.category === 'estalvi') {
-      return typeof a.rate === 'number' ? a.rate : (parseFloat(a.rate) || FALLBACK_RETURNS.estalvi)
+      // Suporta: a.rate, a.tae, a.apr, a.interestRate, a.interest_rate
+      const r = a.rate ?? a.tae ?? a.apr ?? a.interestRate ?? a.interest_rate
+      const parsed = typeof r === 'number' ? r : parseFloat(r)
+      return (!isNaN(parsed) && parsed > 0) ? parsed : FALLBACK_RETURNS.estalvi
     }
     if (a.category === 'etf' || a.category === 'stock') {
       const hist = historicalRates[a.id]
@@ -231,7 +234,14 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   }
 
   const getRateStatus = a => {
-    if (a.category === 'estalvi') return { label: `${getRate(a)}% TAE configurat`, type: 'configured' }
+    if (a.category === 'estalvi') {
+      const r = getRate(a)
+      const isDefault = r === FALLBACK_RETURNS.estalvi
+      return {
+        label: isDefault ? `${r}% TAE (per defecte)` : `${r}% TAE configurat`,
+        type: isDefault ? 'fallback' : 'configured'
+      }
+    }
     if (a.category === 'etf' || a.category === 'stock') {
       const hist = historicalRates[a.id]
       if (hist === undefined) return { label: `${FALLBACK_RETURNS[a.category]}% est. (per defecte)`, type: 'fallback' }
@@ -246,10 +256,11 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
     let total = 0, cost = 0
     allAssets.forEach(a => {
       // estalvi → saldo actual | inversions → valor de mercat actual (getEffectiveValue) | crypto → valor inicial
+      // estalvi: amount és el camp principal, balance és l'alternatiu
       const pv  = a.category === 'estalvi'
-        ? (a.balance || 0)
+        ? (a.amount || a.balance || a.totalCost || 0)
         : a.category === 'crypto'
-          ? (a.initialValue || 0)
+          ? (a.initialValue || a.totalCost || 0)
           : (getEffectiveValue?.(a) || a.totalCostEur || 0)
       const pmt = getContrib(a.id)
       total += fv(pv, pmt, getRate(a), months)
@@ -405,13 +416,13 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
                     {isLoading ? '⟳ carregant...' : status.label}
                   </span>
                 </p>
-                {/* Override manual de taxa — disponible per a ETFs i accions */}
-                {(a.category === 'etf' || a.category === 'stock') && (
+                {/* Override manual de taxa — disponible per a ETFs, accions i estalvis */}
+                {(a.category === 'etf' || a.category === 'stock' || a.category === 'estalvi') && (
                   <div className="pr-rate-row">
                     <input
                       type="number" inputMode="decimal" step="0.1" min="0" max="100"
                       className="pr-rate-inp"
-                      placeholder={String(getRate(a))}
+                      placeholder={`${getRate(a)} (actual)`}
                       value={rateOverrides[a.id] ?? ''}
                       onChange={e => setRateOver(r => ({ ...r, [a.id]: e.target.value }))}
                     />

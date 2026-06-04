@@ -4,76 +4,66 @@ import { COLORS, FONTS } from './../components/design-tokens'
 const dialogStyles = `
   .cd-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.80);
+    background: rgba(0,0,0,0.75);
     z-index: 200;
-    display: flex; align-items: flex-end; justify-content: center;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
     animation: cdFadeIn 150ms ease;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  @media (min-width: 640px) {
-    .cd-overlay { align-items: center; padding: 16px; }
-  }
-  @keyframes cdFadeIn { from { opacity:0 } to { opacity:1 } }
+  @keyframes cdFadeIn { from{opacity:0} to{opacity:1} }
 
   .cd-box {
     font-family: ${FONTS.sans};
-    background: #131313;
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 14px 14px 0 0;
-    width: 100%; padding: 20px 20px 36px;
-    animation: cdSlide 200ms cubic-bezier(0.34,1.2,0.64,1);
-    box-shadow: 0 -16px 48px rgba(0,0,0,0.60);
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+    width: 100%; max-width: 340px;
+    padding: 24px 22px;
+    animation: cdScale 200ms cubic-bezier(0.32,1.1,0.60,1);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    transition: background-color 220ms ease;
   }
-  @media (min-width: 640px) {
-    .cd-box { border-radius: 14px; max-width: 360px; padding: 24px 22px; }
+  @keyframes cdScale {
+    from { transform: scale(0.95) translateY(6px); opacity:0 }
+    to   { transform: scale(1)    translateY(0);   opacity:1 }
   }
-  @keyframes cdSlide {
-    from { transform: translateY(20px); opacity:0 }
-    to   { transform: translateY(0);    opacity:1 }
-  }
-
-  /* drag handle — mòbil */
-  .cd-drag {
-    width: 36px; height: 4px; border-radius: 2px;
-    background: rgba(255,255,255,0.10);
-    margin: 0 auto 18px; display: block;
-  }
-  @media (min-width: 640px) { .cd-drag { display: none; } }
 
   .cd-icon {
-    width: 42px; height: 42px; border-radius: 10px;
-    background: rgba(255,59,59,0.10);
-    border: 1px solid rgba(255,59,59,0.22);
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--c-bg-red);
+    border: 1px solid var(--c-border-red);
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .cd-title {
     font-size: 15px; font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.2px; margin-bottom: 7px;
+    color: var(--c-text-primary);
+    letter-spacing: -0.2px; margin-bottom: 8px;
   }
   .cd-sub {
     font-size: 13px;
-    color: rgba(255,255,255,0.40);
+    color: var(--c-text-secondary);
     line-height: 1.65; margin-bottom: 22px;
   }
   .cd-name {
-    color: rgba(255,255,255,0.75);
+    color: var(--c-text-primary);
     font-weight: 500;
   }
 
-  .cd-btns { display:flex; gap:8px; }
+  .cd-btns { display: flex; gap: 8px; }
 
   .cd-cancel {
     flex: 1; padding: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--c-border);
     background: transparent; border-radius: 8px;
     font-family: ${FONTS.sans}; font-size: 14px;
-    color: rgba(255,255,255,0.50); cursor: pointer;
+    color: var(--c-text-secondary); cursor: pointer;
     transition: all 100ms; -webkit-tap-highlight-color: transparent;
   }
-  .cd-cancel:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.80); }
+  .cd-cancel:hover { border-color: var(--c-border-hi); color: var(--c-text-primary); }
+  .cd-cancel:active { transform: scale(0.98); }
 
   .cd-delete {
     flex: 1; padding: 12px; border: none;
@@ -82,7 +72,7 @@ const dialogStyles = `
     color: #fff; cursor: pointer; transition: opacity 100ms;
     -webkit-tap-highlight-color: transparent;
   }
-  .cd-delete:hover { opacity: 0.85; }
+  .cd-delete:hover  { opacity: 0.85; }
   .cd-delete:active { opacity: 0.75; transform: scale(0.98); }
 `
 
@@ -93,9 +83,8 @@ export function ConfirmDialog({ state, onClose }) {
       <style>{dialogStyles}</style>
       <div className="cd-overlay" onClick={onClose}>
         <div className="cd-box" onClick={e => e.stopPropagation()}>
-          <div className="cd-drag"/>
           <div className="cd-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
               stroke={COLORS.neonRed} strokeWidth="1.8"
               strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/>

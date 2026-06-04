@@ -79,7 +79,7 @@ const MORE_ITEMS = [
 
 const styles = `
   .bnav {
-    position: fixed; bottom: 12px; left: 8px; right: 8px; z-index: 50;
+    position: fixed; bottom: 15px; left: 8px; right: 8px; z-index: 50;
     background: var(--c-bg);
     border: 1px solid var(--c-border);
     border-radius: 20px;

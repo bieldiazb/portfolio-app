@@ -73,6 +73,78 @@ const styles = `
   .inv-distrib-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   .inv-distrib-lbl { font-size:10px; color:var(--c-text-secondary); font-family:${FONTS.mono}; }
 
+  /* ── Posicions tancades ── */
+  .inv-closed-toggle {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0; cursor:pointer; border:none; background:transparent;
+    width:100%; font-family:${FONTS.sans}; -webkit-tap-highlight-color:transparent;
+  }
+  .inv-closed-toggle:hover .inv-closed-label { color:var(--c-text-primary); }
+  .inv-closed-label {
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; font-weight:500; color:var(--c-text-muted);
+    text-transform:uppercase; letter-spacing:0.12em;
+    transition:color 100ms;
+  }
+  .inv-closed-badge {
+    font-size:10px; font-weight:600; font-family:${FONTS.mono};
+    padding:2px 8px; border-radius:10px;
+    background:var(--c-elevated); color:var(--c-text-secondary);
+    border:1px solid var(--c-border);
+  }
+  .inv-closed-chevron {
+    color:var(--c-text-disabled); transition:transform 200ms;
+  }
+  .inv-closed-chevron.open { transform:rotate(180deg); }
+
+  .inv-closed-cards {
+    display:flex; flex-direction:column; gap:0;
+    background:var(--c-surface); border:1px solid var(--c-border);
+    border-radius:10px; overflow:hidden; margin-bottom:8px;
+    border-style:dashed;
+  }
+  .inv-closed-card {
+    display:flex; align-items:center; gap:12px; padding:12px 14px;
+    border-bottom:1px solid var(--c-border);
+    transition:background 80ms;
+  }
+  .inv-closed-card:last-child { border-bottom:none; }
+  .inv-closed-av {
+    width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono};
+    opacity:0.5;
+  }
+  .inv-closed-info { flex:1; min-width:0; }
+  .inv-closed-name {
+    font-size:13px; font-weight:500; color:var(--c-text-muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;
+  }
+  .inv-closed-meta {
+    display:flex; align-items:center; gap:5px;
+  }
+  .inv-closed-del {
+    display:flex; align-items:center; gap:5px;
+    padding:6px 12px; border-radius:6px;
+    border:1px solid var(--c-border-red); background:var(--c-bg-red);
+    color:var(--c-red); font-size:11px; font-weight:600;
+    font-family:${FONTS.sans}; cursor:pointer; flex-shrink:0;
+    transition:all 100ms;
+  }
+  .inv-closed-del:hover { background:rgba(255,59,59,0.18); }
+  .inv-closed-pnl {
+    text-align:right; flex-shrink:0; min-width:80px;
+  }
+  .inv-closed-pnl-val {
+    font-size:12px; font-weight:600; font-family:${FONTS.mono};
+    font-variant-numeric:tabular-nums;
+  }
+  .inv-closed-pnl-val.pos { color:${COLORS.neonGreen}; }
+  .inv-closed-pnl-val.neg { color:${COLORS.neonRed}; }
+  .inv-closed-pnl-sub {
+    font-size:10px; color:var(--c-text-disabled); font-family:${FONTS.mono};
+  }
+
   .inv-empty { padding:48px 0; text-align:center; }
   .inv-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
   .inv-empty-sub { font-size:12px; color:var(--c-text-disabled); }
@@ -123,8 +195,8 @@ const styles = `
   /* Hero value */
   .adm-value-section { padding:20px 20px 0; }
   .adm-value-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
-  .adm-value-num { font-size:40px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
-  .adm-value-num span { font-size:28px; opacity:0.9; }
+  .adm-value-num { font-size:40px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-1px; margin-bottom:10px; }
+  .adm-value-num span { font-size:28px; opacity:0.5; }
   .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
   .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
   .adm-badge.pos { color:${COLORS.neonGreen}; background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.20); }
@@ -179,37 +251,51 @@ const styles = `
   .adm-delete-btn { width:100%; padding:12px; border:1px solid rgba(255,59,59,0.20); background:rgba(255,59,59,0.04); border-radius:10px; font-family:${FONTS.sans}; font-size:13px; font-weight:500; color:rgba(255,59,59,0.60); cursor:pointer; transition:all 100ms; }
   .adm-delete-btn:hover { background:rgba(255,59,59,0.10); border-color:rgba(255,59,59,0.40); color:${COLORS.neonRed}; }
 
-  /* Modals (transaction) */
-  .inv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:70; }
-  @media (min-width:640px) { .inv-overlay { align-items:center; padding:16px; } }
-  .inv-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 36px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
-  @media (min-width:640px) { .inv-modal { border-radius:10px; max-width:420px; padding:24px 20px; } }
-  .inv-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .inv-modal-drag { display:none; } }
+  /* Modals (transaction) — sempre centrats, mai bottom sheet */
+  .inv-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.82);
+    display:flex; align-items:center; justify-content:center;
+    padding:16px; z-index:70;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    animation:invFadeIn 150ms ease;
+  }
+  @keyframes invFadeIn { from{opacity:0} to{opacity:1} }
+  .inv-modal {
+    background:var(--c-bg); border:1px solid var(--c-border);
+    border-radius:14px; width:100%; max-width:420px;
+    padding:24px 20px; font-family:${FONTS.sans};
+    max-height:90dvh; overflow-y:auto;
+    box-shadow:0 24px 64px rgba(0,0,0,0.35);
+    animation:invScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1);
+    transition:background-color 220ms ease;
+  }
+  @keyframes invScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .inv-modal-drag { display:none; }
   .inv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .inv-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
-  .inv-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .inv-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .inv-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
-  .inv-inp:focus { border-color:${COLORS.neonPurple}; }
-  .inv-inp::placeholder { color:${COLORS.textMuted}; }
+  .inv-modal-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
+  .inv-modal-x { width:26px; height:26px; border-radius:6px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .inv-modal-x:hover { color:var(--c-text-primary); border-color:var(--c-border-hi); }
+  .inv-lbl { display:block; font-size:10px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
+  .inv-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  .inv-inp:focus { border-color:var(--c-border-purple); }
+  .inv-inp::placeholder { color:var(--c-text-disabled); }
   .inv-inp.mono { font-family:${FONTS.mono}; text-align:right; }
   .inv-inp.big { font-size:20px; padding:12px 14px; }
-  .inv-sel { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; cursor:pointer; -webkit-appearance:none; }
+  .inv-sel { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:var(--c-text-primary); outline:none; cursor:pointer; -webkit-appearance:none; }
   .inv-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
   .inv-fgroup { display:flex; flex-direction:column; gap:14px; }
   .inv-mfooter { display:flex; gap:8px; margin-top:20px; }
-  .inv-btn-cancel { flex:1; padding:11px; border:1px solid ${COLORS.border}; background:transparent; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; color:${COLORS.textSecondary}; cursor:pointer; }
-  .inv-btn-ok { flex:1; padding:11px; border:none; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
+  .inv-btn-cancel { flex:1; padding:11px; border:1px solid var(--c-border); background:transparent; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
+  .inv-btn-ok { flex:1; padding:11px; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
   .inv-btn-ok.grn { background:${COLORS.neonGreen}; color:#000; }
   .inv-btn-ok.org { background:${COLORS.neonAmber}; color:#000; }
   .inv-btn-ok.blu { background:${COLORS.neonPurple}; color:#fff; }
-  .inv-error { font-size:12px; color:${COLORS.neonRed}; background:${COLORS.bgRed}; border:1px solid ${COLORS.borderRed}; border-radius:5px; padding:9px 12px; }
-  .inv-type-row { display:flex; gap:1px; background:${COLORS.border}; border-radius:6px; overflow:hidden; margin-bottom:16px; }
-  .inv-type-tab { flex:1; padding:9px; border:none; background:${COLORS.surface}; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:${COLORS.textMuted}; }
-  .inv-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; }
-  .inv-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
-  .inv-type-tab.blu { background:${COLORS.bgPurple}; color:${COLORS.neonPurple}; }
+  .inv-error { font-size:12px; color:var(--c-red); background:var(--c-bg-red); border:1px solid var(--c-border-red); border-radius:8px; padding:9px 12px; }
+  .inv-type-row { display:flex; gap:1px; background:var(--c-border); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+  .inv-type-tab { flex:1; padding:9px; border:none; background:var(--c-surface); font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:var(--c-text-muted); transition:all 100ms; }
+  .inv-type-tab.grn { background:var(--c-bg-green); color:${COLORS.neonGreen}; }
+  .inv-type-tab.org { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
+  .inv-type-tab.blu { background:var(--c-bg-purple); color:${COLORS.neonPurple}; }
 `
 
 const DISTRIB_COLORS = [
@@ -485,6 +571,7 @@ export default function InvestmentsTable({
   const [sortDir, setSortDir]       = useState('desc')
   const [fxRates, setFxRates]       = useState({})
   const [showImport, setShowImport] = useState(false)
+  const [showClosed, setShowClosed] = useState(false)
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   useEffect(() => {
@@ -506,8 +593,9 @@ export default function InvestmentsTable({
     return currentValue(inv)
   }
 
-  // Filtra posicions amb qty ~0 (totalment venudes) — no es mostren a la taula
+  // Posicions actives (qty > 0) i tancades (qty ~0, venudes completament)
   const activeInvestments = investments.filter(i => (i.totalQty || 0) > 0.00001)
+  const closedInvestments = investments.filter(i => (i.totalQty || 0) <= 0.00001)
 
   const totalValue   = activeInvestments.reduce((s, i) => s + calcVal(i), 0)
   const totalCostEur = activeInvestments.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
@@ -693,6 +781,77 @@ export default function InvestmentsTable({
         </div>
       )}
 
+      {/* ── Posicions tancades (venudes) ── */}
+      {closedInvestments.length > 0 && (
+        <div style={{marginBottom:8}}>
+          <button className="inv-closed-toggle" onClick={() => setShowClosed(v => !v)}>
+            <span className="inv-closed-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Posicions tancades
+              <span className="inv-closed-badge">{closedInvestments.length}</span>
+            </span>
+            <svg className={`inv-closed-chevron${showClosed?' open':''}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          {showClosed && (
+            <div className="inv-closed-cards">
+              {closedInvestments.map(inv => {
+                const tc = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+                // P&G realitzat: suma de vendes - cost total
+                const sellTotal = (inv.txs||[]).filter(t=>t.type==='sell').reduce((s,t)=>s+(t.totalCostEur||t.totalCost||0), 0)
+                const buyTotal  = inv.totalCostEur || inv.totalCost || 0
+                const pnl       = sellTotal - buyTotal
+                const pnlPct    = buyTotal > 0 ? (pnl/buyTotal)*100 : 0
+                const isP       = pnl >= 0
+
+                return (
+                  <div key={inv.id} className="inv-closed-card">
+                    <div className="inv-closed-av" style={{background:tc.bg, color:tc.color}}>
+                      {(inv.name||'?').slice(0,2).toUpperCase()}
+                    </div>
+                    <div className="inv-closed-info">
+                      <p className="inv-closed-name">{inv.name}</p>
+                      <div className="inv-closed-meta">
+                        <span className="inv-type-badge" style={{background:tc.bg, color:tc.color, opacity:0.6}}>
+                          {TYPE_LABELS[inv.type]||inv.type}
+                        </span>
+                        {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+                      </div>
+                    </div>
+
+                    {/* P&G realitzat */}
+                    {buyTotal > 0 && (
+                      <div className="inv-closed-pnl">
+                        <p className={`inv-closed-pnl-val ${isP?'pos':'neg'}`}>
+                          {isP?'+':''}{fmtEur(pnl)}
+                        </p>
+                        <p className="inv-closed-pnl-sub">{isP?'+':''}{pnlPct.toFixed(1)}%</p>
+                      </div>
+                    )}
+
+                    {/* Botó eliminar */}
+                    <button className="inv-closed-del"
+                      onClick={e => {
+                        e.stopPropagation()
+                        askConfirm({ name: inv.name, onConfirm: () => onRemoveInvestment(inv.id) })
+                      }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                      </svg>
+                      Eliminar
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ height: 16 }}/>
 
       {/* ── Modals ── */}
@@ -836,7 +995,7 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
           <div className="inv-grid2">
             <div>
               <label className="inv-lbl">Data</label>
-              <input type="date" className="inv-inv-inp" value={date} onChange={e=>setDate(e.target.value)} style={{width:'100%',background:COLORS.bg,border:`1px solid ${COLORS.border}`,borderRadius:5,padding:'10px 12px',fontFamily:FONTS.sans,fontSize:16,color:COLORS.textPrimary,outline:'none',boxSizing:'border-box'}}/>
+              <input type="date" className="inv-inv-inp" value={date} onChange={e=>setDate(e.target.value)} style={{width:'100%',background:'var(--c-elevated)',border:'1px solid var(--c-border)',borderRadius:8,padding:'10px 12px',fontFamily:FONTS.sans,fontSize:16,color:'var(--c-text-primary)',outline:'none',boxSizing:'border-box'}}/>
             </div>
             <div>
               <label className="inv-lbl">Nota</label>

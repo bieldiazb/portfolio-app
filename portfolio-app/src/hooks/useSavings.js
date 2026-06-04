@@ -139,6 +139,12 @@ export function useSavings(uid) {
     await deleteDoc(doc(db, 'users', uid, 'savings', accountId))
   }, [uid])
 
+  // ── Actualitzar camps del compte (TAE, nom, notes...) ────────────────────
+  const updateAccount = useCallback(async (id, changes) => {
+    if (!uid || !id) return
+    await updateDoc(doc(db, 'users', uid, 'savings', id), changes)
+  }, [uid])
+
   const addTransaction = useCallback(async (accountId, { amount, type, note }) => {
     if (!uid) return
     const signed = type === 'withdraw' ? -Math.abs(amount) : Math.abs(amount)
@@ -156,5 +162,5 @@ export function useSavings(uid) {
     await deleteDoc(doc(db, 'users', uid, 'savings', accountId, 'txs', txId))
   }, [uid])
 
-  return { accounts, addAccount, removeAccount, addTransaction, removeTransaction }
+  return { accounts, addAccount, removeAccount, addTransaction, updateAccount, removeTransaction }
 }

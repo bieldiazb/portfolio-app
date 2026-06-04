@@ -159,6 +159,7 @@ export default function App() {
   const {
     accounts, addAccount, removeAccount,
     addTransaction: addSavTx, removeTransaction: removeSavTx,
+    updateAccount,
   } = useSavings(user?.uid)
 
   const {
@@ -502,7 +503,8 @@ export default function App() {
             {activeTab === 'savings' && (
               <SavingsList accounts={accounts} onAddAccount={addAccount}
                 onRemoveAccount={removeAccount} onAddTransaction={addSavTx}
-                onRemoveTransaction={removeSavTx}/>
+                onRemoveTransaction={removeSavTx}
+                onUpdateAccount={updateAccount}/>
             )}
             {activeTab === 'crypto' && (
               <CryptoPage cryptos={cryptos} onAdd={addCrypto} onRemove={removeCrypto}
