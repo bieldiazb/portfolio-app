@@ -74,7 +74,7 @@ const appStyles = `
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   /* En mode clar el logo inverteix per llegibilitat */
-  [data-theme="light"] .mob-hdr-logo { background: #111; }
+  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
 
   .mob-hdr-title {
     font-size: 14px; font-weight: 500;
