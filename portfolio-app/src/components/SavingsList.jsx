@@ -216,6 +216,7 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
   const [expanded, setExpanded]     = useState({})
   const [sortDir, setSortDir]       = useState('desc')
   const [editingRate, setEditingRate] = useState({}) // { [accId]: string }
+  const [editModal, setEditModal]     = useState(null)  // { acc } — modal edició complet
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   const totalBalance  = accounts.reduce((s, a) => s + a.balance, 0)
@@ -383,6 +384,11 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
                               onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='var(--c-border)' }}
                             >{b.label}</button>
                           ))}
+                          <button className="sv-expand-btn" style={{ color:'var(--c-text-secondary)' }}
+                            onClick={e => { e.stopPropagation(); setEditModal({ acc }) }}
+                            onMouseOver={e=>{ e.currentTarget.style.background='var(--c-elevated)'; e.currentTarget.style.borderColor='var(--c-border-hi)' }}
+                            onMouseOut={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='var(--c-border)' }}
+                          >✏️ Editar</button>
                           <button className="sv-expand-btn" style={{ color:COLORS.neonRed, marginLeft:'auto' }}
                             onClick={() => askConfirm({ name: acc.name, onConfirm: () => onRemoveAccount(acc.id) })}
                             onMouseOver={e=>{ e.currentTarget.style.background='var(--c-bg-red)'; e.currentTarget.style.borderColor='var(--c-border-red)' }}
@@ -423,6 +429,13 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
 
       <div style={{ height: 16 }}/>
 
+      {editModal && (
+        <EditAccountModal
+          acc={editModal.acc}
+          onSave={changes => { onUpdateAccount(editModal.acc.id, changes); setEditModal(null) }}
+          onClose={() => setEditModal(null)}
+        />
+      )}
       {showNew && <NewAccountModal onAdd={d => { onAddAccount(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
       {txModal && <TransactionModal accountName={txModal.name} defaultType={txModal.type} onAdd={tx => { onAddTransaction(txModal.accountId, tx); setTxModal(null) }} onClose={() => setTxModal(null)} />}
     </div>
@@ -469,6 +482,73 @@ function NewAccountModal({ onAdd, onClose }) {
         <div className="sv-mfooter">
           <button className="sv-btn-cancel" onClick={onClose}>Cancel·lar</button>
           <button className="sv-btn-ok grn" onClick={submit}>Crear compte</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── EditAccountModal — edita nom, TAE i notes d'un compte ────────────────────
+function EditAccountModal({ acc, onSave, onClose }) {
+  const [name,  setName]  = useState(acc.name  || '')
+  const [rate,  setRate]  = useState(String(acc.rate  ?? ''))
+  const [notes, setNotes] = useState(acc.notes || '')
+  const [error, setError] = useState('')
+
+  const submit = () => {
+    if (!name.trim()) return setError('El nom és obligatori')
+    const parsedRate = parseFloat(String(rate).replace(',', '.'))
+    setError('')
+    onSave({
+      name:  name.trim(),
+      rate:  isNaN(parsedRate) ? 0 : parsedRate,
+      notes: notes.trim(),
+    })
+  }
+
+  return (
+    <div className="sv-overlay" onClick={e => e.target===e.currentTarget&&onClose()}>
+      <div className="sv-modal">
+        <div className="sv-modal-hdr">
+          <h3 className="sv-modal-title">Editar compte</h3>
+          <button className="sv-modal-x" onClick={onClose}>×</button>
+        </div>
+        <div className="sv-fgroup">
+          <div>
+            <label className="sv-lbl">Nom del compte</label>
+            <input
+              className="sv-inp" value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="ex: N26, BBVA Estalvi..."
+              autoFocus
+            />
+          </div>
+          <div className="sv-grid2">
+            <div>
+              <label className="sv-lbl">TAE (%)</label>
+              <input
+                type="number" step="0.01" min="0" max="100"
+                inputMode="decimal"
+                className="sv-inp mono"
+                value={rate}
+                onChange={e => setRate(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="sv-lbl">Notes</label>
+              <input
+                className="sv-inp" value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="opcional"
+              />
+            </div>
+          </div>
+          {error && <p className="sv-error">{error}</p>}
+        </div>
+        <div className="sv-mfooter">
+          <button className="sv-btn-cancel" onClick={onClose}>Cancel·lar</button>
+          <button className="sv-btn-ok grn" onClick={submit}>Guardar canvis</button>
         </div>
       </div>
     </div>

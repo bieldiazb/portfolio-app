@@ -933,11 +933,25 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
       .then(r=>r.json()).then(d=>{const r=d?.chart?.result?.[0]?.meta?.regularMarketPrice;setRate(r>0?r:null)}).catch(()=>setRate(null))
   },[resolvedCurrency]) // eslint-disable-line
 
-  const toNum = v => parseFloat(String(v||'').replace(',','.').replace(/[^0-9.-]/g,''))||0
-  const recalc = useCallback((q,p)=>{ const t=toNum(q)*toNum(p); if(t>0)setTotal(t.toFixed(2)) },[])
+  // iOS pot enviar '0,25' en comptes de '0.25' — normalitzem qualsevol separador
+  const toNum = v => {
+    const s = String(v || '').trim().replace(/\s/g, '').replace(',', '.')
+    const n = parseFloat(s)
+    return isNaN(n) ? 0 : n
+  }
+  const recalc = useCallback((q, p) => {
+    const qn = toNum(q), pn = toNum(p)
+    if (qn > 0 && pn > 0) setTotal((qn * pn).toFixed(2))
+  }, [])
   const handleQty   = v=>{ setQty(v);   if(v&&price)recalc(v,price) }
   const handlePrice = v=>{ setPrice(v); if(v&&qty)recalc(qty,v) }
-  const handleTotal = v=>{ setTotal(v); if(isBuySell&&qty&&v){ const p=toNum(v)/toNum(qty); if(p>0)setPrice(p.toFixed(4)) } }
+  const handleTotal = v => {
+    setTotal(v)
+    if (isBuySell && qty) {
+      const q = toNum(qty), t = toNum(v)
+      if (q > 0 && t > 0) setPrice((t / q).toFixed(4))
+    }
+  }
   const fillLive    = ()=>{ if(!livePrice)return; setPrice(livePrice.toString()); if(qty)recalc(qty,livePrice) }
 
   const totalOrig=toNum(total), totalEur=isNonEur&&rate?+(totalOrig*rate).toFixed(2):totalOrig
@@ -975,21 +989,21 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
             <div className="inv-grid2">
               <div>
                 <label className="inv-lbl">Accions</label>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0"/>
+                <input type="text" inputMode="decimal" pattern="[0-9]*[.,]?[0-9]*" className="inv-inp mono" value={qty} onChange={e=>handleQty(e.target.value)} placeholder="0" autoComplete="off"/>
               </div>
               <div>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                   <label className="inv-lbl" style={{margin:0}}>Preu/u. ({sym})</label>
                   {ticker&&<button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{fontSize:10,fontWeight:600,padding:'3px 8px',border:`1px solid ${COLORS.border}`,borderRadius:4,background:COLORS.elevated,color:livePrice?COLORS.neonGreen:COLORS.textMuted,fontFamily:FONTS.mono,cursor:livePrice?'pointer':'default'}}>{fetchingPrice?'...':livePrice?`${sym}${livePrice}`:'—'}</button>}
                 </div>
-                <input type="number" inputMode="decimal" step="any" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00"/>
+                <input type="text" inputMode="decimal" pattern="[0-9]*[.,]?[0-9]*" className="inv-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00" autoComplete="off"/>
                 {isNonEur&&priceOrig>0&&rate&&<p style={{fontSize:10,color:COLORS.textMuted,fontFamily:FONTS.mono,marginTop:4,textAlign:'right'}}>= €{priceEur.toFixed(4)}</p>}
               </div>
             </div>
           )}
           <div>
             <label className="inv-lbl">{isBuySell?`Total (${sym})`:`Import (${sym})`}</label>
-            <input type="number" inputMode="decimal" step="any" className={`inv-inp mono${!isBuySell?' big':''}`} value={total} onChange={e=>handleTotal(e.target.value)} placeholder="0.00"/>
+            <input type="text" inputMode="decimal" pattern="[0-9]*[.,]?[0-9]*" className={`inv-inp mono${!isBuySell?' big':''}`} value={total} onChange={e=>handleTotal(e.target.value)} placeholder="0.00" autoComplete="off"/>
             {isNonEur&&totalOrig>0&&<p style={{fontSize:11,color:COLORS.textMuted,fontFamily:FONTS.mono,marginTop:5,textAlign:'right'}}>{rate?<><span style={{color:COLORS.textPrimary}}>= €{totalEur.toFixed(2)}</span> <span style={{opacity:0.4}}>· 1{sym}=€{rate.toFixed(4)}</span></>:<span style={{color:COLORS.neonRed}}>Taxa no disponible</span>}</p>}
           </div>
           <div className="inv-grid2">
