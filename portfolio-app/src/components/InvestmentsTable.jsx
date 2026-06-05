@@ -296,6 +296,61 @@ const styles = `
   .inv-type-tab.grn { background:var(--c-bg-green); color:${COLORS.neonGreen}; }
   .inv-type-tab.org { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
   .inv-type-tab.blu { background:var(--c-bg-purple); color:${COLORS.neonPurple}; }
+
+  /* ── Mode selecció ── */
+  .inv-sel-bar {
+    position:fixed; bottom:calc(60px + env(safe-area-inset-bottom) + 8px);
+    left:50%; transform:translateX(-50%);
+    background:var(--c-elevated); border:1px solid var(--c-border-hi);
+    border-radius:14px; padding:10px 14px;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.30);
+    z-index:40; white-space:nowrap;
+    animation:selBarIn 180ms cubic-bezier(0.32,1.1,0.60,1);
+    font-family:${FONTS.sans};
+  }
+  @keyframes selBarIn { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  @media (min-width:1024px) { .inv-sel-bar { left:calc(220px + 50%); } }
+  .inv-sel-count {
+    font-size:13px; font-weight:500; color:var(--c-text-secondary);
+    font-variant-numeric:tabular-nums;
+  }
+  .inv-sel-del {
+    display:flex; align-items:center; gap:5px;
+    padding:7px 14px; border-radius:8px; border:none;
+    background:${COLORS.neonRed}; color:#fff;
+    font-family:${FONTS.sans}; font-size:12px; font-weight:600;
+    cursor:pointer; transition:opacity 100ms;
+  }
+  .inv-sel-del:hover { opacity:0.85; }
+  .inv-sel-del:disabled { opacity:0.4; cursor:default; }
+  .inv-sel-cancel {
+    padding:7px 12px; border-radius:8px;
+    border:1px solid var(--c-border); background:transparent;
+    font-family:${FONTS.sans}; font-size:12px; color:var(--c-text-secondary);
+    cursor:pointer; transition:all 100ms;
+  }
+  .inv-sel-cancel:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
+  .inv-sel-all {
+    padding:7px 12px; border-radius:8px;
+    border:1px solid var(--c-border); background:transparent;
+    font-family:${FONTS.sans}; font-size:12px; color:var(--c-text-secondary);
+    cursor:pointer; transition:all 100ms;
+  }
+  .inv-sel-all:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
+
+  /* Checkbox a la card */
+  .inv-card-cb {
+    width:20px; height:20px; border-radius:6px; flex-shrink:0;
+    border:1.5px solid var(--c-border); background:var(--c-elevated);
+    display:flex; align-items:center; justify-content:center;
+    transition:all 120ms; cursor:pointer;
+  }
+  .inv-card-cb.checked {
+    background:${COLORS.neonRed}; border-color:${COLORS.neonRed};
+  }
+  .inv-card.sel-mode:hover { background:var(--c-elevated); }
+  .inv-card.selected { background:rgba(255,59,59,0.06); }
 `
 
 const DISTRIB_COLORS = [
@@ -571,7 +626,9 @@ export default function InvestmentsTable({
   const [sortDir, setSortDir]       = useState('desc')
   const [fxRates, setFxRates]       = useState({})
   const [showImport, setShowImport] = useState(false)
-  const [showClosed, setShowClosed] = useState(false)
+  const [showClosed, setShowClosed]   = useState(false)
+  const [selectMode, setSelectMode]   = useState(false)
+  const [selected, setSelected]       = useState(new Set())
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
 
   useEffect(() => {
@@ -704,6 +761,13 @@ export default function InvestmentsTable({
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nova posició
         </button>
+        <button className="inv-btn-ico" title="Seleccionar"
+          style={selectMode ? {borderColor:COLORS.neonRed,color:COLORS.neonRed,background:'var(--c-bg-red)'} : {}}
+          onClick={() => { setSelectMode(v => !v); setSelected(new Set()) }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </button>
       </div>
 
       {/* ── Llista ── */}
@@ -730,8 +794,27 @@ export default function InvestmentsTable({
             const origCurr = inv.originalCurrency || inv.currency || 'EUR'
 
             return (
-              <div key={inv.id} className="inv-card" onClick={() => setDetailInv(inv)}>
+              <div key={inv.id}
+                className={`inv-card${selectMode?' sel-mode':''}${selectMode&&selected.has(inv.id)?' selected':''}`}
+                onClick={() => {
+                  if (selectMode) {
+                    setSelected(prev => {
+                      const n = new Set(prev)
+                      n.has(inv.id) ? n.delete(inv.id) : n.add(inv.id)
+                      return n
+                    })
+                  } else {
+                    setDetailInv(inv)
+                  }
+                }}>
                 <div className="inv-card-main">
+                  {selectMode && (
+                    <div className={`inv-card-cb${selected.has(inv.id)?' checked':''}`}>
+                      {selected.has(inv.id) && (
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </div>
+                  )}
                   <div className="inv-av" style={{ background: tc.bg, color: tc.color }}>
                     {(inv.name || '?').slice(0, 2).toUpperCase()}
                   </div>
@@ -853,6 +936,44 @@ export default function InvestmentsTable({
       )}
 
       <div style={{ height: 16 }}/>
+
+      {/* ── Barra selecció flotant ── */}
+      {selectMode && (
+        <div className="inv-sel-bar">
+          <span className="inv-sel-count">
+            {selected.size > 0 ? `${selected.size} sel·leccionades` : 'Cap sel·leccionada'}
+          </span>
+          <button className="inv-sel-all"
+            onClick={() => {
+              if (selected.size === sorted.length) setSelected(new Set())
+              else setSelected(new Set(sorted.map(i => i.id)))
+            }}>
+            {selected.size === sorted.length ? 'Cap' : 'Totes'}
+          </button>
+          <button className="inv-sel-del" disabled={selected.size === 0}
+            onClick={() => {
+              if (selected.size === 0) return
+              const names = sorted.filter(i => selected.has(i.id)).map(i => i.name)
+              const label = names.length === 1 ? names[0] : `${names.length} posicions`
+              askConfirm({
+                name: label,
+                onConfirm: async () => {
+                  for (const id of selected) await onRemoveInvestment(id)
+                  setSelected(new Set())
+                  setSelectMode(false)
+                }
+              })
+            }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            </svg>
+            Eliminar {selected.size > 0 ? `(${selected.size})` : ''}
+          </button>
+          <button className="inv-sel-cancel" onClick={() => { setSelectMode(false); setSelected(new Set()) }}>
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ── Modals ── */}
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
