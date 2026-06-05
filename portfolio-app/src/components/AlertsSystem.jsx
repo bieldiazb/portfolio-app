@@ -4,8 +4,28 @@ import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 import { db } from '../firebase'
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, updateDoc } from 'firebase/firestore'
 
-// ── Utilitats de notificació ──────────────────────────────────────────────────
+// ── Detecció iOS standalone ────────────────────────────────────────────────────
+// iOS Safari en mode "Afegit a pantalla d'inici" NO suporta l'API Notification.
+// Fem servir notificacions in-app + vibració + badge visual com a fallback complet.
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+}
+function isStandalone() {
+  return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
+}
+function isIOSStandalone() {
+  return isIOS() && isStandalone()
+}
+
+// Cua global de toasts in-app
+const toastListeners = new Set()
+function emitToast(toast) {
+  toastListeners.forEach(fn => fn(toast))
+}
+
 async function requestNotificationPermission() {
+  // iOS standalone: l'API no funciona — indiquem que hem de fer servir in-app
+  if (isIOSStandalone()) return 'ios-standalone'
   if (!('Notification' in window)) return 'unsupported'
   if (Notification.permission === 'granted') return 'granted'
   if (Notification.permission === 'denied') return 'denied'
@@ -13,12 +33,61 @@ async function requestNotificationPermission() {
 }
 
 function sendBrowserNotification(title, body) {
+  // Sempre emetem toast in-app (funciona a iOS standalone i arreu)
+  emitToast({ title, body, id: Date.now() })
+
+  // Vibració en mòbil si disponible
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100])
+
+  // Notificació nativa si disponible (desktop / Android Chrome)
+  if (isIOSStandalone()) return  // iOS standalone: no es pot
   if (!('Notification' in window) || Notification.permission !== 'granted') return
   try {
     const n = new Notification(title, { body, icon:'/favicon.ico', tag:'cartera-alert', renotify:true })
     setTimeout(() => n.close(), 8000)
     n.onclick = () => { window.focus(); n.close() }
   } catch {}
+}
+
+// ── Toast in-app component (usat a App.jsx o aquí mateix) ───────────────────
+export function AlertToastProvider() {
+  const [toasts, setToasts] = useState([])
+
+  useEffect(() => {
+    const handler = toast => {
+      setToasts(prev => [...prev.slice(-2), toast]) // màx 3
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== toast.id)), 6000)
+    }
+    toastListeners.add(handler)
+    return () => toastListeners.delete(handler)
+  }, [])
+
+  if (!toasts.length) return null
+
+  return (
+    <div style={{
+      position:'fixed', top:16, left:'50%', transform:'translateX(-50%)',
+      zIndex:9999, display:'flex', flexDirection:'column', gap:8,
+      width:'calc(100% - 32px)', maxWidth:360, pointerEvents:'none',
+    }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          background:'var(--c-elevated)', border:'1px solid var(--c-border-green)',
+          borderRadius:12, padding:'12px 16px', boxShadow:'0 8px 32px rgba(0,0,0,0.35)',
+          display:'flex', gap:10, alignItems:'flex-start',
+          animation:'toastIn 300ms cubic-bezier(0.32,1.1,0.60,1)',
+          fontFamily:'var(--font-sans)',
+        }}>
+          <span style={{fontSize:18,flexShrink:0}}>🔔</span>
+          <div style={{minWidth:0}}>
+            <p style={{fontSize:13,fontWeight:600,color:'var(--c-text-primary)',marginBottom:3}}>{t.title}</p>
+            <p style={{fontSize:12,color:'var(--c-text-secondary)',lineHeight:1.5}}>{t.body}</p>
+          </div>
+        </div>
+      ))}
+      <style>{`@keyframes toastIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }`}</style>
+    </div>
+  )
 }
 
 // ── Hook useAlerts ────────────────────────────────────────────────────────────
@@ -227,7 +296,10 @@ function AlertCard({ a, dim, onRemove }) {
 
 export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, onRemove }) {
   const [showForm, setShowForm] = useState(false)
-  const [notifPerm, setNotifPerm] = useState(() => 'Notification' in window ? Notification.permission : 'unsupported')
+  const [notifPerm, setNotifPerm] = useState(() => {
+    if (isIOSStandalone()) return 'ios-standalone'
+    return 'Notification' in window ? Notification.permission : 'unsupported'
+  })
   const [form, setForm] = useState({
     type:'price_above', assetId:'', targetPrice:'', targetValue:'',
     categoryId:'etf', threshold:'5', label:'',
@@ -239,7 +311,10 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
     ...cryptos.map(c=>({id:c.id,name:c.name,ticker:c.symbol,currentPrice:c.currentPrice})),
   ], [investments, cryptos])
 
-  const handleRequestPerm = async () => setNotifPerm(await requestNotificationPermission())
+  const handleRequestPerm = async () => {
+    const perm = await requestNotificationPermission()
+    setNotifPerm(perm)
+  }
 
   const handleSubmit = () => {
     const base = { type:form.type, label:form.label }
@@ -287,12 +362,22 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
         notifPerm==='granted' ? (
           <div className="als-banner granted" style={{cursor:'default'}}>
             <span>🔔</span>
-            <div className="als-banner-text"><strong>Notificacions actives</strong> — T'avisarem quan una alerta es dispari.</div>
+            <div className="als-banner-text">
+              <strong>Notificacions actives</strong> — T'avisarem quan una alerta es dispari.
+              {isIOSStandalone() && <span style={{display:'block',marginTop:4,fontSize:10,opacity:0.7}}>iOS: notificació visual in-app (Apple no permet push en web apps)</span>}
+            </div>
           </div>
         ) : notifPerm==='denied' ? (
           <div className="als-banner denied">
             <span>🔕</span>
             <div className="als-banner-text">Notificacions bloquejades. Activa-les des de la configuració del navegador.</div>
+          </div>
+        ) : notifPerm==='ios-standalone' ? (
+          <div className="als-banner granted" style={{cursor:'default'}}>
+            <span>🔔</span>
+            <div className="als-banner-text">
+              <strong>Notificacions in-app actives</strong> — Apple no permet push en web apps guardades. Les alertes apareixeran com a missatges visuals dins l'app.
+            </div>
           </div>
         ) : (
           <div className="als-banner default" onClick={handleRequestPerm}>

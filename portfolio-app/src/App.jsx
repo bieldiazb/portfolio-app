@@ -29,7 +29,7 @@ import { useCryptos } from './hooks/useCryptos'
 import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
 import { useRebalancingGoals } from './hooks/useRebalancingGoals'
-import { useAlerts } from './components/AlertsSystem'
+import { useAlerts, AlertToastProvider } from './components/AlertsSystem'
 import { useTheme } from './hooks/useTheme'
 import ThemeToggleIcon from './components/ThemeToggle'
 
@@ -74,7 +74,7 @@ const appStyles = `
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   /* En mode clar el logo inverteix per llegibilitat */
-  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
+  [data-theme="light"] .mob-hdr-logo { background: #111; }
 
   .mob-hdr-title {
     font-size: 14px; font-weight: 500;
@@ -528,6 +528,8 @@ export default function App() {
       </div>
 
       <BottomNav activePage={activeTab} onNavigate={id => setActiveTab(id)} alertsCount={activeAlertsCount}/>
+
+      <AlertToastProvider/>
 
       <AIAnalyst investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}
         commodities={commodities} totalAll={totalAll} totalCost={totalCost} pg={pg} pgPct={pgPct}/>

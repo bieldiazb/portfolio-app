@@ -351,6 +351,100 @@ const styles = `
   }
   .inv-card.sel-mode:hover { background:var(--c-elevated); }
   .inv-card.selected { background:rgba(255,59,59,0.06); }
+
+  /* ── Posicions tancades: capçalera amb botó ── */
+  .inv-closed-hdr {
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%;
+  }
+  .inv-closed-del-all {
+    font-size:11px; font-weight:500; color:var(--c-text-disabled);
+    background:transparent; border:1px solid var(--c-border);
+    border-radius:6px; padding:4px 10px; cursor:pointer;
+    transition:all 100ms; font-family:${FONTS.sans};
+  }
+  .inv-closed-del-all:hover { color:var(--c-red); border-color:var(--c-border-red); background:var(--c-bg-red); }
+
+  /* ── Modal detall posició tancada ── */
+  .cdm-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.82);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    z-index:60; display:flex; align-items:center; justify-content:center;
+    padding:16px; animation:admFadeIn 160ms ease;
+  }
+  .cdm-sheet {
+    background:var(--c-bg); border:1px solid var(--c-border);
+    border-radius:16px; width:100%; max-width:420px;
+    max-height:88dvh; overflow-y:auto; font-family:${FONTS.sans};
+    box-shadow:0 24px 80px rgba(0,0,0,0.60);
+    animation:admScaleIn 220ms cubic-bezier(0.32,1.1,0.60,1);
+  }
+  .cdm-hdr {
+    display:flex; align-items:center; gap:12px;
+    padding:16px 20px 12px; border-bottom:1px solid var(--c-border);
+    position:sticky; top:0; background:var(--c-bg); z-index:2;
+  }
+  .cdm-av {
+    width:40px; height:40px; border-radius:12px; display:flex;
+    align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; flex-shrink:0;
+    font-family:${FONTS.mono}; opacity:0.7;
+  }
+  .cdm-hdr-info { flex:1; min-width:0; }
+  .cdm-name { font-size:16px; font-weight:600; color:var(--c-text-primary); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cdm-meta { display:flex; align-items:center; gap:5px; }
+  .cdm-closed-badge {
+    font-size:9px; font-weight:600; font-family:${FONTS.mono};
+    padding:2px 8px; border-radius:10px;
+    background:var(--c-elevated); color:var(--c-text-muted);
+    border:1px solid var(--c-border);
+  }
+  .cdm-close {
+    width:30px; height:30px; border-radius:8px; background:var(--c-elevated);
+    border:1px solid var(--c-border); color:var(--c-text-muted);
+    font-size:16px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 100ms; flex-shrink:0;
+  }
+  .cdm-close:hover { background:var(--c-border-hi); color:var(--c-text-primary); }
+
+  /* Stats P&G resum */
+  .cdm-pnl-section { padding:20px 20px 16px; }
+  .cdm-pnl-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:8px; }
+  .cdm-pnl-big {
+    font-size:36px; font-weight:300; letter-spacing:-2px;
+    font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px;
+    font-family:${FONTS.num};
+  }
+  .cdm-pnl-big.pos { color:${COLORS.neonGreen}; }
+  .cdm-pnl-big.neg { color:${COLORS.neonRed}; }
+  .cdm-pnl-pct { font-size:14px; font-weight:500; margin-bottom:16px; font-family:${FONTS.mono}; }
+  .cdm-pnl-pct.pos { color:${COLORS.neonGreen}; }
+  .cdm-pnl-pct.neg { color:${COLORS.neonRed}; }
+
+  .cdm-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px; }
+  .cdm-stat { background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; }
+  .cdm-stat-l { font-size:9px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
+  .cdm-stat-v { font-size:16px; font-weight:300; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .cdm-stat-v.g { color:${COLORS.neonGreen}; }
+  .cdm-stat-v.r { color:${COLORS.neonRed}; }
+  .cdm-stat-sub { font-size:10px; color:var(--c-text-muted); margin-top:3px; font-family:${FONTS.mono}; }
+
+  /* Txs de la posició tancada */
+  .cdm-txs { padding:0 20px 24px; }
+  .cdm-txs-title { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:12px; }
+  .cdm-tx { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--c-border); }
+  .cdm-tx:last-child { border-bottom:none; }
+  .cdm-tx-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:9px; font-weight:700; }
+  .cdm-tx-info { flex:1; min-width:0; }
+  .cdm-tx-name { font-size:12px; font-weight:500; color:var(--c-text-secondary); margin-bottom:2px; }
+  .cdm-tx-date { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
+  .cdm-tx-right { text-align:right; flex-shrink:0; }
+  .cdm-tx-qty { font-size:12px; font-weight:600; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  .cdm-tx-cost { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; }
+
+  .cdm-del-zone { padding:0 20px 24px; }
+  .cdm-del-btn { width:100%; padding:11px; border:1px solid var(--c-border-red); background:var(--c-bg-red); border-radius:10px; font-family:${FONTS.sans}; font-size:13px; font-weight:500; color:var(--c-red); cursor:pointer; transition:all 100ms; }
+  .cdm-del-btn:hover { background:rgba(255,59,59,0.14); }
 `
 
 const DISTRIB_COLORS = [
@@ -627,6 +721,7 @@ export default function InvestmentsTable({
   const [fxRates, setFxRates]       = useState({})
   const [showImport, setShowImport] = useState(false)
   const [showClosed, setShowClosed]   = useState(false)
+  const [closedDetail, setClosedDetail] = useState(null) // posició tancada seleccionada
   const [selectMode, setSelectMode]   = useState(false)
   const [selected, setSelected]       = useState(new Set())
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
@@ -868,16 +963,29 @@ export default function InvestmentsTable({
       {closedInvestments.length > 0 && (
         <div style={{marginBottom:8}}>
           <button className="inv-closed-toggle" onClick={() => setShowClosed(v => !v)}>
-            <span className="inv-closed-label">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              Posicions tancades
-              <span className="inv-closed-badge">{closedInvestments.length}</span>
+            <span className="inv-closed-hdr">
+              <span className="inv-closed-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Posicions tancades
+                <span className="inv-closed-badge">{closedInvestments.length}</span>
+              </span>
+              <span style={{display:'flex',alignItems:'center',gap:8}}>
+                <span className="inv-closed-del-all" onClick={e => {
+                  e.stopPropagation()
+                  askConfirm({
+                    name: `${closedInvestments.length} posicions tancades`,
+                    onConfirm: async () => {
+                      for (const inv of closedInvestments) await onRemoveInvestment(inv.id)
+                    }
+                  })
+                }}>Eliminar totes</span>
+                <svg className={`inv-closed-chevron${showClosed?' open':''}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </span>
-            <svg className={`inv-closed-chevron${showClosed?' open':''}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
           </button>
 
           {showClosed && (
@@ -892,7 +1000,7 @@ export default function InvestmentsTable({
                 const isP       = pnl >= 0
 
                 return (
-                  <div key={inv.id} className="inv-closed-card">
+                  <div key={inv.id} className="inv-closed-card" style={{cursor:'pointer'}} onClick={() => setClosedDetail(inv)}>
                     <div className="inv-closed-av" style={{background:tc.bg, color:tc.color}}>
                       {(inv.name||'?').slice(0,2).toUpperCase()}
                     </div>
@@ -976,6 +1084,24 @@ export default function InvestmentsTable({
       )}
 
       {/* ── Modals ── */}
+
+      {/* ── Modal detall posició tancada ── */}
+      {closedDetail && (() => {
+        const fresh = investments.find(i => i.id === closedDetail.id) || closedDetail
+        return (
+          <ClosedDetailModal
+            inv={fresh}
+            onClose={() => setClosedDetail(null)}
+            onRemove={() => {
+              askConfirm({
+                name: fresh.name,
+                onConfirm: () => { onRemoveInvestment(fresh.id); setClosedDetail(null) }
+              })
+            }}
+          />
+        )
+      })()}
+
       {showNew && <AddInvestmentModal onAdd={d => { onAddInvestment(d); setShowNew(false) }} onClose={() => setShowNew(false)} />}
 
       {txModal && (
@@ -1143,6 +1269,129 @@ function TransactionModal({ invName, defaultType, currency='EUR', ticker, onAdd,
           <button className="inv-btn-cancel" onClick={onClose}>Cancel·lar</button>
           <button className={`inv-btn-ok ${type==='buy'?'grn':type==='sell'?'org':'blu'}`} onClick={submit}>
             {type==='buy'?'Registrar compra':type==='sell'?'Registrar venda':'Afegir aportació'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── ClosedDetailModal — detall i moviments d'una posició tancada ─────────────
+function ClosedDetailModal({ inv, onClose, onRemove }) {
+  const tc = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
+
+  const txs      = inv.txs || []
+  const buyTxs   = txs.filter(t => t.type === 'buy')
+  const sellTxs  = txs.filter(t => t.type === 'sell')
+
+  // P&G realitzat real: ingressos de vendes - cost de les compres
+  const totalBought = buyTxs.reduce((s, t) => s + (t.totalCostEur || t.totalCost || 0), 0)
+  const totalSold   = sellTxs.reduce((s, t) => s + (t.totalCostEur || t.totalCost || 0), 0)
+  const pnl         = totalSold - totalBought
+  const pnlPct      = totalBought > 0 ? (pnl / totalBought) * 100 : 0
+  const isPos       = pnl >= 0
+
+  // Quantitats
+  const totalQtyBought = buyTxs.reduce((s, t) => s + (t.qty || 0), 0)
+  const totalQtySold   = sellTxs.reduce((s, t) => s + (t.qty || 0), 0)
+  const avgBuyPrice    = totalQtyBought > 0 ? totalBought / totalQtyBought : 0
+  const avgSellPrice   = totalQtySold  > 0 ? totalSold  / totalQtySold  : 0
+
+  const sortedTxs = [...txs].sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1)
+
+  return (
+    <div className="cdm-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="cdm-sheet">
+
+        {/* ── Capçalera ── */}
+        <div className="cdm-hdr">
+          <div className="cdm-av" style={{ background: tc.bg, color: tc.color }}>
+            {(inv.name || '?').slice(0, 2).toUpperCase()}
+          </div>
+          <div className="cdm-hdr-info">
+            <p className="cdm-name">{inv.name}</p>
+            <div className="cdm-meta">
+              <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
+                {TYPE_LABELS[inv.type] || inv.type}
+              </span>
+              {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+              <span className="cdm-closed-badge">Tancada</span>
+            </div>
+          </div>
+          <button className="cdm-close" onClick={onClose}>✕</button>
+        </div>
+
+        {/* ── P&G resum ── */}
+        <div className="cdm-pnl-section">
+          <p className="cdm-pnl-lbl">Resultat final</p>
+          <p className={`cdm-pnl-big ${isPos ? 'pos' : 'neg'}`}>
+            {isPos ? '+' : ''}{fmtEur(pnl)}
+          </p>
+          <p className={`cdm-pnl-pct ${isPos ? 'pos' : 'neg'}`}>
+            {isPos ? '▲ +' : '▼ '}{Math.abs(pnlPct).toFixed(2)}% sobre el cost
+          </p>
+
+          <div className="cdm-stats">
+            <div className="cdm-stat">
+              <p className="cdm-stat-l">Total invertit</p>
+              <p className="cdm-stat-v">{fmtEur(totalBought)}</p>
+              <p className="cdm-stat-sub">{fmtQty(totalQtyBought)} u. · avg {fmtEur(avgBuyPrice)}</p>
+            </div>
+            <div className="cdm-stat">
+              <p className="cdm-stat-l">Total venut</p>
+              <p className="cdm-stat-v">{fmtEur(totalSold)}</p>
+              <p className="cdm-stat-sub">{fmtQty(totalQtySold)} u. · avg {fmtEur(avgSellPrice)}</p>
+            </div>
+            <div className="cdm-stat">
+              <p className="cdm-stat-l">Compres</p>
+              <p className="cdm-stat-v">{buyTxs.length}</p>
+              <p className="cdm-stat-sub">operacions</p>
+            </div>
+            <div className="cdm-stat">
+              <p className="cdm-stat-l">Vendes</p>
+              <p className="cdm-stat-v">{sellTxs.length}</p>
+              <p className="cdm-stat-sub">operacions</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Historial complet ── */}
+        {sortedTxs.length > 0 && (
+          <div className="cdm-txs">
+            <p className="cdm-txs-title">Historial · {sortedTxs.length} operacions</p>
+            {sortedTxs.map((tx, i) => {
+              const isBuy  = tx.type === 'buy'
+              const isSell = tx.type === 'sell'
+              const dotC   = isBuy ? COLORS.neonGreen : isSell ? COLORS.neonAmber : COLORS.neonCyan
+              const dotBg  = isBuy ? 'rgba(0,255,136,0.10)' : isSell ? 'rgba(255,149,0,0.10)' : 'rgba(0,212,255,0.10)'
+              const label  = isBuy ? 'BUY' : isSell ? 'SELL' : 'CAP'
+              return (
+                <div key={tx.id || i} className="cdm-tx">
+                  <div className="cdm-tx-icon" style={{ background: dotBg, color: dotC }}>
+                    {label}
+                  </div>
+                  <div className="cdm-tx-info">
+                    <p className="cdm-tx-name">{tx.note || (isBuy ? 'Compra' : isSell ? 'Venda' : 'Aportació')}</p>
+                    <p className="cdm-tx-date">{tx.date || '—'}</p>
+                  </div>
+                  <div className="cdm-tx-right">
+                    {tx.qty > 0 && (
+                      <p className="cdm-tx-qty" style={{ color: dotC }}>
+                        {isBuy ? '+' : '−'}{fmtQty(tx.qty)} u.
+                      </p>
+                    )}
+                    <p className="cdm-tx-cost">{fmtEur(tx.totalCostEur || tx.totalCost || 0)}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ── Eliminar ── */}
+        <div className="cdm-del-zone">
+          <button className="cdm-del-btn" onClick={onRemove}>
+            Eliminar posició "{inv.name}"
           </button>
         </div>
       </div>
