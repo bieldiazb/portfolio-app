@@ -3,48 +3,31 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Yahoo Finance — ara via Function per afegir User-Agent
-[[redirects]]
-  from = "/yahoo/*"
-  to = "/.netlify/functions/yahoo-proxy"
-  status = 200
-  force = true
+# Yahoo Finance — gestionat directament per la Function via config.path
+# (els redirects no cal, la function intercepta /yahoo/*, /yahoo2/*, /yahoo-search/*)
 
-[[redirects]]
-  from = "/yahoo2/*"
-  to = "/.netlify/functions/yahoo-proxy"
-  status = 200
-  force = true
-
-# Yahoo search
-[[redirects]]
-  from = "/yahoo-search/*"
-  to = "/.netlify/functions/yahoo-proxy"
-  status = 200
-  force = true
-
-# Yahoo autocomplete
+# Yahoo autocomplete (redirect simple, no necessita User-Agent)
 [[redirects]]
   from = "/yahoo-ac"
   to = "https://autoc.finance.yahoo.com/autoc:splat"
   status = 200
   force = true
 
-# CoinGecko — proxy per evitar CORS
+# CoinGecko
 [[redirects]]
   from = "/coingecko/*"
   to = "https://api.coingecko.com/:splat"
   status = 200
   force = true
 
-# Claude API — Netlify Function (injecta x-api-key del servidor)
+# Claude API
 [[redirects]]
   from = "/claude/*"
   to = "/.netlify/functions/claude"
   status = 200
   force = true
 
-# Financial Modeling Prep — Netlify Function (injecta FMP_API_KEY del servidor)
+# Financial Modeling Prep
 [[redirects]]
   from = "/fmp"
   to = "/.netlify/functions/fmp"
@@ -57,21 +40,21 @@
   status = 200
   force = true
 
-# Alpha Vantage — proxy (injecta ALPHA_VANTAGE_KEY)
+# Alpha Vantage
 [[redirects]]
   from = "/av"
   to = "/.netlify/functions/alphavantage"
   status = 200
   force = true
 
-# Finnhub — proxy (injecta FINNHUB_API_KEY) — 60 crides/minut gratuïtes
+# Finnhub
 [[redirects]]
   from = "/fh"
   to = "/.netlify/functions/finnhub"
   status = 200
   force = true
 
-# SPA fallback
+# SPA fallback — ha d'anar sempre al final
 [[redirects]]
   from = "/*"
   to = "/index.html"
