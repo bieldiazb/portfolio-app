@@ -31,11 +31,12 @@ async function fetchHistoricalCAGR(ticker) {
       } catch { /* fallback al proxy */ }
     }
 
-    // Producció (Netlify) o local sense dades → proxy propi
+    // Producció (Netlify) o local sense dades → proxy propi (/yahoo/* interceptat per yahoo-proxy.js)
     if (!data?.chart?.result?.[0]) {
-      const res = await fetch(`/.netlify/functions/yahoo-proxy?ticker=${encodeURIComponent(ticker)}`, {
-        signal: AbortSignal.timeout(10000),
-      })
+      const now  = Math.floor(Date.now() / 1000)
+      const from = now - 10 * 365 * 24 * 3600
+      const url  = `/yahoo/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${from}&period2=${now}&interval=1mo&events=history`
+      const res  = await fetch(url, { signal: AbortSignal.timeout(10000) })
       if (res.ok) data = await res.json()
     }
 
@@ -100,8 +101,8 @@ const styles = `
   .pr-range { position:absolute; inset:0; width:100%; opacity:0; cursor:pointer; height:18px; top:-7px; -webkit-appearance:none; appearance:none; margin:0; }
   .pr-quick { display:flex; gap:4px; flex-wrap:wrap; }
   .pr-qbtn { padding:5px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
-  .pr-qbtn:hover { color:var(--c-text-secondary); border-color:var(--c-border); }
-  .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:var(--c-border); color:${COLORS.neonPurple}; }
+  .pr-qbtn:hover { color:var(--c-text-secondary); border-color:rgba(255,255,255,0.15); }
+  .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:rgba(123,97,255,0.30); color:${COLORS.neonPurple}; }
 
   /* ── Panel genèric ── */
   .pr-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
@@ -113,25 +114,25 @@ const styles = `
   .pr-legend-dot { width:7px; height:2px; border-radius:1px; flex-shrink:0; }
 
   /* ── Taula anual ── */
-  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid var(--c-border); }
+  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
   .pr-col-hdr span { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; }
   .pr-col-hdr span:not(:first-child) { text-align:right; }
-  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
+  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 80ms; }
   .pr-yr-row:last-child { border-bottom:none; }
   .pr-yr-row:hover { background:var(--c-bg); }
   .pr-yr-row.last { background:var(--c-bg-purple); border-top:1px solid var(--c-border-purple); }
   .pr-yr-n { font-size:11px; font-weight:500; color:var(--c-text-muted); font-family:${FONTS.num}; }
-  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-muted); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
+  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:rgba(255,255,255,0.55); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
   .pr-yr-v.g { color:${COLORS.neonGreen}; }
   .pr-yr-row.last .pr-yr-n { color:${COLORS.neonPurple}; font-weight:600; }
   .pr-yr-row.last .pr-yr-v { color:var(--c-text-primary); font-weight:500; }
   .pr-yr-row.last .pr-yr-v.g { color:${COLORS.neonGreen}; }
 
   /* ── Aportació per actiu ── */
-  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); }
+  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
   .pr-asset-row:last-of-type { border-bottom:none; }
   .pr-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
-  .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .pr-asset-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
   .pr-asset-meta { font-size:10px; color:var(--c-text-muted); }
   .pr-asset-meta .historical { color:${COLORS.neonGreen}; opacity:0.7; }
   .pr-asset-meta .fallback { color:${COLORS.neonAmber}; opacity:0.7; }
@@ -139,7 +140,7 @@ const styles = `
   .pr-inp:focus { border-color:${COLORS.neonPurple}; }
   .pr-unit { font-size:10px; color:var(--c-text-muted); white-space:nowrap; flex-shrink:0; }
   .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid var(--c-border); }
-  .pr-total-l { font-size:11px; color:var(--c-text-muted); font-weight:500; }
+  .pr-total-l { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
   .pr-total-v { font-size:18px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
 
   /* ── Rate override input ── */
