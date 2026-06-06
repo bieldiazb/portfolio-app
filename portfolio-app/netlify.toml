@@ -3,24 +3,23 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Yahoo Finance — proxy principal
+# Yahoo Finance — ara via Function per afegir User-Agent
 [[redirects]]
   from = "/yahoo/*"
-  to = "https://query1.finance.yahoo.com/:splat"
+  to = "/.netlify/functions/yahoo-proxy"
   status = 200
   force = true
 
-# Yahoo Finance — fallback query2
 [[redirects]]
   from = "/yahoo2/*"
-  to = "https://query2.finance.yahoo.com/:splat"
+  to = "/.netlify/functions/yahoo-proxy"
   status = 200
   force = true
 
 # Yahoo search
 [[redirects]]
   from = "/yahoo-search/*"
-  to = "https://query1.finance.yahoo.com/:splat"
+  to = "/.netlify/functions/yahoo-proxy"
   status = 200
   force = true
 
@@ -46,7 +45,6 @@
   force = true
 
 # Financial Modeling Prep — Netlify Function (injecta FMP_API_KEY del servidor)
-# IMPORTANT: usem :splat per passar el path sencer a la function
 [[redirects]]
   from = "/fmp"
   to = "/.netlify/functions/fmp"

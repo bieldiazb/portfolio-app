@@ -100,8 +100,8 @@ const styles = `
   .pr-range { position:absolute; inset:0; width:100%; opacity:0; cursor:pointer; height:18px; top:-7px; -webkit-appearance:none; appearance:none; margin:0; }
   .pr-quick { display:flex; gap:4px; flex-wrap:wrap; }
   .pr-qbtn { padding:5px 12px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; }
-  .pr-qbtn:hover { color:var(--c-text-secondary); border-color:rgba(255,255,255,0.15); }
-  .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:rgba(123,97,255,0.30); color:${COLORS.neonPurple}; }
+  .pr-qbtn:hover { color:var(--c-text-secondary); border-color:var(--c-border); }
+  .pr-qbtn.on { background:rgba(123,97,255,0.12); border-color:var(--c-border); color:${COLORS.neonPurple}; }
 
   /* ── Panel genèric ── */
   .pr-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
@@ -113,22 +113,22 @@ const styles = `
   .pr-legend-dot { width:7px; height:2px; border-radius:1px; flex-shrink:0; }
 
   /* ── Taula anual ── */
-  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .pr-col-hdr { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:7px 14px; border-bottom:1px solid var(--c-border); }
   .pr-col-hdr span { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; }
   .pr-col-hdr span:not(:first-child) { text-align:right; }
-  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 80ms; }
+  .pr-yr-row { display:grid; grid-template-columns:36px 1fr 1fr 1fr; padding:9px 14px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
   .pr-yr-row:last-child { border-bottom:none; }
   .pr-yr-row:hover { background:var(--c-bg); }
   .pr-yr-row.last { background:var(--c-bg-purple); border-top:1px solid var(--c-border-purple); }
   .pr-yr-n { font-size:11px; font-weight:500; color:var(--c-text-muted); font-family:${FONTS.num}; }
-  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-primary); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
+  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-muted); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
   .pr-yr-v.g { color:${COLORS.neonGreen}; }
   .pr-yr-row.last .pr-yr-n { color:${COLORS.neonPurple}; font-weight:600; }
   .pr-yr-row.last .pr-yr-v { color:var(--c-text-primary); font-weight:500; }
   .pr-yr-row.last .pr-yr-v.g { color:${COLORS.neonGreen}; }
 
   /* ── Aportació per actiu ── */
-  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border); }
   .pr-asset-row:last-of-type { border-bottom:none; }
   .pr-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
   .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
@@ -139,7 +139,7 @@ const styles = `
   .pr-inp:focus { border-color:${COLORS.neonPurple}; }
   .pr-unit { font-size:10px; color:var(--c-text-muted); white-space:nowrap; flex-shrink:0; }
   .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid var(--c-border); }
-  .pr-total-l { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
+  .pr-total-l { font-size:11px; color:var(--c-text-muted); font-weight:500; }
   .pr-total-v { font-size:18px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
 
   /* ── Rate override input ── */
@@ -175,7 +175,7 @@ const GainTooltip = ({ active, payload, label }) => {
   )
 }
 
-export default function ProjectionsPage({ investments, savings, cryptos = [] }) {
+export default function ProjectionsPage({ investments, savings, cryptos = [], groups = [] }) {
   const [years, setYears]             = useState(10)
   const [contributions, setContrib]   = useState({})
   // historicalRates: { [id]: number | null }  — null = carregant, number = CAGR, undefined = no s'ha intentat
@@ -183,21 +183,85 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   // rateOverrides: taxes manuals per actiu (l'usuari pot sobreescriure)
   const [rateOverrides, setRateOver]  = useState({})
 
-  const allAssets = useMemo(() => [
-    ...investments.map(i  => ({ ...i, category: i.type })),
-    ...savings.map(s      => ({ ...s, category: 'estalvi', currentPrice: null })),
-    ...cryptos.map(c      => ({ ...c, category: 'crypto', initialValue: c.initialValue || 0 })),
-  ], [investments, savings, cryptos])
+  // IDs que estan dins d'algun grup (no els mostrem individualment)
+  const groupedIds = useMemo(() =>
+    new Set(groups.flatMap(g => g.investmentIds || [])),
+  [groups])
+
+  // Valor actual d'una inversió individual
+  const invCurrentVal = inv => {
+    if (inv.currentPrice != null && (inv.totalQty||0) > 0) return inv.totalQty * inv.currentPrice
+    return inv.totalCostEur || inv.totalCost || 0
+  }
+
+  const allAssets = useMemo(() => {
+    const ungrouped = investments.filter(i => !groupedIds.has(i.id) && i.type !== 'robo')
+    const robos     = investments.filter(i => i.type === 'robo' && !groupedIds.has(i.id))
+
+    // Grups personalitzats com a actius virtuals
+    const groupAssets = groups.map(g => {
+      const members = investments.filter(i => (g.investmentIds||[]).includes(i.id))
+      const totalV  = members.reduce((s, i) => s + invCurrentVal(i), 0)
+      const totalC  = members.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
+      return {
+        id:          '__group__' + g.id,
+        _groupId:    g.id,
+        name:        g.name,
+        type:        'group',
+        category:    'group',
+        ticker:      null,
+        totalCostEur: totalC,
+        _groupVal:   totalV,
+        _members:    members,
+      }
+    }).filter(g => g._members.length > 0)
+
+    // Robo advisor agrupat
+    const roboGroup = robos.length > 1 ? [{
+      id: '__robo_group__', name: 'Robo Advisor', type: 'robo', category: 'robo',
+      ticker: null,
+      totalCostEur: robos.reduce((s, i) => s + (i.totalCostEur||i.totalCost||0), 0),
+      _roboVal: robos.reduce((s, i) => s + invCurrentVal(i), 0),
+    }] : robos.map(i => ({ ...i, category: i.type }))
+
+    const THRESHOLD = 0.01
+
+    return [
+      // Inversions individuals: només les que tenen capital real (qty > 0 i valor > 0)
+      ...ungrouped
+        .filter(i => (i.totalQty || 0) > 0.00001 || (i.totalCostEur || i.totalCost || 0) > THRESHOLD)
+        .map(i => ({ ...i, category: i.type })),
+      // Grups: sempre surten si tenen membres
+      ...groupAssets,
+      // Robo: ídem
+      ...roboGroup,
+      // Estalvis: saldo > 0
+      ...savings
+        .filter(s => (s.amount || s.balance || 0) > THRESHOLD)
+        .map(s => ({ ...s, category: 'estalvi', currentPrice: null })),
+      // Crypto: qty > 0
+      ...cryptos
+        .filter(c => (c.totalQty ?? c.qty ?? 0) > 0.00001 || (c.totalCost || 0) > THRESHOLD)
+        .map(c => ({ ...c, category: 'crypto', initialValue: c.initialValue||0 })),
+    ]
+  }, [investments, savings, cryptos, groups, groupedIds])
 
   // Clau estable per detectar canvis de tickers (no només longitud)
-  const tickerKey = allAssets
-    .filter(a => a.category === 'etf' || a.category === 'stock')
-    .map(a => `${a.id}:${a.ticker}`)
-    .join(',')
+  // Inclou els membres dels grups per carregar els seus CAGR
+  const tickerKey = [
+    ...allAssets.filter(a => a.category === 'etf' || a.category === 'stock'),
+    ...groups.flatMap(g => investments.filter(i => (g.investmentIds||[]).includes(i.id))),
+  ].map(a => `${a.id}:${a.ticker}`).join(',')
 
   // Carrega el CAGR històric per a cada ETF/acció
   useEffect(() => {
-    const investmentAssets = allAssets.filter(a => a.category === 'etf' || a.category === 'stock')
+    const memberAssets = groups.flatMap(g =>
+      investments.filter(i => (g.investmentIds||[]).includes(i.id) && (i.type === 'etf' || i.type === 'stock'))
+    )
+    const investmentAssets = [
+      ...allAssets.filter(a => a.category === 'etf' || a.category === 'stock'),
+      ...memberAssets,
+    ]
     investmentAssets.forEach(a => {
       if (!a.ticker) return
       const key = a.id
@@ -220,6 +284,17 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
     if (rateOverrides[a.id] !== undefined && rateOverrides[a.id] !== '') {
       return parseFloat(rateOverrides[a.id]) || 0
     }
+    // Grup personalitzat: taxa ponderada pels valors de cada membre
+    if (a.category === 'group' && a._members?.length > 0) {
+      const totalV = a._members.reduce((s, i) => s + invCurrentVal(i), 0)
+      if (totalV <= 0) return FALLBACK_RETURNS.etf
+      return a._members.reduce((s, i) => {
+        const w    = invCurrentVal(i) / totalV
+        const hist = historicalRates[i.id]
+        const r    = typeof hist === 'number' ? hist : FALLBACK_RETURNS[i.type] ?? 8
+        return s + w * r
+      }, 0)
+    }
     if (a.category === 'estalvi') {
       // Suporta: a.rate, a.tae, a.apr, a.interestRate, a.interest_rate
       const r = a.rate ?? a.tae ?? a.apr ?? a.interestRate ?? a.interest_rate
@@ -234,6 +309,10 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   }
 
   const getRateStatus = a => {
+    if (a.category === 'group') {
+      const r = getRate(a)
+      return { label: `${r.toFixed(1)}% CAGR ponderat (${a._members.length} actius)`, type: 'historical' }
+    }
     if (a.category === 'estalvi') {
       const r = getRate(a)
       const isDefault = r === FALLBACK_RETURNS.estalvi
@@ -255,12 +334,14 @@ export default function ProjectionsPage({ investments, savings, cryptos = [] }) 
   const calcTotal = (months) => {
     let total = 0, cost = 0
     allAssets.forEach(a => {
-      // estalvi → saldo actual | inversions → valor de mercat actual (getEffectiveValue) | crypto → valor inicial
-      // estalvi: amount és el camp principal, balance és l'alternatiu
       const pv  = a.category === 'estalvi'
         ? (a.amount || a.balance || a.totalCost || 0)
         : a.category === 'crypto'
           ? (a.initialValue || a.totalCost || 0)
+        : a.id === '__robo_group__'
+          ? (a._roboVal || a.totalCostEur || 0)
+        : a.category === 'group'
+          ? (a._groupVal || a.totalCostEur || 0)
           : (getEffectiveValue?.(a) || a.totalCostEur || 0)
       const pmt = getContrib(a.id)
       total += fv(pv, pmt, getRate(a), months)

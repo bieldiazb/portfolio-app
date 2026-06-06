@@ -30,6 +30,7 @@ import { usePriceFetcher } from './hooks/usePriceFetcher'
 import { useNetWorthSnapshots } from './hooks/useNetWorthSnapshots'
 import { useRebalancingGoals } from './hooks/useRebalancingGoals'
 import { useAlerts, AlertToastProvider } from './components/AlertsSystem'
+import { useGroups } from './hooks/useGroups'
 import { useTheme } from './hooks/useTheme'
 import ThemeToggleIcon from './components/ThemeToggle'
 
@@ -74,7 +75,7 @@ const appStyles = `
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   /* En mode clar el logo inverteix per llegibilitat */
-  [data-theme="light"] .mob-hdr-logo { background: #111; }
+  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
 
   .mob-hdr-title {
     font-size: 14px; font-weight: 500;
@@ -153,7 +154,8 @@ export default function App() {
 
   const {
     investments, addInvestment, removeInvestment,
-    addTransaction: addInvTx, removeTransaction: removeInvTx, updateCurrentPrice,
+    addTransaction: addInvTx, removeTransaction: removeInvTx,
+    updateCurrentPrice, updateInvestment,
   } = useInvestments(user?.uid)
 
   const {
@@ -177,6 +179,7 @@ export default function App() {
   const { snapshots, saveSnapshot }      = useNetWorthSnapshots(user?.uid)
   const { goals: rebalGoals, saveGoals } = useRebalancingGoals(user?.uid)
   const { alerts, addAlert, removeAlert, checkAlerts } = useAlerts(user?.uid)
+  const { groups, addGroup, removeGroup, updateGroup } = useGroups(user?.uid)
 
   const investmentsCompat = investments.map(inv => ({
     ...inv, qty: inv.totalQty || 0, initialValue: inv.totalCostEur || inv.totalCost || 0,
@@ -229,18 +232,24 @@ export default function App() {
 
   useEffect(() => {
     if (!investments.length) return
-    investments.forEach(async inv => {
-      if (!inv.ticker || ['efectiu','estalvi','robo'].includes(inv.type)) return
-      try {
-        const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
-        if (orig?.price != null)
-          updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
-        else {
-          const price = await fetchOne(inv.ticker)
-          if (price != null) updateCurrentPrice(inv.id, price)
-        }
-      } catch {}
-    })
+    // Delay per evitar que s'executi durant eliminacions (Firebase actualitza length)
+    const timer = setTimeout(() => {
+      investments.forEach(async inv => {
+        if (!inv.ticker || ['efectiu','estalvi','robo'].includes(inv.type)) return
+        // Només actualitza si la inversió encara existeix (qty > 0 o té txs)
+        if ((inv.totalQty || 0) <= 0 && !(inv.txs?.length)) return
+        try {
+          const orig = fetchWithCurrency ? await fetchWithCurrency(inv.ticker) : null
+          if (orig?.price != null)
+            updateCurrentPrice(inv.id, orig.price, { originalPrice: orig.price, originalCurrency: orig.currency || 'EUR' })
+          else {
+            const price = await fetchOne(inv.ticker)
+            if (price != null) updateCurrentPrice(inv.id, price)
+          }
+        } catch {}
+      })
+    }, 2000) // espera 2s per deixar que Firebase processi l'eliminació
+    return () => clearTimeout(timer)
   }, [investments.length]) // eslint-disable-line
 
   useEffect(() => {
@@ -252,7 +261,13 @@ export default function App() {
 
   useEffect(() => {
     if (totalAll > 0 && user) {
-      saveSnapshot(totalAll, totalInv + totalCom, totalSav, totalCry)
+      // Guarda snapshot màxim 1 vegada per sessió per no esgotar quota Firebase
+      const today = new Date().toISOString().split('T')[0]
+      const lastSnap = sessionStorage.getItem('lastSnapDate')
+      if (lastSnap !== today) {
+        saveSnapshot(totalAll, totalInv + totalCom, totalSav, totalCry)
+        sessionStorage.setItem('lastSnapDate', today)
+      }
       checkAlerts(investmentsCompat, cryptos, totalAll, rebalGoals, currentPcts)
     }
   }, [totalAll]) // eslint-disable-line
@@ -330,6 +345,27 @@ export default function App() {
     }
   }, [addInvestment, addInvTx, fetchOne, setStatus, updateCurrentPrice, investments])
 
+  // ── Fetch nom real des de Yahoo Finance via ticker ──────────────────────────
+  // Usa els mateixos endpoints proxy que usePriceFetcher (/yahoo/ → /yahoo2/)
+  const fetchAssetName = useCallback(async (ticker) => {
+    if (!ticker) return null
+    const endpoints = [
+      `/yahoo/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`,
+      `/yahoo2/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`,
+    ]
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) })
+        if (!res.ok) continue
+        const data = await res.json()
+        const meta = data?.chart?.result?.[0]?.meta
+        const name = meta?.longName || meta?.shortName
+        if (name) return name
+      } catch {}
+    }
+    return null
+  }, [])
+
   const handleImportCSV = useCallback(async (transactions, broker) => {
     const byAsset = {}
     transactions.forEach(t => {
@@ -359,8 +395,15 @@ export default function App() {
       if (existingInv) {
         invId = existingInv.id
       } else {
+        // Intenta obtenir el nom real de Yahoo Finance
+        // Si el name del CSV és igual al ticker (Revolut) → busca el nom complet
+        const csvName    = asset.name || asset.ticker || key
+        const needsName  = !csvName || csvName === asset.ticker || csvName === key
+        const yahooName  = needsName ? await fetchAssetName(asset.ticker) : null
+        const finalName  = yahooName || csvName
+
         const docRef = await addInvestment({
-          name: asset.name || asset.ticker || key,
+          name: finalName,
           ticker: asset.ticker || '',
           type: asset.type || 'stock',
           currency: asset.currency || 'EUR',
@@ -407,9 +450,11 @@ export default function App() {
           const price = await fetchOne(inv.ticker)
           if (price != null) updateCurrentPrice(inv.id, price)
         }
+
+        // Nom: s'actualitza només durant la importació, no en cada refresh
       } catch {}
     }
-  }, [investments, fetchOne, updateCurrentPrice])
+  }, [investments, fetchOne, fetchAssetName, updateCurrentPrice, updateInvestment])
 
   const activeAlertsCount = alerts.filter(a => !a.triggered).length
   const initials = user?.displayName
@@ -496,7 +541,10 @@ export default function App() {
               <InvestmentsTable
                 investments={investments} onAddInvestment={handleAddInvestment}
                 onRemoveInvestment={removeInvestment} onAddTransaction={addInvTx}
-                onRemoveTransaction={removeInvTx} loading={priceLoading} status={status}
+                onRemoveTransaction={removeInvTx} onUpdateInvestment={updateInvestment}
+                groups={groups} onAddGroup={addGroup}
+                onRemoveGroup={removeGroup} onUpdateGroup={updateGroup}
+                loading={priceLoading} status={status}
                 onRefresh={handleRefreshPrices} onImportCSV={handleImportCSV}
               />
             )}
@@ -513,7 +561,7 @@ export default function App() {
             )}
             {activeTab === 'movements'   && <MovementsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>}
             {activeTab === 'timeline'    && <NetWorthTimeline snapshots={snapshots} currentTotal={totalAll} totalCost={totalCost}/>}
-            {activeTab === 'projections' && <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos}/>}
+            {activeTab === 'projections' && <ProjectionsPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} groups={groups}/>}
             {activeTab === 'chart'       && <AllocationChart investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} commodities={commodities}/>}
             {activeTab === 'benchmark'   && <BenchmarkPage snapshots={snapshots} investments={investments}/>}
             {activeTab === 'rebalancing' && <RebalancingPage investments={investmentsCompat} savings={savingsCompat} cryptos={cryptos} goals={rebalGoals} onSaveGoals={saveGoals}/>}

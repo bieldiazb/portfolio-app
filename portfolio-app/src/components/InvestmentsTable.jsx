@@ -189,13 +189,20 @@ const styles = `
   .adm-hdr-info { flex:1; min-width:0; }
   .adm-hdr-name { font-size:16px; font-weight:600; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
   .adm-hdr-meta { display:flex; align-items:center; gap:5px; }
+  .adm-name-inp {
+    flex:1; background:var(--c-elevated); border:1px solid var(--c-border-green);
+    border-radius:7px; padding:5px 10px; font-family:${FONTS.sans};
+    font-size:15px; font-weight:600; color:var(--c-text-primary);
+    outline:none; min-width:0;
+  }
+  .adm-name-inp:focus { border-color:var(--c-green); }
   .adm-close { width:30px; height:30px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-muted); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; flex-shrink:0; }
   .adm-close:hover { background:var(--c-border-hi); color:var(--c-text-primary); }
 
   /* Hero value */
   .adm-value-section { padding:20px 20px 0; }
   .adm-value-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:6px; }
-  .adm-value-num { font-size:40px; font-weight:800; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-1px; margin-bottom:10px; }
+  .adm-value-num { font-size:40px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-1px; margin-bottom:10px; }
   .adm-value-num span { font-size:28px; opacity:0.5; }
   .adm-badges { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
   .adm-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; font-family:${FONTS.mono}; padding:5px 12px; border-radius:20px; }
@@ -445,6 +452,82 @@ const styles = `
   .cdm-del-zone { padding:0 20px 24px; }
   .cdm-del-btn { width:100%; padding:11px; border:1px solid var(--c-border-red); background:var(--c-bg-red); border-radius:10px; font-family:${FONTS.sans}; font-size:13px; font-weight:500; color:var(--c-red); cursor:pointer; transition:all 100ms; }
   .cdm-del-btn:hover { background:rgba(255,59,59,0.14); }
+
+  .robo-group { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .robo-group-hdr { display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; border-bottom:1px solid transparent; }
+  .robo-group-hdr:hover { background:var(--c-elevated); }
+  .robo-group-hdr.open { border-bottom-color:var(--c-border); }
+  .robo-group-av { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
+  .robo-group-info { flex:1; min-width:0; }
+  .robo-group-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; }
+  .robo-group-meta { display:flex; align-items:center; gap:5px; }
+  .robo-group-right { text-align:right; flex-shrink:0; }
+  .robo-group-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .robo-group-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
+  .robo-group-pct.pos { color:${COLORS.neonGreen}; }
+  .robo-group-pct.neg { color:${COLORS.neonRed}; }
+  .robo-group-chevron { color:var(--c-text-disabled); transition:transform 200ms; margin-left:4px; flex-shrink:0; }
+  .robo-group-chevron.open { transform:rotate(180deg); }
+  .robo-group-item { display:flex; align-items:center; gap:12px; padding:11px 14px 11px 22px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  .robo-group-item:last-child { border-bottom:none; }
+  .robo-group-item:hover { background:var(--c-elevated); }
+  .robo-item-av { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; background:var(--c-bg-amber); color:${COLORS.neonAmber}; opacity:0.7; }
+  .robo-item-name { font-size:13px; font-weight:500; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .robo-item-val { font-size:13px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; }
+  .robo-item-pct { font-size:10px; font-family:${FONTS.mono}; font-weight:600; }
+  .robo-item-pct.pos { color:${COLORS.neonGreen}; }
+  .robo-item-pct.neg { color:${COLORS.neonRed}; }
+
+  /* ── Grups personalitzats ── */
+  .igrp { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; margin-bottom:0; }
+  .igrp-hdr { display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; border-bottom:1px solid transparent; }
+  .igrp-hdr:hover { background:var(--c-elevated); }
+  .igrp-hdr.open { border-bottom-color:var(--c-border); }
+  .igrp-av { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; background:var(--c-bg-cyan); color:${COLORS.neonCyan}; }
+  .igrp-info { flex:1; min-width:0; }
+  .igrp-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .igrp-meta { display:flex; align-items:center; gap:5px; }
+  .igrp-right { text-align:right; flex-shrink:0; }
+  .igrp-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .igrp-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
+  .igrp-pct.pos { color:${COLORS.neonGreen}; }
+  .igrp-pct.neg { color:${COLORS.neonRed}; }
+  .igrp-chevron { color:var(--c-text-disabled); transition:transform 200ms; margin-left:4px; flex-shrink:0; }
+  .igrp-chevron.open { transform:rotate(180deg); }
+  .igrp-item { display:flex; align-items:center; gap:12px; padding:11px 14px 11px 22px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  .igrp-item:last-child { border-bottom:none; }
+  .igrp-item:hover { background:var(--c-elevated); }
+  .igrp-item-av { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; background:var(--c-bg-cyan); color:${COLORS.neonCyan}; opacity:0.7; }
+  .igrp-item-name { font-size:13px; font-weight:500; color:var(--c-text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .igrp-item-pct-bar { height:2px; background:var(--c-border); border-radius:1px; margin-top:3px; }
+  .igrp-item-pct-fill { height:100%; border-radius:1px; background:${COLORS.neonCyan}; }
+  .igrp-actions { display:flex; gap:6px; padding:10px 14px; background:var(--c-elevated); border-top:1px solid var(--c-border); }
+  .igrp-action-btn { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:500; cursor:pointer; transition:all 100ms; font-family:${FONTS.sans}; }
+
+  /* ── GroupModal ── */
+  .gm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); backdrop-filter:blur(8px); z-index:70; display:flex; align-items:center; justify-content:center; padding:16px; animation:admFadeIn 150ms ease; }
+  .gm-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:440px; max-height:88dvh; overflow-y:auto; font-family:${FONTS.sans}; box-shadow:0 24px 64px rgba(0,0,0,0.40); animation:admScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); }
+  .gm-hdr { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; border-bottom:1px solid var(--c-border); }
+  .gm-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
+  .gm-x { width:28px; height:28px; border-radius:7px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-muted); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .gm-body { padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+  .gm-lbl { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:7px; display:block; }
+  .gm-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:11px 13px; font-family:${FONTS.sans}; font-size:15px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; }
+  .gm-inp:focus { border-color:var(--c-border-cyan); }
+  .gm-inv-list { display:flex; flex-direction:column; gap:0; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; max-height:280px; overflow-y:auto; }
+  .gm-inv-item { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; -webkit-tap-highlight-color:transparent; }
+  .gm-inv-item:last-child { border-bottom:none; }
+  .gm-inv-item:hover { background:var(--c-border); }
+  .gm-inv-item.sel { background:rgba(0,212,255,0.06); }
+  .gm-cb { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--c-border); background:var(--c-bg); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 100ms; }
+  .gm-cb.on { background:${COLORS.neonCyan}; border-color:${COLORS.neonCyan}; }
+  .gm-inv-name { font-size:13px; font-weight:500; color:var(--c-text-secondary); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gm-inv-val { font-size:12px; font-family:${FONTS.mono}; color:var(--c-text-muted); font-variant-numeric:tabular-nums; flex-shrink:0; }
+  .gm-footer { display:flex; gap:8px; padding:14px 20px 20px; }
+  .gm-btn-cancel { flex:1; padding:12px; border:1px solid var(--c-border); background:transparent; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; }
+  .gm-btn-ok { flex:1; padding:12px; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; font-weight:700; background:${COLORS.neonCyan}; color:#000; cursor:pointer; transition:opacity 100ms; }
+  .gm-btn-ok:hover { opacity:0.85; }
+  .gm-btn-ok:disabled { opacity:0.35; cursor:default; }
 `
 
 const DISTRIB_COLORS = [
@@ -479,7 +562,9 @@ const ChartTooltip = ({ active, payload }) => {
 }
 
 // ── Asset Detail Modal ───────────────────────────────────────────────────────
-function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemoveTx, onRemove, fxRates }) {
+function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemoveTx, onRemove, onUpdateInv, fxRates }) {
+  const [editingName, setEditingName] = useState(false)
+  const [nameVal, setNameVal]         = useState(inv.name || '')
   const tc      = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
   const curVal  = calcVal(inv)
   const costEur = inv.totalCostEur || inv.totalCost || 0
@@ -532,12 +617,45 @@ function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemov
             {(inv.name || '?').slice(0, 2).toUpperCase()}
           </div>
           <div className="adm-hdr-info">
-            <p className="adm-hdr-name">{inv.name}</p>
+            {editingName ? (
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                <input
+                  className="adm-name-inp"
+                  value={nameVal}
+                  onChange={e => setNameVal(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key==='Enter') { onUpdateInv?.(inv.id,{name:nameVal}); setEditingName(false) }
+                    if (e.key==='Escape') { setEditingName(false); setNameVal(inv.name) }
+                  }}
+                  autoFocus
+                />
+                <button onClick={() => { onUpdateInv?.(inv.id,{name:nameVal}); setEditingName(false) }}
+                  style={{padding:'4px 10px',background:'var(--c-green)',color:'#000',border:'none',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                  OK
+                </button>
+                <button onClick={() => { setEditingName(false); setNameVal(inv.name) }}
+                  style={{padding:'4px 8px',background:'transparent',color:'var(--c-text-muted)',border:'1px solid var(--c-border)',borderRadius:6,fontSize:11,cursor:'pointer'}}>
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                <p className="adm-hdr-name" style={{marginBottom:0}}>{inv.name}</p>
+                <button onClick={() => { setEditingName(true); setNameVal(inv.name) }}
+                  style={{background:'transparent',border:'none',padding:2,cursor:'pointer',color:'var(--c-text-disabled)',flexShrink:0,display:'flex',alignItems:'center'}}
+                  title="Editar nom">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              </div>
+            )}
             <div className="adm-hdr-meta">
               <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
                 {TYPE_LABELS[inv.type] || inv.type}
               </span>
-              {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+              {inv.ticker && inv.ticker !== inv.name && <span className="inv-ticker">{inv.ticker}</span>}
               {origCurr !== 'EUR' && <span className="inv-curr-badge">{origCurr}</span>}
             </div>
           </div>
@@ -709,9 +827,295 @@ function AssetDetailModal({ inv, totalValue, calcVal, onClose, onOpenTx, onRemov
 }
 
 // ── InvestmentsTable ─────────────────────────────────────────────────────────
+
+function RoboGroup({ robos, totalVal, gainPct, isPos, calcVal, selectMode, selected, setSelected, setDetailInv }) {
+  const [open, setOpen] = useState(false)
+  // En mode selecció, obre automàticament per poder seleccionar
+  const isOpen = open || selectMode
+  const allSelected = robos.length > 0 && robos.every(i => selected.has(i.id))
+  const someSelected = robos.some(i => selected.has(i.id))
+
+  const toggleAll = e => {
+    e.stopPropagation()
+    setSelected(prev => {
+      const n = new Set(prev)
+      if (allSelected) robos.forEach(i => n.delete(i.id))
+      else robos.forEach(i => n.add(i.id))
+      return n
+    })
+  }
+
+  return (
+    <div className="robo-group">
+      <div className={"robo-group-hdr" + (isOpen ? " open" : "")}
+        onClick={() => { if (!selectMode) setOpen(v => !v) }}>
+        {selectMode ? (
+          // Checkbox per seleccionar totes les posicions del grup
+          <div
+            className={"inv-card-cb" + (allSelected ? " checked" : "")}
+            style={someSelected && !allSelected ? {background:'var(--c-bg-amber)',borderColor:COLORS.neonAmber} : {}}
+            onClick={toggleAll}>
+            {allSelected && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            {someSelected && !allSelected && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>}
+          </div>
+        ) : null}
+        <div className="robo-group-av">RA</div>
+        <div className="robo-group-info">
+          <p className="robo-group-name">Robo Advisor</p>
+          <div className="robo-group-meta">
+            <span className="inv-type-badge" style={{background:'var(--c-bg-amber)',color:COLORS.neonAmber}}>ROBO</span>
+            <span className="inv-ticker">{robos.length} posicions</span>
+          </div>
+        </div>
+        <div className="robo-group-right">
+          <p className="robo-group-val">{fmtEur(totalVal)}</p>
+          <p className={"robo-group-pct " + (isPos ? "pos" : "neg")}>
+            {isPos ? "▲ +" : "▼ "}{Math.abs(gainPct).toFixed(2)}%
+          </p>
+        </div>
+        {!selectMode && (
+          <svg className={"robo-group-chevron" + (isOpen ? " open" : "")} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        )}
+      </div>
+      {open && (
+        <div>
+          {robos.map(inv => {
+            const val  = calcVal(inv)
+            const cost = inv.totalCostEur || inv.totalCost || 0
+            const g    = val - cost
+            const gp   = cost > 0 ? (g / cost) * 100 : 0
+            const isP  = g >= 0
+            return (
+              <div key={inv.id} className="robo-group-item"
+                onClick={() => {
+                  if (selectMode) {
+                    setSelected(prev => { const n = new Set(prev); n.has(inv.id) ? n.delete(inv.id) : n.add(inv.id); return n })
+                  } else {
+                    setDetailInv(inv)
+                  }
+                }}>
+                {selectMode && (
+                  <div className={"inv-card-cb" + (selected.has(inv.id) ? " checked" : "")}>
+                    {selected.has(inv.id) && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                )}
+                <div className="robo-item-av">{(inv.name||"?").slice(0,2).toUpperCase()}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <p className="robo-item-name">{inv.name}</p>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <p className="robo-item-val">{fmtEur(val)}</p>
+                  <p className={"robo-item-pct " + (isP ? "pos" : "neg")}>{isP?"+":""}{gp.toFixed(2)}%</p>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{color:"var(--c-text-disabled)",marginLeft:6,flexShrink:0}}><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// InvGroup - card col·lapsable per a un grup personalitzat
+function InvGroup({ group, investments, totalVal, gain, gainPct, isPos, calcVal, selectMode, selected, setSelected, setDetailInv, onEdit, onRemove }) {
+  const [open, setOpen] = useState(false)
+  const isOpen = open || selectMode
+  const allSel  = investments.length > 0 && investments.every(i => selected.has(i.id))
+  const someSel = investments.some(i => selected.has(i.id))
+
+  const toggleAll = e => {
+    e.stopPropagation()
+    setSelected(prev => {
+      const n = new Set(prev)
+      if (allSel) investments.forEach(i => n.delete(i.id))
+      else investments.forEach(i => n.add(i.id))
+      return n
+    })
+  }
+
+  const initials = (group.name || 'G').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  return (
+    <div className="igrp">
+      <div className={"igrp-hdr" + (isOpen ? " open" : "")}
+        onClick={() => { if (!selectMode) setOpen(v => !v) }}>
+        {selectMode ? (
+          <div
+            className={"inv-card-cb" + (allSel ? " checked" : "")}
+            style={someSel && !allSel ? {background:'var(--c-bg-cyan)',borderColor:COLORS.neonCyan} : {}}
+            onClick={toggleAll}>
+            {allSel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            {someSel && !allSel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>}
+          </div>
+        ) : null}
+        <div className="igrp-av">{initials}</div>
+        <div className="igrp-info">
+          <p className="igrp-name">{group.name}</p>
+          <div className="igrp-meta">
+            <span className="inv-type-badge" style={{background:'var(--c-bg-cyan)',color:COLORS.neonCyan}}>GRUP</span>
+            <span className="inv-ticker">{investments.length} posicions</span>
+          </div>
+        </div>
+        <div className="igrp-right">
+          <p className="igrp-val">{fmtEur(totalVal)}</p>
+          <p className={"igrp-pct " + (isPos ? "pos" : "neg")}>
+            {isPos ? "▲ +" : "▼ "}{Math.abs(gainPct).toFixed(2)}%
+          </p>
+        </div>
+        {!selectMode && (
+          <svg className={"igrp-chevron" + (isOpen ? " open" : "")} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        )}
+      </div>
+
+      {isOpen && (
+        <div>
+          {investments.map(inv => {
+            const val  = calcVal(inv)
+            const cost = inv.totalCostEur || inv.totalCost || 0
+            const g    = val - cost
+            const gp   = cost > 0 ? (g / cost) * 100 : 0
+            const isP  = g >= 0
+            const pct  = totalVal > 0 ? (val / totalVal) * 100 : 0
+            return (
+              <div key={inv.id}
+                className={"igrp-item" + (selected.has(inv.id) ? " selected" : "")}
+                style={selected.has(inv.id) ? {background:'rgba(0,212,255,0.06)'} : {}}
+                onClick={() => {
+                  if (selectMode) {
+                    setSelected(prev => { const n = new Set(prev); n.has(inv.id) ? n.delete(inv.id) : n.add(inv.id); return n })
+                  } else {
+                    setDetailInv(inv)
+                  }
+                }}>
+                {selectMode && (
+                  <div className={"inv-card-cb" + (selected.has(inv.id) ? " checked" : "")}>
+                    {selected.has(inv.id) && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                )}
+                <div className="igrp-item-av">{(inv.name||"?").slice(0,2).toUpperCase()}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <p className="igrp-item-name">{inv.name}</p>
+                  <div className="igrp-item-pct-bar">
+                    <div className="igrp-item-pct-fill" style={{width:`${pct}%`}}/>
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0,marginLeft:8}}>
+                  <p style={{fontSize:13,fontWeight:500,fontFamily:FONTS.mono,color:"var(--c-text-primary)",fontVariantNumeric:"tabular-nums"}}>{fmtEur(val)}</p>
+                  <p style={{fontSize:10,fontFamily:FONTS.mono,color:isP?COLORS.neonGreen:COLORS.neonRed,fontWeight:600}}>{pct.toFixed(0)}% grup · {isP?"+":""}{gp.toFixed(1)}%</p>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{color:"var(--c-text-disabled)",marginLeft:6,flexShrink:0}}><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            )
+          })}
+          {!selectMode && (
+            <div className="igrp-actions">
+              <button className="igrp-action-btn"
+                style={{background:'var(--c-elevated)',border:'1px solid var(--c-border)',color:'var(--c-text-secondary)'}}
+                onClick={onEdit}>
+                Editar grup
+              </button>
+              <button className="igrp-action-btn"
+                style={{background:'var(--c-bg-red)',border:'1px solid var(--c-border-red)',color:'var(--c-red)'}}
+                onClick={onRemove}>
+                Eliminar grup
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// GroupModal - crear o editar un grup
+function GroupModal({ group, investments, preselected, groups, calcVal, onSave, onClose }) {
+  const [name, setName]   = useState(group?.name || '')
+  const [ids, setIds]     = useState(new Set(
+    group?.investmentIds || preselected || []
+  ))
+
+  // Inversions que no estan ja en un altre grup (o estan en el grup actual)
+  const available = investments.filter(inv => {
+    if (group && (group.investmentIds || []).includes(inv.id)) return true
+    const inOtherGroup = groups.some(g => g.id !== group?.id && (g.investmentIds || []).includes(inv.id))
+    return !inOtherGroup
+  })
+
+  const toggle = id => setIds(prev => {
+    const n = new Set(prev)
+    n.has(id) ? n.delete(id) : n.add(id)
+    return n
+  })
+
+  const totalVal = investments
+    .filter(i => ids.has(i.id))
+    .reduce((s, i) => s + calcVal(i), 0)
+
+  const canSave = name.trim().length > 0 && ids.size >= 1
+
+  return (
+    <div className="gm-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="gm-modal">
+        <div className="gm-hdr">
+          <h3 className="gm-title">{group ? "Editar grup" : "Nou grup d'inversions"}</h3>
+          <button className="gm-x" onClick={onClose}>×</button>
+        </div>
+        <div className="gm-body">
+          <div>
+            <label className="gm-lbl">Nom del grup</label>
+            <input className="gm-inp" placeholder="ex: MyInvestor, Indexa Capital..." value={name}
+              onChange={e => setName(e.target.value)} autoFocus/>
+          </div>
+          <div>
+            <label className="gm-lbl">
+              Inversions ({ids.size} sel·leccionades
+              {totalVal > 0 ? ` · ${fmtEur(totalVal)}` : ''})
+            </label>
+            <div className="gm-inv-list">
+              {available.map(inv => {
+                const sel = ids.has(inv.id)
+                const val = calcVal(inv)
+                return (
+                  <div key={inv.id} className={"gm-inv-item" + (sel ? " sel" : "")} onClick={() => toggle(inv.id)}>
+                    <div className={"gm-cb" + (sel ? " on" : "")}>
+                      {sel && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                    </div>
+                    <span className="gm-inv-name">{inv.name}</span>
+                    <span className="gm-inv-val">{fmtEur(val)}</span>
+                  </div>
+                )
+              })}
+              {available.length === 0 && (
+                <p style={{padding:'16px',fontSize:12,color:'var(--c-text-muted)',textAlign:'center'}}>
+                  Totes les inversions ja estan en un grup
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="gm-footer">
+          <button className="gm-btn-cancel" onClick={onClose}>Cancel·lar</button>
+          <button className="gm-btn-ok" disabled={!canSave}
+            onClick={() => onSave({ name: name.trim(), investmentIds: [...ids] })}>
+            {group ? "Guardar canvis" : "Crear grup"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function InvestmentsTable({
   investments, onAddInvestment, onRemoveInvestment,
   onAddTransaction, onRemoveTransaction,
+  onUpdateInvestment,
+  groups = [], onAddGroup, onRemoveGroup, onUpdateGroup,
   loading, status, onRefresh, onImportCSV,
 }) {
   const [showNew, setShowNew]       = useState(false)
@@ -725,6 +1129,8 @@ export default function InvestmentsTable({
   const [selectMode, setSelectMode]   = useState(false)
   const [selected, setSelected]       = useState(new Set())
   const { confirmState, askConfirm, closeConfirm } = useConfirmDelete()
+  const [showGroupModal, setShowGroupModal] = useState(false)   // modal crear/editar grup
+  const [editingGroup, setEditingGroup]     = useState(null)    // grup que s'edita (null = crear nou)
 
   useEffect(() => {
     const pairs = [...new Set(investments.map(i => i.originalCurrency || i.currency).filter(c => c && c !== 'EUR'))]
@@ -746,8 +1152,11 @@ export default function InvestmentsTable({
   }
 
   // Posicions actives (qty > 0) i tancades (qty ~0, venudes completament)
-  const activeInvestments = investments.filter(i => (i.totalQty || 0) > 0.00001)
-  const closedInvestments = investments.filter(i => (i.totalQty || 0) <= 0.00001)
+  // IDs que estan dins d'algun grup — no es mostren a la llista individual
+  const groupedIds = new Set(groups.flatMap(g => g.investmentIds || []))
+
+  const activeInvestments = investments.filter(i => (i.totalQty || 0) > 0.00001 && !groupedIds.has(i.id))
+  const closedInvestments = investments.filter(i => (i.totalQty || 0) <= 0.00001 && !groupedIds.has(i.id))
 
   const totalValue   = activeInvestments.reduce((s, i) => s + calcVal(i), 0)
   const totalCostEur = activeInvestments.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
@@ -776,7 +1185,13 @@ export default function InvestmentsTable({
 
   // Quan es tanca el modal de tx, actualitza el detallInv amb les dades noves
   const handleRemoveInv = (inv) => {
-    askConfirm({ name: inv.name, onConfirm: () => { onRemoveInvestment(inv.id); setDetailInv(null) } })
+    askConfirm({
+      name: inv.name,
+      onConfirm: () => {
+        setDetailInv(null)           // tanca el modal primer
+        onRemoveInvestment(inv.id)   // després elimina
+      }
+    })
   }
 
   return (
@@ -856,6 +1271,13 @@ export default function InvestmentsTable({
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nova posició
         </button>
+        <button className="inv-btn-ico" title="Crear grup"
+          onClick={() => { setEditingGroup(null); setShowGroupModal(true) }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+        </button>
         <button className="inv-btn-ico" title="Seleccionar"
           style={selectMode ? {borderColor:COLORS.neonRed,color:COLORS.neonRed,background:'var(--c-bg-red)'} : {}}
           onClick={() => { setSelectMode(v => !v); setSelected(new Set()) }}>
@@ -877,9 +1299,28 @@ export default function InvestmentsTable({
         </div>
       )}
 
+      {/* ── Grup Robo Advisor ── */}
+      {(() => {
+        const robos = sorted.filter(i => i.type === 'robo')
+        if (robos.length < 2) return null
+        const roboVal  = robos.reduce((s, i) => s + calcVal(i), 0)
+        const roboCost = robos.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
+        const roboGain = roboVal - roboCost
+        const roboGPct = roboCost > 0 ? (roboGain / roboCost) * 100 : 0
+        const isP = roboGain >= 0
+        return (
+          <RoboGroup
+            robos={robos} totalVal={roboVal} totalCost={roboCost}
+            gain={roboGain} gainPct={roboGPct} isPos={isP}
+            calcVal={calcVal} selectMode={selectMode} selected={selected}
+            setSelected={setSelected} setDetailInv={setDetailInv}
+          />
+        )
+      })()}
+
       {investments.length > 0 && (
         <div className="inv-cards">
-          {sorted.map(inv => {
+          {sorted.filter(i => i.type !== 'robo' || sorted.filter(x => x.type === 'robo').length < 2).map(inv => {
             const tc      = TYPE_COLORS[inv.type] || TYPE_COLORS.etf
             const curVal  = calcVal(inv)
             const costEur = inv.totalCostEur || inv.totalCost || 0
@@ -919,7 +1360,9 @@ export default function InvestmentsTable({
                       <span className="inv-type-badge" style={{ background: tc.bg, color: tc.color }}>
                         {TYPE_LABELS[inv.type] || inv.type}
                       </span>
-                      {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+                      {inv.ticker && inv.ticker !== inv.name && (
+                        <span className="inv-ticker">{inv.ticker}</span>
+                      )}
                       {origCurr !== 'EUR' && <span className="inv-curr-badge">{origCurr}</span>}
                     </div>
                   </div>
@@ -958,6 +1401,34 @@ export default function InvestmentsTable({
           })}
         </div>
       )}
+
+      {/* ── Grups personalitzats ── */}
+      {groups.map(group => {
+        const groupInvs = investments.filter(i => (group.investmentIds || []).includes(i.id))
+        if (groupInvs.length === 0) return null
+        const gVal  = groupInvs.reduce((s, i) => s + calcVal(i), 0)
+        const gCost = groupInvs.reduce((s, i) => s + (i.totalCostEur || i.totalCost || 0), 0)
+        const gGain = gVal - gCost
+        const gPct  = gCost > 0 ? (gGain / gCost) * 100 : 0
+        return (
+          <InvGroup
+            key={group.id}
+            group={group}
+            investments={groupInvs}
+            totalVal={gVal}
+            gain={gGain}
+            gainPct={gPct}
+            isPos={gGain >= 0}
+            calcVal={calcVal}
+            selectMode={selectMode}
+            selected={selected}
+            setSelected={setSelected}
+            setDetailInv={setDetailInv}
+            onEdit={() => { setEditingGroup(group); setShowGroupModal(true) }}
+            onRemove={() => askConfirm({ name: group.name, onConfirm: () => onRemoveGroup(group.id) })}
+          />
+        )
+      })}
 
       {/* ── Posicions tancades (venudes) ── */}
       {closedInvestments.length > 0 && (
@@ -1010,7 +1481,9 @@ export default function InvestmentsTable({
                         <span className="inv-type-badge" style={{background:tc.bg, color:tc.color, opacity:0.6}}>
                           {TYPE_LABELS[inv.type]||inv.type}
                         </span>
-                        {inv.ticker && <span className="inv-ticker">{inv.ticker}</span>}
+                        {inv.ticker && inv.ticker !== inv.name && (
+                          <span className="inv-ticker">{inv.ticker}</span>
+                        )}
                       </div>
                     </div>
 
@@ -1063,12 +1536,15 @@ export default function InvestmentsTable({
               if (selected.size === 0) return
               const names = sorted.filter(i => selected.has(i.id)).map(i => i.name)
               const label = names.length === 1 ? names[0] : `${names.length} posicions`
+              const idsToDelete = [...selected]  // captura ara, no al closure
               askConfirm({
                 name: label,
                 onConfirm: async () => {
-                  for (const id of selected) await onRemoveInvestment(id)
-                  setSelected(new Set())
                   setSelectMode(false)
+                  setSelected(new Set())
+                  for (const id of idsToDelete) {
+                    try { await onRemoveInvestment(id) } catch {}
+                  }
                 }
               })
             }}>
@@ -1077,6 +1553,15 @@ export default function InvestmentsTable({
             </svg>
             Eliminar {selected.size > 0 ? `(${selected.size})` : ''}
           </button>
+          {selected.size >= 2 && (
+            <button className="inv-sel-all"
+              onClick={() => {
+                setEditingGroup(null)
+                setShowGroupModal(true)
+              }}>
+              Agrupar
+            </button>
+          )}
           <button className="inv-sel-cancel" onClick={() => { setSelectMode(false); setSelected(new Set()) }}>
             ✕
           </button>
@@ -1120,10 +1605,32 @@ export default function InvestmentsTable({
         />
       )}
 
+      {showGroupModal && (
+        <GroupModal
+          group={editingGroup}
+          investments={activeInvestments}
+          preselected={editingGroup ? null : (selectMode ? [...selected] : [])}
+          groups={groups}
+          calcVal={calcVal}
+          onSave={async ({ name, investmentIds }) => {
+            if (editingGroup) {
+              await onUpdateGroup(editingGroup.id, { name, investmentIds })
+            } else {
+              await onAddGroup({ name, investmentIds })
+            }
+            setShowGroupModal(false)
+            setSelectMode(false)
+            setSelected(new Set())
+          }}
+          onClose={() => setShowGroupModal(false)}
+        />
+      )}
+
       {/* ── Asset Detail Modal ── */}
       {detailInv && (() => {
-        // Sincronitza amb les dades fresques (txs, preus) de investments
-        const fresh = investments.find(i => i.id === detailInv.id) || detailInv
+        // Sincronitza amb les dades fresques — si la inversió ja no existeix, tanca
+        const fresh = investments.find(i => i.id === detailInv.id)
+        if (!fresh) { setTimeout(() => setDetailInv(null), 0); return null }
         return (
           <AssetDetailModal
             inv={fresh}
@@ -1134,6 +1641,7 @@ export default function InvestmentsTable({
             onOpenTx={type => openTx(fresh, type)}
             onRemoveTx={txId => onRemoveTransaction(fresh.id, txId)}
             onRemove={() => handleRemoveInv(fresh)}
+            onUpdateInv={onUpdateInvestment}
           />
         )
       })()}
