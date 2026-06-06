@@ -122,7 +122,7 @@ const styles = `
   .pr-yr-row:hover { background:var(--c-bg); }
   .pr-yr-row.last { background:var(--c-bg-purple); border-top:1px solid var(--c-border-purple); }
   .pr-yr-n { font-size:11px; font-weight:500; color:var(--c-text-muted); font-family:${FONTS.num}; }
-  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:rgba(255,255,255,0.55); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
+  .pr-yr-v { font-size:12px; font-family:${FONTS.num}; color:var(--c-text-primary); text-align:right; font-variant-numeric:tabular-nums; font-weight:400; }
   .pr-yr-v.g { color:${COLORS.neonGreen}; }
   .pr-yr-row.last .pr-yr-n { color:${COLORS.neonPurple}; font-weight:600; }
   .pr-yr-row.last .pr-yr-v { color:var(--c-text-primary); font-weight:500; }
@@ -132,7 +132,7 @@ const styles = `
   .pr-asset-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
   .pr-asset-row:last-of-type { border-bottom:none; }
   .pr-asset-av { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--c-text-secondary); flex-shrink:0; font-family:${FONTS.mono}; }
-  .pr-asset-name { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+  .pr-asset-name { font-size:12px; font-weight:500; color:var(--c-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
   .pr-asset-meta { font-size:10px; color:var(--c-text-muted); }
   .pr-asset-meta .historical { color:${COLORS.neonGreen}; opacity:0.7; }
   .pr-asset-meta .fallback { color:${COLORS.neonAmber}; opacity:0.7; }
@@ -140,7 +140,7 @@ const styles = `
   .pr-inp:focus { border-color:${COLORS.neonPurple}; }
   .pr-unit { font-size:10px; color:var(--c-text-muted); white-space:nowrap; flex-shrink:0; }
   .pr-total-row { display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-top:2px; border-top:1px solid var(--c-border); }
-  .pr-total-l { font-size:11px; color:rgba(255,255,255,0.40); font-weight:500; }
+  .pr-total-l { font-size:11px; color:var(--c-text-muted); font-weight:500; }
   .pr-total-v { font-size:18px; font-weight:300; color:var(--c-text-primary); font-family:${FONTS.num}; letter-spacing:-0.5px; font-variant-numeric:tabular-nums; }
 
   /* ── Rate override input ── */
