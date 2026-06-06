@@ -1,25 +1,13 @@
 // netlify/functions/yahoo-proxy.js
 
 export default async (request, context) => {
-  // Amb `config.path`, Netlify passa el path capturat a context.params[0]
-  // Ex: /yahoo/v8/finance/chart/AAPL?interval=1d -> params[0] = '/v8/finance/chart/AAPL'
-  const captured = context.params?.['0'] || ''
-  const url       = new URL(request.url)
-  const query     = url.search
+  const url = new URL(request.url)
 
-  // Si no tenim el path capturat, intentem llegir-lo del header com a fallback
-  let yahooPath = captured
-  if (!yahooPath) {
-    const forwarded = request.headers.get('x-forwarded-path') || ''
-    yahooPath = forwarded.replace(/^\/(yahoo2|yahoo-search|yahoo)/, '')
-  }
-
-  if (!yahooPath) {
-    return new Response(JSON.stringify({ error: 'Path no disponible' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  // context.params.path conté el path capturat pel wildcard `:path*`
+  // Ex: /yahoo/v8/finance/chart/AAPL -> path = 'v8/finance/chart/AAPL'
+  const captured = context.params?.path || ''
+  const yahooPath = '/' + captured
+  const query = url.search
 
   const fetchHeaders = {
     'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -63,7 +51,6 @@ export default async (request, context) => {
   })
 }
 
-// Captura el path sencer després del prefix com a paràmetre
 export const config = {
-  path: ['/yahoo/:0*', '/yahoo2/:0*', '/yahoo-search/:0*'],
+  path: ['/yahoo/:path*', '/yahoo2/:path*', '/yahoo-search/:path*'],
 }
