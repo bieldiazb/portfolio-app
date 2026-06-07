@@ -16,7 +16,7 @@ const styles = `
   /* ── KPIs ── */
   .mv-kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
   @media (min-width:500px) { .mv-kpis { grid-template-columns:repeat(4,1fr); } }
-  .mv-kpi { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:14px 16px; }
+  .mv-kpi { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; padding:14px 16px; transition:border-color 120ms; }
   .mv-kpi-l { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
   .mv-kpi-v { font-size:20px; font-weight:500; font-family:${FONTS.num}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
   .mv-kpi-v.g { color:${COLORS.neonGreen}; }
@@ -76,7 +76,7 @@ const styles = `
   .mv-type-dot.neu  { background:var(--c-elevated);  color:var(--c-text-secondary); }
 
   /* Avatar actiu */
-  .mv-av { width:34px; height:34px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; font-family:${FONTS.mono}; }
+  .mv-av { width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; font-family:${FONTS.mono}; }
 
   /* Info */
   .mv-info { flex:1; min-width:0; }
@@ -322,6 +322,14 @@ export default function MovementsPage({ investments=[], savings=[], cryptos=[], 
   return (
     <div className="mv">
       <style>{`${SHARED_STYLES}${styles}`}</style>
+
+      {/* Hero centrat */}
+      <div style={{textAlign:'center',padding:'28px 20px 20px'}}>
+        <p style={{fontSize:11,fontWeight:400,color:'var(--c-text-muted)',letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:8}}>Moviments</p>
+        <p style={{fontSize:44,fontWeight:600,fontFamily:'var(--font-mono)',fontVariantNumeric:'tabular-nums',letterSpacing:'-2px',lineHeight:1,color:'var(--c-text-primary)',marginBottom:8}}>{allMovements.length}</p>
+        <p style={{fontSize:12,color:'var(--c-text-muted)'}}>operació{allMovements.length!==1?'ns':''} registrada{allMovements.length!==1?'es':''}</p>
+      </div>
+      <div style={{height:'1px',background:'var(--c-border)'}}/>
 
       {/* ── KPIs ── */}
       <div className="mv-kpis">

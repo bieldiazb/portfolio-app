@@ -157,19 +157,17 @@ function getTypeMeta(type) {
 const styles = `
   .als { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
-  /* ── Hero ── */
-  .als-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .als-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-red) 0%,transparent 70%); pointer-events:none; }
-  .als-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
-  .als-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .als-hero-count { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
-  .als-hero-sub { font-size:12px; color:var(--c-text-muted); margin-top:4px; }
-  .als-hero-pills { display:flex; gap:6px; flex-wrap:wrap; }
-  .als-hero-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; }
-  .als-hero-pill.activa    { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  /* ── Hero centrat ── */
+  .als-hero { text-align:center; padding:28px 20px 20px; }
+  .als-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .als-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:6px; }
+  .als-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:12px; }
+  .als-hero-top { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .als-hero-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .als-hero-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
+  .als-hero-pill.activa    { color:var(--c-green); background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .als-hero-pill.disparada { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
-
-  .als-btn-add { display:flex; align-items:center; gap:5px; padding:8px 14px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:opacity 100ms; }
+  .als-btn-add { display:inline-flex; align-items:center; gap:5px; padding:8px 16px; background:var(--c-green); color:#000; border:none; border-radius:20px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; transition:opacity 100ms; }
   .als-btn-add:hover { opacity:0.85; }
 
   /* Banner notificacions */
@@ -183,7 +181,7 @@ const styles = `
   .als-banner.denied   { background:var(--c-bg-red); border:1px solid var(--c-border-red); color:var(--c-text-secondary); cursor:default; }
 
   /* Panel genèric */
-  .als-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .als-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; }
   .als-panel-hdr { padding:13px 16px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between; }
   .als-panel-title { font-size:10px; font-weight:600; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; }
   .als-panel-count { font-size:10px; font-family:${FONTS.num}; color:var(--c-text-muted); }
@@ -193,7 +191,7 @@ const styles = `
   .als-card { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-bottom:1px solid var(--c-border); transition:background 80ms; }
   .als-card:last-child { border-bottom:none; }
   .als-card:hover { background:var(--c-elevated); }
-  .als-card-ico { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .als-card-ico { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
   .als-card-body { flex:1; min-width:0; }
   .als-card-title { font-size:13px; font-weight:500; color:var(--c-text-secondary); margin-bottom:3px; }
   .als-card-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; margin-bottom:6px; }
@@ -215,14 +213,11 @@ const styles = `
   .als-empty-sub { font-size:11px; color:var(--c-text-disabled); }
 
   /* ── Modal formulari ── */
-  .als-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); animation:alsFadeIn 150ms ease; }
+  .als-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; backdrop-filter:blur(8px); animation:alsFadeIn 150ms ease; }
   @keyframes alsFadeIn { from{opacity:0} to{opacity:1} }
-  @media (min-width:640px) { .als-overlay { align-items:center; padding:16px; } }
-  .als-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.40); animation:alsSlide 220ms cubic-bezier(0.34,1.2,0.64,1); transition:background-color 220ms ease; }
-  @keyframes alsSlide { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @media (min-width:640px) { .als-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
-  .als-modal-drag { width:36px; height:4px; border-radius:2px; background:var(--c-border); margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .als-modal-drag { display:none; } }
+  .als-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:460px; padding:24px 22px 28px; max-height:90dvh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.35); animation:alsScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); transition:background-color 220ms ease; }
+  @keyframes alsScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .als-modal-drag { display:none; }
   .als-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .als-modal-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
   .als-modal-x { width:28px; height:28px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
@@ -340,23 +335,22 @@ export default function AlertsPage({ investments=[], cryptos=[], alerts, onAdd, 
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
       <div className="als-hero">
+        <p className="als-hero-label">Alertes de preu</p>
+        <p className="als-hero-count">{active.length}</p>
+        <p className="als-hero-sub">alerta{active.length!==1?'es':''} activa{active.length!==1?'es':''}</p>
         <div className="als-hero-top">
-          <div>
-            <p className="als-hero-label">Alertes de preu</p>
-            <p className="als-hero-count">{active.length}</p>
-            <p className="als-hero-sub">alerta{active.length!==1?'es':''} activa{active.length!==1?'es':''}</p>
+          <div className="als-hero-pills">
+            {active.length>0 && <span className="als-hero-pill activa">🟢 {active.length} activa{active.length!==1?'es':''}</span>}
+            {triggered.length>0 && <span className="als-hero-pill disparada">✓ {triggered.length} disparada{triggered.length!==1?'es':''}</span>}
+            {alerts.length===0 && <span className="als-hero-pill disparada">Cap alerta creada</span>}
           </div>
           <button className="als-btn-add" onClick={()=>setShowForm(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova alerta
           </button>
         </div>
-        <div className="als-hero-pills">
-          {active.length>0 && <span className="als-hero-pill activa">🟢 {active.length} activa{active.length!==1?'es':''}</span>}
-          {triggered.length>0 && <span className="als-hero-pill disparada">✓ {triggered.length} disparada{triggered.length!==1?'es':''}</span>}
-          {alerts.length===0 && <span className="als-hero-pill disparada">Cap alerta creada</span>}
-        </div>
       </div>
+      <div style={{height:'1px',background:'var(--c-border)'}}/>
 
       {notifPerm!=='unsupported' && (
         notifPerm==='granted' ? (

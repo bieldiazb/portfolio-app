@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 
-
-// Benchmarks globals sempre disponibles
 const GLOBAL_BENCHMARKS = [
   { id:'IWDA.AS', label:'MSCI World',     color: COLORS.neonCyan   },
   { id:'CSPX.AS', label:'S&P 500',        color: COLORS.neonAmber  },
@@ -39,59 +37,61 @@ async function fetchPrices(ticker, range, interval) {
   } catch { return [] }
 }
 
-// Normalitza array de preus a base 100
-function normalize(prices) {
-  if (!prices.length) return []
-  const base = prices[0].price
-  return prices.map(p => ({ date: p.date, value: +((p.price / base - 1) * 100).toFixed(2) }))
-}
-
 const styles = `
   .bm { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
-  /* Hero */
-  .bm-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .bm-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(0,212,255,0.06) 0%,transparent 70%); pointer-events:none; }
-  .bm-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .bm-hero-ret { font-size:36px; font-weight:600; letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:6px; }
-  .bm-hero-ret.pos { color:${COLORS.neonGreen}; }
-  .bm-hero-ret.neg { color:${COLORS.neonRed}; }
+  /* Hero centrat */
+  .bm-hero { text-align:center; padding:28px 20px 20px; }
+  .bm-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .bm-hero-ret { font-size:44px; font-weight:600; letter-spacing:-2px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:10px; }
+  .bm-hero-ret.pos { color:var(--c-green); }
+  .bm-hero-ret.neg { color:var(--c-red); }
   .bm-hero-ret.neu { color:var(--c-text-secondary); }
-  .bm-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:14px; }
-  .bm-hero-badges { display:flex; gap:8px; flex-wrap:wrap; }
-  .bm-hero-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; font-family:${FONTS.num}; padding:4px 10px; border-radius:20px; }
-  .bm-hero-badge.mine { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
-  .bm-hero-badge.bench { color:rgba(255,255,255,0.50); background:var(--c-border); border:1px solid var(--c-border); }
-  .bm-hero-badge.out { color:${COLORS.neonGreen}; }
-  .bm-hero-badge.und { color:${COLORS.neonRed}; }
+  .bm-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:12px; }
+  .bm-hero-badges { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .bm-hero-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
+  .bm-hero-badge.mine  { color:var(--c-green); background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .bm-hero-badge.bench { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
+  .bm-hero-badge.out   { color:var(--c-green); }
+  .bm-hero-badge.und   { color:var(--c-red); }
+
+  /* Divider + Stats */
+  .bm-divider { height:1px; background:var(--c-border); }
+  .bm-stats { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; }
+  .bm-stat { padding:14px 12px; text-align:center; border-right:1px solid var(--c-border); }
+  .bm-stat:last-child { border-right:none; }
+  .bm-stat-lbl { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
+  .bm-stat-v { font-size:14px; font-weight:600; font-family:${FONTS.mono}; font-variant-numeric:tabular-nums; letter-spacing:-0.3px; }
+  .bm-stat-v.pos { color:var(--c-green); }
+  .bm-stat-v.neg { color:var(--c-red); }
+  .bm-stat-v.neu { color:var(--c-text-primary); }
 
   /* Panel */
-  .bm-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:16px; }
+  .bm-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; padding:16px; }
   .bm-panel-hdr { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
-  .bm-panel-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
+  .bm-panel-title { font-size:11px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.12em; }
 
   /* Period tabs */
   .bm-periods { display:flex; gap:3px; }
-  .bm-period { padding:4px 10px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
-  .bm-period:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
-  .bm-period.on { background:rgba(0,255,136,0.10); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
+  .bm-period { padding:4px 10px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.mono}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
+  .bm-period:hover { color:var(--c-text-secondary); border-color:var(--c-border-hi); }
+  .bm-period.on { background:var(--c-bg-green); border-color:var(--c-border-green); color:var(--c-green); }
 
   /* Legend */
   .bm-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .bm-li { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--c-text-secondary); cursor:pointer; padding:2px 0; transition:color 100ms; }
-  .bm-li:hover { color:rgba(255,255,255,0.70); }
+  .bm-li { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--c-text-secondary); cursor:pointer; padding:2px 0; transition:opacity 100ms; }
+  .bm-li:hover { opacity:0.7; }
   .bm-li.hidden { opacity:0.35; text-decoration:line-through; }
   .bm-li-line { width:14px; height:2px; border-radius:1px; flex-shrink:0; }
   .bm-li-line.dash { background:repeating-linear-gradient(90deg,currentColor 0,currentColor 4px,transparent 4px,transparent 7px); }
 
-  /* Gràfic */
-  .bm-chart { position:relative; }
+  /* Loading */
   .bm-loading { display:flex; align-items:center; justify-content:center; gap:8px; padding:50px 0; font-size:12px; color:var(--c-text-muted); }
-  .bm-spin { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.08); border-top-color:${COLORS.neonGreen}; border-radius:50%; animation:bmspin .7s linear infinite; }
+  .bm-spin { width:12px; height:12px; border:1.5px solid var(--c-border); border-top-color:var(--c-green); border-radius:50%; animation:bmspin .7s linear infinite; }
   @keyframes bmspin { to { transform:rotate(360deg); } }
 
-  /* Taula de rendiments */
-  .bm-table { display:flex; flex-direction:column; gap:0; }
+  /* Table */
+  .bm-table { display:flex; flex-direction:column; }
   .bm-tr { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid var(--c-border); }
   .bm-tr:last-child { border-bottom:none; }
   .bm-tr-left { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
@@ -100,22 +100,23 @@ const styles = `
   .bm-tr-name.mine { color:var(--c-text-primary); font-weight:600; }
   .bm-tr-bar-wrap { width:80px; height:3px; background:var(--c-border); border-radius:2px; overflow:hidden; margin:0 12px; flex-shrink:0; }
   .bm-tr-bar { height:100%; border-radius:2px; transition:width 500ms cubic-bezier(0.4,0,0.2,1); }
-  .bm-tr-val { font-family:${FONTS.num}; font-size:13px; font-weight:500; min-width:60px; text-align:right; font-variant-numeric:tabular-nums; }
-  .bm-tr-val.pos { color:${COLORS.neonGreen}; }
-  .bm-tr-val.neg { color:${COLORS.neonRed}; }
+  .bm-tr-val { font-family:${FONTS.mono}; font-size:13px; font-weight:500; min-width:60px; text-align:right; font-variant-numeric:tabular-nums; }
+  .bm-tr-val.pos { color:var(--c-green); }
+  .bm-tr-val.neg { color:var(--c-red); }
   .bm-tr-val.neu { color:var(--c-text-muted); }
 
-  /* Accions pròpies */
+  /* Asset chips */
   .bm-assets-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
   @media (min-width:480px) { .bm-assets-grid { grid-template-columns:repeat(3,1fr); } }
   @media (min-width:700px) { .bm-assets-grid { grid-template-columns:repeat(4,1fr); } }
   .bm-asset-chip { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; border:1px solid var(--c-border); background:var(--c-elevated); cursor:pointer; transition:all 100ms; }
-  .bm-asset-chip:hover { border-color:rgba(0,255,136,0.25); background:rgba(0,255,136,0.04); }
-  .bm-asset-chip.on { border-color:rgba(0,255,136,0.30); background:rgba(0,255,136,0.08); }
-  .bm-asset-ticker { font-size:11px; font-weight:600; font-family:${FONTS.mono}; color:rgba(255,255,255,0.70); }
-  .bm-asset-ret { font-size:11px; font-family:${FONTS.num}; font-weight:500; font-variant-numeric:tabular-nums; }
-  .bm-asset-ret.pos { color:${COLORS.neonGreen}; }
-  .bm-asset-ret.neg { color:${COLORS.neonRed}; }
+  .bm-asset-chip:hover { border-color:var(--c-border-green); background:var(--c-bg-green); }
+  .bm-asset-chip.on { border-color:var(--c-border-green); background:var(--c-bg-green); }
+  .bm-asset-ticker { font-size:11px; font-weight:600; font-family:${FONTS.mono}; color:var(--c-text-secondary); }
+  .bm-asset-chip.on .bm-asset-ticker { color:var(--c-green); }
+  .bm-asset-ret { font-size:11px; font-family:${FONTS.mono}; font-weight:500; font-variant-numeric:tabular-nums; }
+  .bm-asset-ret.pos { color:var(--c-green); }
+  .bm-asset-ret.neg { color:var(--c-red); }
   .bm-asset-ret.load { color:var(--c-text-disabled); }
 
   .bm-note { padding:10px 12px; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; font-size:11px; color:var(--c-text-muted); line-height:1.6; }
@@ -130,7 +131,7 @@ const BmTooltip = ({ active, payload, label }) => {
       {sorted.filter(p=>p.value!=null).map((p,i)=>(
         <div key={i} style={{display:'flex',justifyContent:'space-between',gap:12,marginBottom:3}}>
           <span style={{fontSize:10,color:p.color,fontWeight:500}}>{p.name}</span>
-          <span style={{fontSize:12,fontFamily:FONTS.num,fontWeight:500,fontVariantNumeric:'tabular-nums',color:parseFloat(p.value)>=0?COLORS.neonGreen:COLORS.neonRed}}>
+          <span style={{fontSize:12,fontFamily:FONTS.mono,fontWeight:500,fontVariantNumeric:'tabular-nums',color:parseFloat(p.value)>=0?COLORS.neonGreen:COLORS.neonRed}}>
             {parseFloat(p.value)>=0?'+':''}{parseFloat(p.value).toFixed(1)}%
           </span>
         </div>
@@ -139,169 +140,173 @@ const BmTooltip = ({ active, payload, label }) => {
   )
 }
 
-// Genera colors per actius propis (cian degradat)
 const ASSET_COLORS = ['#00d4ff','#4fc3f7','#29b6f6','#0288d1','#01579b','#84ffff','#18ffff']
 
 export default function BenchmarkPage({ snapshots=[], investments=[] }) {
-  const [period, setPeriod]         = useState('1Y')
-  const [benchData, setBenchData]   = useState({})  // { ticker: [{date, price}] }
-  const [assetData, setAssetData]   = useState({})  // { ticker: [{date, price}] }
-  const [loading, setLoading]       = useState(false)
-  const [hiddenLines, setHiddenLines] = useState(new Set()) // línies amagades
-  const [selectedAssets, setSelectedAssets] = useState(new Set()) // actius mostrats al gràfic
+  const [period, setPeriod]           = useState('1Y')
+  const [benchData, setBenchData]     = useState({})
+  const [assetData, setAssetData]     = useState({})
+  const [loading, setLoading]         = useState(false)
+  const [hiddenLines, setHiddenLines] = useState(new Set())
+  const [selectedAssets, setSelectedAssets] = useState(new Set())
 
-  // Actius amb ticker vàlid per comparar
   const myAssets = useMemo(() => {
     return investments
       .filter(inv => inv.ticker && ['etf','stock'].includes(inv.type))
-      .map((inv, i) => ({
-        ticker: inv.ticker,
-        name:   inv.name,
-        color:  ASSET_COLORS[i % ASSET_COLORS.length],
-      }))
+      .map((inv, i) => ({ ticker:inv.ticker, name:inv.name, color:ASSET_COLORS[i%ASSET_COLORS.length] }))
   }, [investments])
 
   const per = PERIODS.find(p => p.id === period)
 
-  // Fetch benchmarks + actius seleccionats
   useEffect(() => {
     if (!per) return
     setLoading(true)
-
     const toFetch = [
-      ...GLOBAL_BENCHMARKS.map(b => ({ key: b.id,      ticker: b.id      })),
-      ...myAssets.map(a =>           ({ key: a.ticker,  ticker: a.ticker  })),
+      ...GLOBAL_BENCHMARKS.map(b => ({ key:b.id, ticker:b.id })),
+      ...myAssets.map(a => ({ key:a.ticker, ticker:a.ticker })),
     ]
-
     Promise.all(toFetch.map(async ({ key, ticker }) => ({
-      key,
-      prices: await fetchPrices(ticker, per.range, per.interval),
+      key, prices: await fetchPrices(ticker, per.range, per.interval),
     }))).then(results => {
-      const bMap = {}, aMap = {}
+      const bMap={}, aMap={}
       results.forEach(({ key, prices }) => {
-        if (GLOBAL_BENCHMARKS.find(b => b.id === key)) bMap[key] = prices
-        else aMap[key] = prices
+        if (GLOBAL_BENCHMARKS.find(b=>b.id===key)) bMap[key]=prices
+        else aMap[key]=prices
       })
-      setBenchData(bMap)
-      setAssetData(aMap)
-      setLoading(false)
+      setBenchData(bMap); setAssetData(aMap); setLoading(false)
     })
   }, [period, myAssets.length]) // eslint-disable-line
 
-  // Rendiment de la cartera des dels snapshots
   const portfolioReturn = useMemo(() => {
     if (snapshots.length < 2) return null
-    const sorted = [...snapshots].sort((a,b) => new Date(a.date)-new Date(b.date))
-    const cutoff = new Date()
-    const months = { '1M':1,'3M':3,'6M':6,'1Y':12,'3Y':36,'5Y':60 }[period] || 12
-    cutoff.setMonth(cutoff.getMonth() - months)
-    const inRange = sorted.filter(s => new Date(s.date) >= cutoff)
-    if (inRange.length < 2) return null
-    const start = inRange[0].total, end = inRange[inRange.length-1].total
-    return start > 0 ? +((end-start)/start*100).toFixed(2) : null
+    const sorted=[...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date))
+    const cutoff=new Date()
+    const months={'1M':1,'3M':3,'6M':6,'1Y':12,'3Y':36,'5Y':60}[period]||12
+    cutoff.setMonth(cutoff.getMonth()-months)
+    const inRange=sorted.filter(s=>new Date(s.date)>=cutoff)
+    if (inRange.length<2) return null
+    const start=inRange[0].total, end=inRange[inRange.length-1].total
+    return start>0?+((end-start)/start*100).toFixed(2):null
   }, [snapshots, period])
 
-  // Dades del gràfic: cartera + benchmarks + actius seleccionats
   const chartData = useMemo(() => {
-    const allDates = new Set()
-    const snapSorted = [...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date))
-    snapSorted.forEach(s => allDates.add(s.date))
-    Object.values(benchData).forEach(arr => arr.forEach(p => allDates.add(p.date)))
-    Object.values(assetData).forEach(arr => arr.forEach(p => allDates.add(p.date)))
-    const dates = [...allDates].sort()
-    if (dates.length < 2) return []
-
-    const basePortfolio = snapSorted[0]?.total
-    const baseBench = {}
-    GLOBAL_BENCHMARKS.forEach(bm => { baseBench[bm.id] = (benchData[bm.id]||[])[0]?.price })
-    const baseAsset = {}
-    myAssets.forEach(a => { baseAsset[a.ticker] = (assetData[a.ticker]||[])[0]?.price })
-
-    return dates.map(date => {
-      const row = { date: date.slice(5) }
-      // Cartera
-      const snap = [...snapSorted].reverse().find(s => s.date <= date)
-      if (snap && basePortfolio) row['Cartera'] = +((snap.total/basePortfolio-1)*100).toFixed(2)
-      // Benchmarks
-      GLOBAL_BENCHMARKS.forEach(bm => {
-        const p = [...(benchData[bm.id]||[])].reverse().find(x => x.date <= date)
-        if (p && baseBench[bm.id]) row[bm.label] = +((p.price/baseBench[bm.id]-1)*100).toFixed(2)
+    const allDates=new Set()
+    const snapSorted=[...snapshots].sort((a,b)=>new Date(a.date)-new Date(b.date))
+    snapSorted.forEach(s=>allDates.add(s.date))
+    Object.values(benchData).forEach(arr=>arr.forEach(p=>allDates.add(p.date)))
+    Object.values(assetData).forEach(arr=>arr.forEach(p=>allDates.add(p.date)))
+    const dates=[...allDates].sort()
+    if (dates.length<2) return []
+    const basePortfolio=snapSorted[0]?.total
+    const baseBench={}
+    GLOBAL_BENCHMARKS.forEach(bm=>{baseBench[bm.id]=(benchData[bm.id]||[])[0]?.price})
+    const baseAsset={}
+    myAssets.forEach(a=>{baseAsset[a.ticker]=(assetData[a.ticker]||[])[0]?.price})
+    return dates.map(date=>{
+      const row={date:date.slice(5)}
+      const snap=[...snapSorted].reverse().find(s=>s.date<=date)
+      if(snap&&basePortfolio)row['Cartera']=+((snap.total/basePortfolio-1)*100).toFixed(2)
+      GLOBAL_BENCHMARKS.forEach(bm=>{
+        const p=[...(benchData[bm.id]||[])].reverse().find(x=>x.date<=date)
+        if(p&&baseBench[bm.id])row[bm.label]=+((p.price/baseBench[bm.id]-1)*100).toFixed(2)
       })
-      // Actius propis seleccionats
-      myAssets.forEach(a => {
-        if (!selectedAssets.has(a.ticker)) return
-        const p = [...(assetData[a.ticker]||[])].reverse().find(x => x.date <= date)
-        if (p && baseAsset[a.ticker]) row[a.ticker] = +((p.price/baseAsset[a.ticker]-1)*100).toFixed(2)
+      myAssets.forEach(a=>{
+        if(!selectedAssets.has(a.ticker))return
+        const p=[...(assetData[a.ticker]||[])].reverse().find(x=>x.date<=date)
+        if(p&&baseAsset[a.ticker])row[a.ticker]=+((p.price/baseAsset[a.ticker]-1)*100).toFixed(2)
       })
       return row
     })
   }, [snapshots, benchData, assetData, selectedAssets, myAssets])
 
-  // Taula de rendiments
   const returns = useMemo(() => {
-    const list = []
-    if (portfolioReturn !== null)
-      list.push({ name:'La meva cartera', ret:portfolioReturn, color:COLORS.neonGreen, isMine:true })
-    GLOBAL_BENCHMARKS.forEach(bm => {
-      const prices = benchData[bm.id]||[]
-      if (prices.length < 2) return
-      const ret = +((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
-      list.push({ name:bm.label, ret, color:bm.color })
+    const list=[]
+    if(portfolioReturn!==null)list.push({name:'La meva cartera',ret:portfolioReturn,color:COLORS.neonGreen,isMine:true})
+    GLOBAL_BENCHMARKS.forEach(bm=>{
+      const prices=benchData[bm.id]||[]
+      if(prices.length<2)return
+      const ret=+((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
+      list.push({name:bm.label,ret,color:bm.color})
     })
-    myAssets.forEach(a => {
-      const prices = assetData[a.ticker]||[]
-      if (prices.length < 2) return
-      const ret = +((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
-      list.push({ name:a.ticker, ret, color:a.color, isAsset:true })
+    myAssets.forEach(a=>{
+      const prices=assetData[a.ticker]||[]
+      if(prices.length<2)return
+      const ret=+((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
+      list.push({name:a.ticker,ret,color:a.color,isAsset:true})
     })
-    return list.sort((a,b) => b.ret-a.ret)
+    return list.sort((a,b)=>b.ret-a.ret)
   }, [portfolioReturn, benchData, assetData, myAssets])
 
-  const maxRet   = Math.max(...returns.map(r=>Math.abs(r.ret)), 1)
-  const myRank   = returns.findIndex(r=>r.isMine)
-  const myRet    = returns.find(r=>r.isMine)?.ret
+  const maxRet  = Math.max(...returns.map(r=>Math.abs(r.ret)),1)
+  const myRank  = returns.findIndex(r=>r.isMine)
+  const myRet   = returns.find(r=>r.isMine)?.ret
 
-  const toggleLine   = (key) => setHiddenLines(s => { const n=new Set(s); n.has(key)?n.delete(key):n.add(key); return n })
-  const toggleAsset  = (ticker) => setSelectedAssets(s => { const n=new Set(s); n.has(ticker)?n.delete(ticker):n.add(ticker); return n })
+  const toggleLine  = key => setHiddenLines(s=>{const n=new Set(s);n.has(key)?n.delete(key):n.add(key);return n})
+  const toggleAsset = ticker => setSelectedAssets(s=>{const n=new Set(s);n.has(ticker)?n.delete(ticker):n.add(ticker);return n})
 
-  // Rendiment de cada actiu individual
   const assetReturns = useMemo(() => {
-    const m = {}
-    myAssets.forEach(a => {
-      const prices = assetData[a.ticker]||[]
-      if (prices.length < 2) m[a.ticker] = null
-      else m[a.ticker] = +((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
+    const m={}
+    myAssets.forEach(a=>{
+      const prices=assetData[a.ticker]||[]
+      m[a.ticker]=prices.length<2?null:+((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
     })
     return m
   }, [assetData, myAssets])
+
+  // Stats for row
+  const sp500Ret = (() => {
+    const p=benchData['CSPX.AS']||[]
+    if(p.length<2)return null
+    return +((p[p.length-1].price/p[0].price-1)*100).toFixed(1)
+  })()
+  const msciRet = (() => {
+    const p=benchData['IWDA.AS']||[]
+    if(p.length<2)return null
+    return +((p[p.length-1].price/p[0].price-1)*100).toFixed(1)
+  })()
 
   return (
     <div className="bm">
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
-      {/* Hero */}
       <div className="bm-hero">
         <p className="bm-hero-label">Benchmark · rendiment {period}</p>
         <p className={`bm-hero-ret ${myRet==null?'neu':myRet>=0?'pos':'neg'}`}>
-          {myRet!=null ? `${myRet>=0?'+':''}${myRet.toFixed(1)}%` : '—'}
+          {myRet!=null?`${myRet>=0?'+':''}${myRet.toFixed(1)}%`:'—'}
         </p>
         <p className="bm-hero-sub">
-          {myRet!=null ? 'Rendiment de la teva cartera en el període' : 'Acumula més historial per veure el rendiment'}
+          {myRet!=null?'Rendiment de la teva cartera en el període':'Acumula més historial per veure el rendiment'}
         </p>
         <div className="bm-hero-badges">
           <span className="bm-hero-badge mine">🏦 Cartera: {myRet!=null?`${myRet>=0?'+':''}${myRet.toFixed(1)}%`:'—'}</span>
-          {GLOBAL_BENCHMARKS.slice(0,2).map(bm => {
+          {GLOBAL_BENCHMARKS.slice(0,2).map(bm=>{
             const prices=benchData[bm.id]||[]
-            if (prices.length<2) return null
-            const ret=+((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(2)
-            return <span key={bm.id} className="bm-hero-badge bench">{bm.label}: {ret>=0?'+':''}{ret.toFixed(1)}%</span>
+            if(prices.length<2)return null
+            const ret=+((prices[prices.length-1].price/prices[0].price-1)*100).toFixed(1)
+            return <span key={bm.id} className="bm-hero-badge bench">{bm.label}: {ret>=0?'+':''}{ret}%</span>
           })}
-          {myRet!=null && myRank===0 && <span className="bm-hero-badge out">🏆 Baten el mercat</span>}
-          {myRet!=null && myRank>0 && <span className="bm-hero-badge und">📉 Per sota de {myRank} índex{myRank>1?'s':''}</span>}
+          {myRet!=null&&myRank===0&&<span className="bm-hero-badge out">🏆 Baten el mercat</span>}
+          {myRet!=null&&myRank>0&&<span className="bm-hero-badge und">📉 Per sota de {myRank} índex{myRank>1?'s':''}</span>}
         </div>
       </div>
 
-      {/* Gràfic de rendiment normalitzat */}
+      <div className="bm-divider"/>
+
+      <div className="bm-stats">
+        <div className="bm-stat">
+          <p className="bm-stat-lbl">La meva cartera</p>
+          <p className={`bm-stat-v ${myRet==null?'neu':myRet>=0?'pos':'neg'}`}>{myRet!=null?`${myRet>=0?'+':''}${myRet.toFixed(1)}%`:'—'}</p>
+        </div>
+        <div className="bm-stat">
+          <p className="bm-stat-lbl">MSCI World</p>
+          <p className={`bm-stat-v ${msciRet==null?'neu':msciRet>=0?'pos':'neg'}`}>{msciRet!=null?`${msciRet>=0?'+':''}${msciRet}%`:'—'}</p>
+        </div>
+        <div className="bm-stat">
+          <p className="bm-stat-lbl">S&P 500</p>
+          <p className={`bm-stat-v ${sp500Ret==null?'neu':sp500Ret>=0?'pos':'neg'}`}>{sp500Ret!=null?`${sp500Ret>=0?'+':''}${sp500Ret}%`:'—'}</p>
+        </div>
+      </div>
+
       <div className="bm-panel">
         <div className="bm-panel-hdr">
           <p className="bm-panel-title">Rendiment normalitzat (base 0%)</p>
@@ -312,22 +317,18 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
           </div>
         </div>
 
-        {/* Llegenda clicable */}
         <div className="bm-legend">
           <div className={`bm-li${hiddenLines.has('Cartera')?' hidden':''}`} onClick={()=>toggleLine('Cartera')}>
-            <div className="bm-li-line" style={{background:COLORS.neonGreen}}/>
-            La meva cartera
+            <div className="bm-li-line" style={{background:COLORS.neonGreen}}/>La meva cartera
           </div>
           {GLOBAL_BENCHMARKS.map(bm=>(
             <div key={bm.id} className={`bm-li${hiddenLines.has(bm.label)?' hidden':''}`} onClick={()=>toggleLine(bm.label)}>
-              <div className="bm-li-line dash" style={{color:bm.color}}/>
-              {bm.label}
+              <div className="bm-li-line dash" style={{color:bm.color}}/>{bm.label}
             </div>
           ))}
           {myAssets.filter(a=>selectedAssets.has(a.ticker)).map(a=>(
             <div key={a.ticker} className="bm-li" onClick={()=>toggleLine(a.ticker)}>
-              <div className="bm-li-line" style={{background:a.color}}/>
-              {a.ticker}
+              <div className="bm-li-line" style={{background:a.color}}/>{a.ticker}
             </div>
           ))}
         </div>
@@ -335,17 +336,17 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
         {loading ? (
           <div className="bm-loading"><div className="bm-spin"/> Carregant dades del mercat...</div>
         ) : (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{top:4,right:4,left:0,bottom:0}}>
-              <XAxis dataKey="date" tick={{fontSize:10,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} interval={Math.floor((chartData.length||1)/5)}/>
-              <YAxis tick={{fontSize:10,fontFamily:FONTS.num,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={38} tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
-              <ReferenceLine y={0} stroke="var(--c-border)" strokeWidth={1}/>
-              <Tooltip content={<BmTooltip/>} cursor={{stroke:'rgba(255,255,255,0.06)',strokeWidth:1}}/>
-              {!hiddenLines.has('Cartera') && snapshots.length>=2 && (
+              <XAxis dataKey="date" tick={{fontSize:10,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} interval={Math.floor((chartData.length||1)/5)}/>
+              <YAxis tick={{fontSize:10,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={38} tickFormatter={v=>`${v>0?'+':''}${v.toFixed(0)}%`}/>
+              <ReferenceLine y={0} stroke="var(--c-border-hi)" strokeWidth={1}/>
+              <Tooltip content={<BmTooltip/>} cursor={{stroke:'var(--c-border-hi)',strokeWidth:1}}/>
+              {!hiddenLines.has('Cartera')&&snapshots.length>=2&&(
                 <Line type="monotone" dataKey="Cartera" stroke={COLORS.neonGreen} strokeWidth={2} dot={false} connectNulls name="Cartera"/>
               )}
               {GLOBAL_BENCHMARKS.map(bm=>(
-                !hiddenLines.has(bm.label) && (
+                !hiddenLines.has(bm.label)&&(
                   <Line key={bm.id} type="monotone" dataKey={bm.label} stroke={bm.color} strokeWidth={1.2} dot={false} strokeDasharray="5 3" connectNulls name={bm.label}/>
                 )
               ))}
@@ -357,22 +358,19 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
         )}
       </div>
 
-      {/* Taula de rendiments comparativa */}
-      {!loading && returns.length > 0 && (
+      {!loading&&returns.length>0&&(
         <div className="bm-panel">
           <p className="bm-panel-title" style={{marginBottom:12}}>Rànquing de rendiment · {period}</p>
           <div className="bm-table">
-            {returns.map((r,i) => (
+            {returns.map((r,i)=>(
               <div key={i} className="bm-tr">
                 <div className="bm-tr-left">
-                  <div style={{fontSize:11,color:'var(--c-text-muted)',fontFamily:FONTS.num,fontWeight:500,width:18,flexShrink:0}}>#{i+1}</div>
+                  <div style={{fontSize:11,color:'var(--c-text-muted)',fontFamily:FONTS.mono,width:18,flexShrink:0}}>#{i+1}</div>
                   <div className="bm-tr-dot" style={{background:r.color}}/>
-                  <span className={`bm-tr-name${r.isMine?' mine':''}`}>
-                    {r.name}{r.isMine?' 🏦':''}
-                  </span>
+                  <span className={`bm-tr-name${r.isMine?' mine':''}`}>{r.name}{r.isMine?' 🏦':''}</span>
                 </div>
                 <div className="bm-tr-bar-wrap">
-                  <div className="bm-tr-bar" style={{width:`${Math.abs(r.ret)/maxRet*100}%`, background:r.color}}/>
+                  <div className="bm-tr-bar" style={{width:`${Math.abs(r.ret)/maxRet*100}%`,background:r.color}}/>
                 </div>
                 <span className={`bm-tr-val ${r.ret>0?'pos':r.ret<0?'neg':'neu'}`}>
                   {r.ret>=0?'+':''}{r.ret.toFixed(1)}%
@@ -383,18 +381,16 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
         </div>
       )}
 
-      {/* Actius propis — afegir al gràfic */}
-      {myAssets.length > 0 && (
+      {myAssets.length>0&&(
         <div className="bm-panel">
           <p className="bm-panel-title" style={{marginBottom:10}}>Compara els teus actius individualment</p>
           <p style={{fontSize:11,color:'var(--c-text-muted)',marginBottom:12}}>Clica un actiu per afegir-lo al gràfic</p>
           <div className="bm-assets-grid">
-            {myAssets.map(a => {
-              const ret = assetReturns[a.ticker]
-              const isOn = selectedAssets.has(a.ticker)
+            {myAssets.map(a=>{
+              const ret=assetReturns[a.ticker]; const isOn=selectedAssets.has(a.ticker)
               return (
                 <button key={a.ticker} className={`bm-asset-chip${isOn?' on':''}`} onClick={()=>toggleAsset(a.ticker)}>
-                  <span className="bm-asset-ticker" style={{color:isOn?a.color:undefined}}>{a.ticker}</span>
+                  <span className="bm-asset-ticker">{a.ticker}</span>
                   <span className={`bm-asset-ret ${ret==null?'load':ret>=0?'pos':'neg'}`}>
                     {ret==null?'...':`${ret>=0?'+':''}${ret.toFixed(1)}%`}
                   </span>
@@ -405,9 +401,9 @@ export default function BenchmarkPage({ snapshots=[], investments=[] }) {
         </div>
       )}
 
-      {snapshots.length < 5 && (
+      {snapshots.length<5&&(
         <div className="bm-note">
-          💡 El rendiment de la cartera es calcularà quan s'acumulin més snapshots diaris. Mentrestant pots comparar els teus actius individuals amb els índexs de mercat.
+          💡 El rendiment de la cartera es calcularà quan s'acumulin més snapshots diaris.
         </div>
       )}
     </div>

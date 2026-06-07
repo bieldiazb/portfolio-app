@@ -40,22 +40,21 @@ const SimTooltip = ({ active, payload, label }) => {
 const styles = `
   .gl { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
-  /* ── Hero ── */
-  .gl-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .gl-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-purple) 0%,transparent 70%); pointer-events:none; }
-  .gl-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
-  .gl-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .gl-hero-count { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; line-height:1; }
-  .gl-hero-sub { font-size:12px; color:var(--c-text-secondary); margin-top:4px; }
-  .gl-btn-add { display:flex; align-items:center; gap:5px; padding:8px 14px; background:${COLORS.neonGreen}; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:opacity 100ms; }
+  /* ── Hero centrat ── */
+  .gl-hero { text-align:center; padding:28px 20px 20px; }
+  .gl-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .gl-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:6px; }
+  .gl-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:12px; }
+  .gl-hero-top { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .gl-btn-add { display:inline-flex; align-items:center; gap:5px; padding:8px 16px; background:var(--c-green); color:#000; border:none; border-radius:20px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; transition:opacity 100ms; }
   .gl-btn-add:hover { opacity:0.85; }
-  .gl-hero-pills { display:flex; gap:6px; flex-wrap:wrap; }
+  .gl-hero-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
   .gl-hero-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
-  .gl-hero-pill.done { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
+  .gl-hero-pill.done { color:var(--c-green); background:var(--c-bg-green); border:1px solid var(--c-border-green); }
   .gl-hero-pill.pend { color:var(--c-text-secondary); background:var(--c-elevated); border:1px solid var(--c-border); }
 
   /* ── Card objectiu ── */
-  .gl-card { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; transition:border-color 150ms; }
+  .gl-card { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; transition:border-color 150ms; cursor:default; }
   .gl-card:hover { border-color:var(--c-border-mid); }
 
   .gl-card-hdr { display:flex; align-items:center; gap:12px; padding:16px 16px 0; }
@@ -112,13 +111,11 @@ const styles = `
   .gl-empty-sub  { font-size:12px; color:var(--c-text-disabled); line-height:1.65; }
 
   /* ── Modal ── */
-  .gl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; backdrop-filter:blur(6px); }
-  @media (min-width:640px) { .gl-overlay { align-items:center; padding:16px; } }
-  .gl-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:16px 16px 0 0; width:100%; padding:20px 16px 100px; max-height:92dvh; overflow-y:auto; box-shadow:0 -20px 60px rgba(0,0,0,0.40); animation:glSlide 220ms cubic-bezier(0.34,1.2,0.64,1); transition:background-color 220ms ease; }
-  @keyframes glSlide { from { transform:translateY(24px); opacity:0 } to { transform:translateY(0); opacity:1 } }
-  @media (min-width:640px) { .gl-modal { border-radius:14px; max-width:460px; padding:24px 22px 28px; } }
-  .gl-modal-drag { width:36px; height:4px; border-radius:2px; background:var(--c-border); margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .gl-modal-drag { display:none; } }
+  .gl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; backdrop-filter:blur(8px); animation:glFadeIn 150ms ease; }
+  @keyframes glFadeIn { from{opacity:0} to{opacity:1} }
+  .gl-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:460px; padding:24px 22px 28px; max-height:90dvh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.35); animation:glScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); transition:background-color 220ms ease; }
+  @keyframes glScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .gl-modal-drag { display:none; }
   .gl-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .gl-modal-title { font-size:16px; font-weight:600; color:var(--c-text-primary); letter-spacing:-0.3px; }
   .gl-modal-x { width:28px; height:28px; border-radius:8px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
@@ -462,23 +459,22 @@ export default function GoalsPage({ goals, addGoal, removeGoal, currentTotal=0, 
       <ConfirmDialog state={confirmState} onClose={closeConfirm}/>
 
       <div className="gl-hero">
+        <p className="gl-hero-label">Objectius financers</p>
+        <p className="gl-hero-count">{goals.length}</p>
+        <p className="gl-hero-sub">objectiu{goals.length!==1?'s':''} definit{goals.length!==1?'s':''}</p>
         <div className="gl-hero-top">
-          <div>
-            <p className="gl-hero-label">Objectius financers</p>
-            <p className="gl-hero-count">{goals.length}</p>
-            <p className="gl-hero-sub">objectiu{goals.length!==1?'s':''} definit{goals.length!==1?'s':''}</p>
+          <div className="gl-hero-pills">
+            {doneCount>0 && <span className="gl-hero-pill done">🏆 {doneCount} assolit{doneCount!==1?'s':''}</span>}
+            {goals.length-doneCount>0 && <span className="gl-hero-pill pend">⏳ {goals.length-doneCount} en progrés</span>}
+            {goals.length===0 && <span className="gl-hero-pill pend">Crea el primer objectiu →</span>}
           </div>
           <button className="gl-btn-add" onClick={()=>setShowModal(true)}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nou objectiu
           </button>
         </div>
-        <div className="gl-hero-pills">
-          {doneCount>0 && <span className="gl-hero-pill done">🏆 {doneCount} assolit{doneCount!==1?'s':''}</span>}
-          {goals.length-doneCount>0 && <span className="gl-hero-pill pend">⏳ {goals.length-doneCount} en progrés</span>}
-          {goals.length===0 && <span className="gl-hero-pill pend">Crea el primer objectiu →</span>}
-        </div>
       </div>
+      <div style={{height:'1px',background:'var(--c-border)'}}/>
 
       {goals.length===0 ? (
         <div className="gl-empty">

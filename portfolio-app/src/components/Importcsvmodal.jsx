@@ -23,21 +23,19 @@ const styles = `
   /* ── Overlay ── */
   .im-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.85);
-    display:flex; align-items:flex-end; justify-content:center;
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
     z-index:60;
-    backdrop-filter:blur(6px);
+    backdrop-filter:blur(8px);
     animation:imFade 150ms ease;
   }
   @keyframes imFade { from{opacity:0} to{opacity:1} }
-  @media (min-width:680px) {
-    .im-overlay { align-items:center; padding:16px; }
-  }
 
   /* ── Modal ── */
   .im-modal {
     background:#131313;
     border:1px solid rgba(255,255,255,0.09);
-    border-radius:16px 16px 0 0;
+    border-radius:14px;
     width:100%; max-width:640px;
     max-height:92dvh; overflow-y:auto;
     font-family:${FONTS.sans};
@@ -45,9 +43,7 @@ const styles = `
     animation:imSlide 220ms cubic-bezier(0.34,1.2,0.64,1);
   }
   @keyframes imSlide { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @media (min-width:680px) {
-    .im-modal { border-radius:14px; }
-  }
+
 
   .im-drag { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.10); margin:14px auto 0; display:block; }
   @media (min-width:680px) { .im-drag { display:none; } }

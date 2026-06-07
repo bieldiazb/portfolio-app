@@ -73,9 +73,9 @@ const styles = `
     bottom: calc(64px + 12px + 12px + env(safe-area-inset-bottom));
     right: 16px;
     width: 50px; height: 50px; border-radius: 50%;
-    background: ${COLORS.neonPurple}; border: none; cursor: pointer;
+    background: var(--c-green); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 20px rgba(123,97,255,0.50);
+    box-shadow: 0 4px 20px rgba(0,255,136,0.30);
     z-index: 45;
     transition: transform 150ms, box-shadow 150ms, background 150ms, opacity 150ms;
     -webkit-tap-highlight-color: transparent;
@@ -87,13 +87,13 @@ const styles = `
     .ai-fab { bottom: 28px; right: 28px; width: 52px; height: 52px; }
     .ai-fab.open { opacity: 1; pointer-events: auto; }
   }
-  .ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(123,97,255,0.65); }
+  .ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,255,136,0.45); }
   .ai-fab:active { transform: scale(0.95); }
-  .ai-fab.open { background: var(--c-elevated); border: 1px solid var(--c-border-mid); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .ai-fab.open { background: var(--c-elevated); border: 1px solid var(--c-border-hi); box-shadow: none; }
 
   .ai-fab-pulse {
     position: absolute; inset: -4px; border-radius: 50%;
-    background: ${COLORS.neonPurple};
+    background: var(--c-green);
     animation: aiFabPulse 2.5s ease-out infinite; opacity: 0; z-index: -1;
   }
   @keyframes aiFabPulse {
@@ -111,11 +111,9 @@ const styles = `
     border: 1px solid var(--c-border);
     border-radius: 16px;
     display: flex; flex-direction: column;
-    z-index: 44;
-    overflow: hidden;
+    z-index: 44; overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.30);
     animation: aiPanelIn 200ms cubic-bezier(0.34,1.2,0.64,1);
-    transition: background-color 220ms ease;
   }
   @media (min-width: 1024px) {
     .ai-panel {
@@ -134,64 +132,61 @@ const styles = `
   /* ── Header ── */
   .ai-hdr {
     display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--c-border);
     flex-shrink: 0;
     background: var(--c-bg);
-    transition: background-color 220ms ease;
   }
   .ai-hdr-icon {
     width: 30px; height: 30px; border-radius: 50%;
-    background: var(--c-bg-purple); border: 1px solid var(--c-border-purple);
+    background: var(--c-bg-green); border: 1px solid var(--c-border-green);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .ai-hdr-info { flex: 1; min-width: 0; }
-  .ai-hdr-title { font-family: ${FONTS.sans}; font-size: 14px; font-weight: 600; color: var(--c-text-primary); }
-  .ai-hdr-sub   { font-family: ${FONTS.sans}; font-size: 10px; color: var(--c-text-muted); margin-top: 1px; }
+  .ai-hdr-title { font-family: ${FONTS.sans}; font-size: 13px; font-weight: 600; color: var(--c-text-primary); }
+  .ai-hdr-sub   { font-family: ${FONTS.mono}; font-size: 10px; color: var(--c-text-muted); margin-top: 1px; }
   .ai-hdr-close {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: var(--c-elevated);
-    border: 1px solid var(--c-border);
-    color: var(--c-text-secondary); font-size: 16px;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--c-elevated); border: 1px solid var(--c-border);
+    color: var(--c-text-secondary); font-size: 15px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 100ms; flex-shrink: 0;
-    margin-left: 4px;
   }
-  .ai-hdr-close:hover { background: var(--c-bg-red); border-color: var(--c-border-red); color: ${COLORS.neonRed}; }
+  .ai-hdr-close:hover { background: var(--c-bg-red); border-color: var(--c-border-red); color: var(--c-red); }
 
   /* ── Missatges ── */
   .ai-msgs {
     flex: 1; overflow-y: auto; padding: 14px 14px 8px;
-    display: flex; flex-direction: column; gap: 14px;
+    display: flex; flex-direction: column; gap: 12px;
   }
   .ai-msgs::-webkit-scrollbar { width: 3px; }
   .ai-msgs::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
 
-  .ai-msg { display: flex; gap: 9px; animation: aiMsgIn 200ms ease; }
+  .ai-msg { display: flex; gap: 8px; animation: aiMsgIn 200ms ease; }
   @keyframes aiMsgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .ai-msg-av {
-    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700; font-family: ${FONTS.mono};
+    font-size: 9px; font-weight: 700; font-family: ${FONTS.mono};
   }
-  .ai-msg-av.user { background: var(--c-bg-purple); color: var(--c-purple); }
-  .ai-msg-av.ai   { background: var(--c-bg-green);  color: var(--c-green);  }
+  .ai-msg-av.user { background: var(--c-bg-cyan);  color: var(--c-cyan);  }
+  .ai-msg-av.ai   { background: var(--c-bg-green); color: var(--c-green); }
 
   .ai-msg-body { flex: 1; min-width: 0; }
   .ai-msg-name {
     font-size: 9px; font-weight: 600; color: var(--c-text-muted);
-    margin-bottom: 5px; font-family: ${FONTS.sans}; text-transform: uppercase; letter-spacing: 0.10em;
+    margin-bottom: 4px; font-family: ${FONTS.sans}; text-transform: uppercase; letter-spacing: 0.10em;
   }
   .ai-bubble {
     font-family: ${FONTS.sans}; font-size: 13px; line-height: 1.65;
-    color: var(--c-text-secondary); padding: 11px 13px;
+    color: var(--c-text-secondary); padding: 10px 13px;
     border-radius: 10px; background: var(--c-elevated);
     border: 1px solid var(--c-border);
   }
   .ai-bubble.user {
-    background: var(--c-bg-purple);
-    border-color: var(--c-border-purple);
+    background: var(--c-bg-cyan);
+    border-color: var(--c-border-cyan);
     color: var(--c-text-primary);
   }
   .ai-bubble strong { color: var(--c-text-primary); font-weight: 600; }
@@ -200,7 +195,7 @@ const styles = `
   /* Typing dots */
   .ai-typing { display: flex; align-items: center; gap: 4px; padding: 4px 2px; }
   .ai-typing span {
-    width: 5px; height: 5px; border-radius: 50%; background: var(--c-purple);
+    width: 5px; height: 5px; border-radius: 50%; background: var(--c-green);
     animation: aiDot 1.2s ease-in-out infinite;
   }
   .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -219,7 +214,7 @@ const styles = `
     padding: 5px 10px; cursor: pointer; transition: all 100ms;
     -webkit-tap-highlight-color: transparent;
   }
-  .ai-quick-chip:hover { border-color: var(--c-border-purple); color: var(--c-purple); background: var(--c-bg-purple); }
+  .ai-quick-chip:hover { border-color: var(--c-border-green); color: var(--c-green); background: var(--c-bg-green); }
   .ai-quick-chip:active { transform: scale(0.97); }
 
   /* ── Input row ── */
@@ -227,9 +222,7 @@ const styles = `
     display: flex; align-items: flex-end; gap: 8px;
     padding: 10px 14px 14px;
     border-top: 1px solid var(--c-border);
-    flex-shrink: 0;
-    background: var(--c-bg);
-    transition: background-color 220ms ease;
+    flex-shrink: 0; background: var(--c-bg);
   }
   .ai-input {
     flex: 1; background: var(--c-elevated);
@@ -238,15 +231,14 @@ const styles = `
     font-family: ${FONTS.sans}; font-size: 14px; color: var(--c-text-primary);
     outline: none; resize: none;
     min-height: 42px; max-height: 100px;
-    line-height: 1.45; transition: border-color 120ms;
-    overflow-y: auto;
+    line-height: 1.45; transition: border-color 120ms; overflow-y: auto;
   }
-  .ai-input:focus { border-color: var(--c-border-purple); }
+  .ai-input:focus { border-color: var(--c-border-green); }
   .ai-input::placeholder { color: var(--c-text-disabled); }
 
   .ai-send {
     width: 42px; height: 42px; border-radius: 12px; border: none;
-    background: ${COLORS.neonPurple}; color: #fff;
+    background: var(--c-green); color: #000;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 100ms; flex-shrink: 0;
   }
@@ -254,9 +246,9 @@ const styles = `
   .ai-send:active { transform: scale(0.97); }
   .ai-send:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
 
-  .ai-error { font-size: 11px; color: ${COLORS.neonRed}; background: var(--c-bg-red); border: 1px solid var(--c-border-red); border-radius: 8px; padding: 8px 12px; margin: 0 14px 8px; }
+  .ai-error { font-size: 11px; color: var(--c-red); background: var(--c-bg-red); border: 1px solid var(--c-border-red); border-radius: 8px; padding: 8px 12px; margin: 0 14px 8px; }
 
-  /* Welcome screen */
+  /* Welcome */
   .ai-welcome { text-align: center; padding: 28px 20px; }
   .ai-welcome-icon { font-size: 36px; margin-bottom: 12px; }
   .ai-welcome-title { font-size: 15px; font-weight: 600; color: var(--c-text-primary); margin-bottom: 8px; font-family: ${FONTS.sans}; }
@@ -339,7 +331,7 @@ export default function AIAnalyst({ investments=[], savings=[], cryptos=[], comm
         <div className="ai-panel">
           <div className="ai-hdr">
             <div className="ai-hdr-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>

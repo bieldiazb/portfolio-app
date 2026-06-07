@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 
-
 async function fetchNews(ticker = null) {
   try {
     const url = ticker
@@ -73,70 +72,62 @@ const PERIODS = [
 const styles = `
   .nw { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:12px; }
 
-  /* ── Hero ── */
-  .nw-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
-  .nw-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(0,212,255,0.06) 0%,transparent 70%); pointer-events:none; }
-  .nw-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .nw-hero-title { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; margin-bottom:4px; }
+  /* ── Hero centrat ── */
+  .nw-hero { text-align:center; padding:28px 20px 20px; }
+  .nw-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .nw-hero-title { font-size:32px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.sans}; line-height:1.1; letter-spacing:-0.5px; margin-bottom:6px; }
   .nw-hero-sub { font-size:12px; color:var(--c-text-muted); }
+  .nw-divider { height:1px; background:var(--c-border); }
 
-  /* Tabs d'actiu — scrollable horitzontal */
+  /* Asset tabs */
   .nw-asset-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
   .nw-asset-scroll::-webkit-scrollbar { display:none; }
   .nw-asset-tabs { display:flex; gap:5px; width:max-content; }
-  .nw-asset-tab { padding:6px 14px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.sans}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
-  .nw-asset-tab:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
-  .nw-asset-tab.on { background:rgba(0,212,255,0.10); border-color:rgba(0,212,255,0.25); color:${COLORS.neonCyan}; }
+  .nw-asset-tab { padding:6px 14px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.sans}; font-size:12px; font-weight:500; color:var(--c-text-secondary); cursor:pointer; transition:all 100ms; white-space:nowrap; }
+  .nw-asset-tab:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
+  .nw-asset-tab.on { background:var(--c-bg-cyan); border-color:var(--c-border-cyan); color:var(--c-cyan); }
 
-  /* Controls period + refresh */
+  /* Controls */
   .nw-controls { display:flex; align-items:center; gap:6px; }
   .nw-periods { display:flex; gap:3px; }
-  .nw-period { padding:5px 11px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.num}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
-  .nw-period:hover { color:var(--c-text-secondary); border-color:var(--c-text-disabled); }
-  .nw-period.on { background:rgba(0,255,136,0.09); border-color:rgba(0,255,136,0.25); color:${COLORS.neonGreen}; }
+  .nw-period { padding:5px 11px; border-radius:20px; border:1px solid var(--c-border); background:transparent; font-family:${FONTS.mono}; font-size:11px; font-weight:500; color:var(--c-text-muted); cursor:pointer; transition:all 100ms; }
+  .nw-period:hover { border-color:var(--c-border-hi); color:var(--c-text-secondary); }
+  .nw-period.on { background:var(--c-bg-green); border-color:var(--c-border-green); color:var(--c-green); }
   .nw-refresh { width:30px; height:30px; background:transparent; border:1px solid var(--c-border); border-radius:8px; color:var(--c-text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; margin-left:auto; }
-  .nw-refresh:hover { border-color:var(--c-text-disabled); color:var(--c-text-secondary); }
-  .nw-count { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.num}; }
+  .nw-refresh:hover { border-color:var(--c-border-hi); color:var(--c-text-secondary); }
   .nw-spin-anim { animation:nwspin .7s linear infinite; }
   @keyframes nwspin { to { transform:rotate(360deg); } }
 
-  /* Panel notícies */
-  .nw-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  /* Panel */
+  .nw-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; }
 
-  /* Notícia */
-  .nw-item { display:flex; gap:12px; padding:14px 16px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; text-decoration:none; -webkit-tap-highlight-color:transparent; }
+  /* News item */
+  .nw-item { display:flex; gap:12px; padding:14px 16px; border-bottom:1px solid var(--c-border); cursor:pointer; transition:background 80ms; text-decoration:none; }
   .nw-item:last-child { border-bottom:none; }
   .nw-item:hover { background:var(--c-elevated); }
-  .nw-item:active { background:var(--c-elevated); }
 
   /* Thumbnail */
   .nw-thumb { width:72px; height:52px; border-radius:8px; object-fit:cover; flex-shrink:0; background:var(--c-elevated); }
   .nw-thumb-ph { width:72px; height:52px; border-radius:8px; flex-shrink:0; background:var(--c-elevated); border:1px solid var(--c-border); display:flex; align-items:center; justify-content:center; }
-
   .nw-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; justify-content:center; }
   .nw-headline { font-size:13px; font-weight:500; color:var(--c-text-primary); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .nw-summary  { font-size:11px; color:var(--c-text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
   .nw-meta { display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap; }
   .nw-source   { font-size:10px; font-weight:600; color:var(--c-text-muted); }
-  .nw-dot      { width:2px; height:2px; border-radius:50%; background:rgba(255,255,255,0.15); flex-shrink:0; }
-  .nw-time     { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.num}; }
-  .nw-ticker-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:10px; background:rgba(0,212,255,0.10); color:${COLORS.neonCyan}; }
+  .nw-dot      { width:2px; height:2px; border-radius:50%; background:var(--c-border-hi); flex-shrink:0; }
+  .nw-time     { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
+  .nw-ticker-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:10px; background:var(--c-bg-cyan); color:var(--c-cyan); }
 
-  /* Loading / empty */
+  /* States */
   .nw-loading { display:flex; align-items:center; gap:8px; padding:48px 16px; font-size:12px; color:var(--c-text-muted); justify-content:center; }
-  .nw-spin { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.08); border-top-color:${COLORS.neonGreen}; border-radius:50%; animation:nwspin .7s linear infinite; }
+  .nw-spin { width:12px; height:12px; border:1.5px solid var(--c-border); border-top-color:var(--c-green); border-radius:50%; animation:nwspin .7s linear infinite; }
   .nw-empty { padding:48px 16px; text-align:center; }
   .nw-empty-main { font-size:13px; color:var(--c-text-muted); font-weight:500; margin-bottom:5px; }
-  .nw-empty-sub { font-size:11px; color:rgba(255,255,255,0.16); }
-
-  @media (max-width:500px) {
-    .nw-thumb, .nw-thumb-ph { width:60px; height:46px; }
-    .nw-headline { font-size:12px; }
-  }
+  .nw-empty-sub { font-size:11px; color:var(--c-text-disabled); }
 `
 
 const NewsIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-border-hi)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
     <path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/>
   </svg>
@@ -201,18 +192,18 @@ export default function NewsPage({ investments=[], cryptos=[], commodities=[] })
     <div className="nw">
       <style>{`${SHARED_STYLES}${styles}`}</style>
 
-      {/* Hero */}
       <div className="nw-hero">
         <p className="nw-hero-label">Notícies financeres</p>
         <p className="nw-hero-title">
-          {activeAsset?.ticker ? `${activeAsset.name||activeAsset.ticker}` : 'Mercat global'}
+          {activeAsset?.ticker ? (activeAsset.name||activeAsset.ticker) : 'Mercat global'}
         </p>
         <p className="nw-hero-sub">
           {filtered.length} notícia{filtered.length!==1?'es':''}{lastFetch?` · ${timeAgo(lastFetch.getTime()/1000)}`:''}
         </p>
       </div>
 
-      {/* Selector d'actiu (scrollable) */}
+      <div className="nw-divider"/>
+
       <div className="nw-asset-scroll">
         <div className="nw-asset-tabs">
           {assets.map(a=>(
@@ -223,7 +214,6 @@ export default function NewsPage({ investments=[], cryptos=[], commodities=[] })
         </div>
       </div>
 
-      {/* Controls */}
       <div className="nw-controls">
         <div className="nw-periods">
           {PERIODS.map(p=>(
@@ -238,7 +228,6 @@ export default function NewsPage({ investments=[], cryptos=[], commodities=[] })
         </button>
       </div>
 
-      {/* Llista */}
       <div className="nw-panel">
         {loading ? (
           <div className="nw-loading"><div className="nw-spin"/> Carregant notícies...</div>

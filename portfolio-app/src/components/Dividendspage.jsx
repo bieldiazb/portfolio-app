@@ -46,8 +46,9 @@ const styles = `
     background:var(--c-surface); border:1px solid var(--c-border);
     border-radius:12px; padding:16px 18px;
     display:flex; flex-direction:column; gap:6px;
-    position:relative; overflow:hidden;
+    position:relative; overflow:hidden; transition:border-color 120ms;
   }
+  .dv-kpi:hover { border-color:var(--c-border-hi); }
   .dv-kpi-icon {
     width:32px; height:32px; border-radius:8px;
     display:flex; align-items:center; justify-content:center;
@@ -78,7 +79,7 @@ const styles = `
   .dv-col-side { display:flex; flex-direction:column; gap:14px; }
 
   /* ── Panel ── */
-  .dv-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; padding:18px; }
+  .dv-panel { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; padding:18px; transition:border-color 120ms; }
   .dv-panel-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
   .dv-panel-title { font-size:11px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
 
@@ -126,7 +127,7 @@ const styles = `
     border-bottom:1px solid var(--c-border);
   }
   .dv-asset-av {
-    width:32px; height:32px; border-radius:8px;
+    width:32px; height:32px; border-radius:50%;
     background:var(--c-bg-green); color:${COLORS.neonGreen};
     display:flex; align-items:center; justify-content:center;
     font-size:11px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono};
@@ -240,12 +241,11 @@ const styles = `
   @keyframes dvspin { to { transform:rotate(360deg); } }
 
   /* ── Modal ── */
-  .dv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
-  @media (min-width:640px) { .dv-overlay { align-items:center; padding:16px; } }
-  .dv-modal { background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px 12px 0 0; width:100%; padding:20px 16px 100px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
-  @media (min-width:640px) { .dv-modal { border-radius:10px; max-width:400px; padding:24px 20px; } }
-  .dv-modal-drag { width:36px; height:4px; border-radius:2px; background:var(--c-border); margin:0 auto 16px; display:block; }
-  @media (min-width:640px) { .dv-modal-drag { display:none; } }
+  .dv-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; backdrop-filter:blur(8px); animation:dvFadeIn 150ms ease; }
+  @keyframes dvFadeIn { from{opacity:0} to{opacity:1} }
+  .dv-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:400px; padding:24px 20px; font-family:${FONTS.sans}; max-height:90dvh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.35); animation:dvScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); }
+  @keyframes dvScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .dv-modal-drag { display:none; }
   .dv-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .dv-modal-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
   .dv-modal-x { width:26px; height:26px; border-radius:4px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
@@ -692,8 +692,8 @@ export default function DividendsPage({
                 <XAxis dataKey="lbl" tick={{fontSize:10,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fontSize:10,fontFamily:FONTS.mono,fill:'var(--c-text-muted)'}} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>0?`${v}€`:''}/>
                 <Tooltip content={<DivTooltip/>} cursor={{fill:'var(--c-elevated)'}}/>
-                <Bar dataKey="amount" radius={[3,3,0,0]}>
-                  {chartData.map((e,i)=><Cell key={i} fill={e.amount>0?COLORS.neonGreen:'var(--c-border)'} fillOpacity={e.amount>0?0.75:1}/>)}
+                <Bar dataKey="amount" radius={[3,3,0,0]} maxBarSize={28}>
+                  {chartData.map((e,i)=><Cell key={i} fill={e.amount>0?COLORS.neonGreen:'var(--c-border)'} fillOpacity={e.amount>0?0.65:0.5}/>)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

@@ -12,13 +12,12 @@ const modalStyles = `
   .aim-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.82);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 50; backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    z-index: 50; backdrop-filter: blur(8px);
     animation: aimFade 150ms ease;
   }
   @keyframes aimFade { from{opacity:0} to{opacity:1} }
-  .aim-overlay { align-items:center !important; padding:16px; }
-
   .aim-modal {
     font-family: ${FONTS.sans};
     background: var(--c-bg);

@@ -45,7 +45,8 @@ const styles = `
   .sv-card:hover { background:var(--c-elevated); }
 
   .sv-card-main { display:flex; align-items:center; gap:12px; padding:13px 14px; }
-  .sv-av { width:38px; height:38px; border-radius:50%; background:var(--c-bg-green); border:1px solid var(--c-border-green); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sv-dot { width:8px; height:8px; border-radius:50%; background:var(--c-green); flex-shrink:0; }
+  .sv-dot.dim { background:var(--c-border-hi); }
   .sv-card-info { flex:1; min-width:0; }
   .sv-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sv-card-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
@@ -250,14 +251,16 @@ export default function SavingsList({ accounts, onAddAccount, onRemoveAccount, o
               return (
                 <div key={acc.id} className="sv-card">
                   <div className="sv-card-main" onClick={() => toggle(acc.id)}>
-                    <div className="sv-av"><BankIcon/></div>
+                    <div className={`sv-dot${(!acc.rate || acc.rate <= 0) ? ' dim' : ''}`}/>
                     <div className="sv-card-info">
-                      <p className="sv-card-name">{acc.name}</p>
-                      <div className="sv-card-meta">
-                        {acc.rate > 0 && <span className="sv-rate-badge">{acc.rate}% TAE</span>}
-                        {acc.notes && <span className="sv-card-notes">{acc.notes}</span>}
-                        <span className="sv-card-notes">{acc.txs?.length || 0} mov.</span>
-                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <p className="sv-card-name" style={{marginBottom:0}}>{acc.name}</p>
+                      {acc.rate > 0 && <span className="sv-rate-badge">{acc.rate}% TAE</span>}
+                    </div>
+                    <div className="sv-card-meta" style={{marginTop:2}}>
+                      {acc.notes && <span className="sv-card-notes">{acc.notes}</span>}
+                      <span className="sv-card-notes">{acc.txs?.length || 0} mov.</span>
+                    </div>
                     </div>
                     <div className="sv-card-right">
                       <p className="sv-card-val">{fmtEur(acc.balance)}</p>
