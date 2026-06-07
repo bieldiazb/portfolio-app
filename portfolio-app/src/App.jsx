@@ -55,73 +55,57 @@ export const PAGES = {
 
 // ── Tot el CSS de l'app ara usa variables CSS → light/dark automàtic ─────────
 const appStyles = `
+  /* ── Header mòbil ── */
   .mob-hdr {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--c-border);
-    background: var(--c-bg);
-    position: sticky; top: 0; z-index: 10;
-    font-family: 'Geist', sans-serif; flex-shrink: 0;
-    /* Transició suau quan canvia el tema */
-    transition: background-color 220ms ease, border-color 220ms ease;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--c-border);
+    background:var(--c-bg);
+    position:sticky; top:0; z-index:10; flex-shrink:0;
+    transition:background-color 220ms ease, border-color 220ms ease;
   }
-  @media (min-width: 1024px) { .mob-hdr { display: none; } }
+  @media (min-width:1024px) { .mob-hdr { display:none; } }
 
-  .mob-hdr-left { display: flex; align-items: center; gap: 10px; }
+  .mob-hdr-left { display:flex; align-items:center; gap:10px; }
 
-  .mob-hdr-logo {
-    width: 24px; height: 24px; border-radius: 6px;
-    background: var(--c-text-primary);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  /* En mode clar el logo inverteix per llegibilitat */
-  [data-theme="light"] .mob-hdr-logo { background: #00ff88; }
+  .mob-hdr-logo-img { width:20px; height:20px; display:block; filter:none; }
+  [data-theme="dark"] .mob-hdr-logo-img { filter:invert(1); }
 
   .mob-hdr-title {
-    font-size: 14px; font-weight: 500;
-    color: var(--c-text-primary); letter-spacing: -0.3px;
+    font-size:15px; font-weight:600;
+    color:var(--c-text-primary); letter-spacing:-0.3px;
+  }
+
+  .mob-hdr-right { display:flex; align-items:center; gap:8px; }
+
+  .mob-page-badge {
+    font-size:11px; font-weight:500; color:var(--c-text-muted);
+    padding:3px 8px; border-radius:20px;
+    background:var(--c-elevated); border:1px solid var(--c-border);
   }
 
   .mob-av {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--c-elevated);
-    border: 1px solid var(--c-border);
-    color: var(--c-text-secondary);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 500; overflow: hidden;
-    cursor: pointer; transition: background 100ms;
+    width:30px; height:30px; border-radius:50%;
+    background:var(--c-elevated); border:1px solid var(--c-border);
+    color:var(--c-text-secondary);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:500; overflow:hidden;
+    cursor:pointer; transition:background 100ms; flex-shrink:0;
   }
-  .mob-av:hover { background: var(--c-border-hi); }
-  .mob-av img   { width: 100%; height: 100%; object-fit: cover; }
+  .mob-av:hover { background:var(--c-border-hi); }
+  .mob-av img { width:100%; height:100%; object-fit:cover; }
 
   .app-spinner {
-    min-height: 100vh;
-    background: var(--c-bg);
-    display: flex; align-items: center; justify-content: center;
+    min-height:100vh; background:var(--c-bg);
+    display:flex; align-items:center; justify-content:center;
   }
   .app-spinner-ring {
-    width: 18px; height: 18px;
-    border: 1px solid var(--c-border-hi);
-    border-top-color: var(--c-text-primary);
-    border-radius: 50%;
-    animation: appSpin 0.6s linear infinite;
+    width:18px; height:18px;
+    border:1.5px solid var(--c-border);
+    border-top-color:var(--c-text-primary);
+    border-radius:50%; animation:appSpin 0.7s linear infinite;
   }
-  @keyframes appSpin { to { transform: rotate(360deg); } }
-
-  .swipe-hint {
-    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-    width: 3px; height: 40px;
-    background: var(--c-border);
-    border-radius: 0 2px 2px 0; z-index: 5;
-  }
-  @media (min-width: 1024px) { .swipe-hint { display: none; } }
-
-  /* Pàgina de nom al header mòbil */
-  .mob-page-name {
-    font-size: 12px;
-    font-family: 'Geist Mono', monospace;
-    color: var(--c-text-muted);
-  }
+  @keyframes appSpin { to { transform:rotate(360deg); } }
 `
 
 function calcInvVal(inv, fxRates = {}) {
@@ -494,18 +478,14 @@ export default function App() {
         }}
         className="lg:ml-[220px]"
       >
-        <div className="swipe-hint"/>
-
         {/* ── Header mòbil ── */}
         <div className="mob-hdr">
           <div className="mob-hdr-left">
-            <div className="mob-hdr-logo">
-              <img src="/logo_black.png" alt="Cartera" style={{width:20,height:20}}/>
-            </div>
+            <img src="/logo_black.png" alt="Cartera" className="mob-hdr-logo-img"/>
             <span className="mob-hdr-title">Cartera</span>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <span className="mob-page-name">{PAGES[activeTab]}</span>
+          <div className="mob-hdr-right">
+            <span className="mob-page-badge">{PAGES[activeTab]}</span>
             <ThemeToggleIcon/>
             <div className="mob-av" onClick={() => setSidebarOpen(true)}>
               {user.photoURL

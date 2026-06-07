@@ -22,10 +22,6 @@ function currentValue(c) {
   return c.totalCost || c.initialValue || 0
 }
 
-const PriceTip = ({ active, payload }) => {
-  if (!active || !payload?.length) return null
-  return <div style={{ background:COLORS.elevated, border:`1px solid var(--c-border)`, borderRadius:5, padding:'5px 9px', fontFamily:FONTS.mono, fontSize:11, color:'var(--c-text-primary)' }}>{fmtEur(payload[0]?.value)}</div>
-}
 const TrashIcon = ({ size=12 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
@@ -36,108 +32,110 @@ const ChevronDown = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="
 const styles = `
   .cr { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  .cr-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
-  .cr-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,var(--c-bg-amber) 0%,transparent 70%); pointer-events:none; }
-  .cr-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .cr-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
-  .cr-hero-total span { font-size:30px; opacity:0.7; }
-  .cr-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .cr-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
-  .cr-hero-badge.pos { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
-  .cr-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .cr-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
+  /* Hero centrat */
+  .cr-hero { text-align:center; padding:28px 20px 20px; }
+  .cr-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .cr-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+  .cr-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
+  .cr-hero-row { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .cr-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:13px; font-weight:500; font-family:${FONTS.mono}; }
+  .cr-hero-badge.pos { color:var(--c-green); }
+  .cr-hero-badge.neg { color:var(--c-red); }
 
-  .cr-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .cr-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .cr-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
-  .cr-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
-  .cr-metric-val.g { color:${COLORS.neonGreen}; }
-  .cr-metric-val.r { color:${COLORS.neonRed}; }
-  .cr-metric-val.a { color:${COLORS.neonAmber}; }
-  .cr-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
+  .cr-divider { height:1px; background:var(--c-border); margin:0 0 20px; }
 
-  .cr-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
-  .cr-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
-  .cr-btn-ico:hover { border-color:${COLORS.borderHi}; color:${COLORS.textSecondary}; }
-  .cr-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:${COLORS.neonAmber}; color:#000; border:none; border-radius:6px; font-family:${FONTS.sans}; font-size:12px; font-weight:600; cursor:pointer; margin-left:auto; white-space:nowrap; }
+  /* Stats fila */
+  .cr-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:24px; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; }
+  .cr-stat-cell { padding:14px 12px; text-align:center; border-right:1px solid var(--c-border); }
+  .cr-stat-cell:last-child { border-right:none; }
+  .cr-stat-lbl { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
+  .cr-stat-v { font-size:14px; font-weight:600; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.3px; }
+  .cr-stat-v.g { color:var(--c-green); }
+  .cr-stat-v.r { color:var(--c-red); }
+  .cr-stat-v.a { color:${COLORS.neonAmber}; }
+
+  .cr-actions { display:flex; gap:6px; align-items:center; margin-bottom:20px; }
+  .cr-btn-ico { width:32px; height:32px; background:transparent; border:1px solid var(--c-border); border-radius:8px; color:var(--c-text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .cr-btn-ico:hover { border-color:var(--c-border-hi); color:var(--c-text-secondary); }
+  .cr-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:${COLORS.neonAmber}; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; margin-left:auto; white-space:nowrap; }
   .cr-btn-add:hover { opacity:0.85; }
 
-  .cr-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-  .cr-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
+  .cr-section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cr-section-title { font-size:11px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.12em; }
 
-  .cr-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .cr-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
   .cr-card { border-bottom:1px solid var(--c-border); cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .cr-card:last-child { border-bottom:none; }
+  .cr-card-main { display:flex; align-items:center; gap:12px; padding:13px 14px; transition:background 80ms; }
+  .cr-card-main:hover { background:var(--c-elevated); }
 
-  .cr-card-main { display:flex; align-items:center; gap:12px; padding:14px; transition:background 80ms; }
-  .cr-card-main:active { background:var(--c-elevated); }
-  .cr-av { width:36px; height:36px; border-radius:10px; background:rgba(255,149,0,0.12); border:1px solid rgba(255,149,0,0.20); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COLORS.neonAmber}; }
+  /* Avatar circular */
+  .cr-av { width:38px; height:38px; border-radius:50%; background:rgba(255,149,0,0.12); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COLORS.neonAmber}; }
   .cr-card-info { flex:1; min-width:0; }
-  .cr-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; }
+  .cr-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:2px; }
   .cr-card-meta { display:flex; align-items:center; gap:6px; }
   .cr-sym-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:3px; background:rgba(255,149,0,0.12); color:${COLORS.neonAmber}; }
   .cr-card-price { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .cr-card-right { text-align:right; flex-shrink:0; }
-  .cr-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .cr-card-val { font-size:14px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:2px; }
   .cr-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
-  .cr-card-pct.pos { color:${COLORS.neonGreen}; }
-  .cr-card-pct.neg { color:${COLORS.neonRed}; }
+  .cr-card-pct.pos { color:var(--c-green); }
+  .cr-card-pct.neg { color:var(--c-red); }
   .cr-card-chevron { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
   .cr-card-chevron.open { transform:rotate(180deg); }
 
   .cr-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .cr-expand-inner { padding:16px 14px; }
-  .cr-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
-  .cr-stat { position:relative; padding-right:12px; }
-  .cr-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
-  .cr-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
-  .cr-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
-  .cr-stat-v.pos { color:${COLORS.neonGreen}; }
-  .cr-stat-v.neg { color:${COLORS.neonRed}; }
+  .cr-expand-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
+  .cr-expand-stat { position:relative; padding-right:12px; }
+  .cr-expand-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
+  .cr-expand-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
+  .cr-expand-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
+  .cr-expand-stat-v.pos { color:var(--c-green); }
+  .cr-expand-stat-v.neg { color:var(--c-red); }
 
   .cr-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .cr-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
+  .cr-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid var(--c-border); border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
 
   .cr-tx-list { display:flex; flex-direction:column; }
   .cr-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .cr-tx:last-child { border-bottom:none; }
   .cr-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
-  .cr-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
+  .cr-tx-del:hover { color:var(--c-red); background:var(--c-bg-red); }
 
   .cr-empty { padding:48px 0; text-align:center; }
   .cr-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
   .cr-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
-  .cr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
-  @media (min-width:640px) { .cr-overlay { align-items:center; padding:16px; } }
-  .cr-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 100px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
-  @media (min-width:640px) { .cr-modal { border-radius:10px; max-width:420px; padding:24px 20px; } }
-  .cr-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .cr-modal-drag { display:none; } }
+  .cr-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; backdrop-filter:blur(8px); animation:crFadeIn 150ms ease; }
+  @keyframes crFadeIn { from{opacity:0} to{opacity:1} }
+  .cr-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:420px; padding:24px 20px; font-family:${FONTS.sans}; max-height:90dvh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.35); animation:crScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); }
+  @keyframes crScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .cr-modal-drag { display:none; }
   .cr-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .cr-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
-  .cr-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .cr-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .cr-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  .cr-modal-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
+  .cr-modal-x { width:26px; height:26px; border-radius:6px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cr-lbl { display:block; font-size:10px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
+  .cr-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
   .cr-inp:focus { border-color:${COLORS.neonAmber}; }
-  .cr-inp::placeholder { color:${COLORS.textMuted}; }
+  .cr-inp::placeholder { color:var(--c-text-disabled); }
   .cr-inp.mono { font-family:${FONTS.mono}; text-align:right; }
   .cr-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
   .cr-fgroup { display:flex; flex-direction:column; gap:14px; }
   .cr-mfooter { display:flex; gap:8px; margin-top:20px; }
-  .cr-btn-cancel { flex:1; padding:11px; border:1px solid ${COLORS.border}; background:transparent; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; color:${COLORS.textSecondary}; cursor:pointer; }
-  .cr-btn-ok { flex:1; padding:11px; border:none; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
-  .cr-btn-ok.grn { background:${COLORS.neonGreen}; color:#000; }
+  .cr-btn-cancel { flex:1; padding:11px; border:1px solid var(--c-border); background:transparent; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; }
+  .cr-btn-ok { flex:1; padding:11px; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
+  .cr-btn-ok.grn { background:var(--c-green); color:#000; }
   .cr-btn-ok.org { background:${COLORS.neonAmber}; color:#000; }
-  .cr-btn-ok.def { background:#fff; color:#000; }
-  .cr-error { font-size:12px; color:${COLORS.neonRed}; background:${COLORS.bgRed}; border:1px solid ${COLORS.borderRed}; border-radius:5px; padding:9px 12px; }
-  .cr-type-row { display:flex; gap:1px; background:${COLORS.border}; border-radius:6px; overflow:hidden; margin-bottom:16px; }
-  .cr-type-tab { flex:1; padding:9px; border:none; background:${COLORS.surface}; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:${COLORS.textMuted}; }
-  .cr-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; }
-  .cr-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
+  .cr-btn-ok.def { background:var(--c-text-primary); color:var(--c-bg); }
+  .cr-error { font-size:12px; color:var(--c-red); background:var(--c-bg-red); border:1px solid var(--c-border-red); border-radius:8px; padding:9px 12px; }
+  .cr-type-row { display:flex; gap:1px; background:var(--c-border); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+  .cr-type-tab { flex:1; padding:9px; border:none; background:var(--c-surface); font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:var(--c-text-muted); transition:all 100ms; }
+  .cr-type-tab.grn { background:var(--c-bg-green); color:var(--c-green); }
+  .cr-type-tab.org { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
   .cr-popular-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:14px; }
-  .cr-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:11px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
-  .cr-pop-btn:hover { color:rgba(255,255,255,0.70); border-color:var(--c-text-disabled); }
+  .cr-pop-btn { padding:8px 4px; border-radius:8px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:11px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
+  .cr-pop-btn:hover { border-color:var(--c-border-hi); color:var(--c-text-primary); }
   .cr-pop-btn.sel { background:rgba(255,149,0,0.12); border-color:rgba(255,149,0,0.30); color:${COLORS.neonAmber}; }
 `
 
@@ -162,42 +160,38 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
       <style>{`${SHARED_STYLES}${styles}`}</style>
       <ConfirmDialog state={confirmState} onClose={closeConfirm}/>
 
-      {/* Hero */}
       <div className="cr-hero">
         <p className="cr-hero-label">Cartera crypto</p>
         <p className="cr-hero-total">{fmtEur(totalValue).replace('€','')}<span>€</span></p>
         <div className="cr-hero-row">
           {totalCost>0 && (
-            <span className={`cr-hero-badge ${isPos?'pos':'neg'}`}>
-              {isPos?'▲':'▼'} {isPos?'+':''}{fmtEur(totalGain)} ({Math.abs(gainPct).toFixed(2)}%)
-            </span>
+            <p className={`cr-hero-badge ${isPos?'pos':'neg'}`}>
+              {isPos?'▲':'▼'} {isPos?'+':''}{fmtEur(totalGain)}
+              <span style={{opacity:0.6,fontWeight:400}}>&nbsp;({isPos?'+':''}{Math.abs(gainPct).toFixed(2)}%)</span>
+            </p>
           )}
-          <span className="cr-hero-sub">{cryptos.length} actiu{cryptos.length!==1?'s':''} · {posCount} en positiu</span>
         </div>
       </div>
 
-      {/* Mètriques */}
+      <div className="cr-divider"/>
+
       {cryptos.length>0 && (
-        <div className="cr-metrics">
-          <div className="cr-metric">
-            <p className="cr-metric-label">Invertit</p>
-            <p className="cr-metric-val">{fmtEur(totalCost)}</p>
-            <p className="cr-metric-sub">cost total</p>
+        <div className="cr-stats">
+          <div className="cr-stat-cell">
+            <p className="cr-stat-lbl">Invertit</p>
+            <p className="cr-stat-v">{fmtEur(totalCost)}</p>
           </div>
-          <div className="cr-metric">
-            <p className="cr-metric-label">P&amp;G</p>
-            <p className={`cr-metric-val ${isPos?'g':'r'}`}>{isPos?'+':''}{fmtEur(totalGain)}</p>
-            <p className="cr-metric-sub">{Math.abs(gainPct).toFixed(2)}%</p>
+          <div className="cr-stat-cell">
+            <p className="cr-stat-lbl">P&G</p>
+            <p className={`cr-stat-v ${isPos?'g':'r'}`}>{isPos?'+':''}{fmtEur(totalGain)}</p>
           </div>
-          <div className="cr-metric">
-            <p className="cr-metric-label">Actius</p>
-            <p className="cr-metric-val a">{cryptos.length}</p>
-            <p className="cr-metric-sub">{posCount} positius</p>
+          <div className="cr-stat-cell">
+            <p className="cr-stat-lbl">Actius</p>
+            <p className="cr-stat-v a">{cryptos.length}</p>
           </div>
         </div>
       )}
 
-      {/* Accions */}
       <div className="cr-actions">
         {onRefresh && (
           <button className="cr-btn-ico" onClick={onRefresh} title="Actualitzar preus">
@@ -231,10 +225,8 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
               const gain   = curVal-cost
               const gPct   = cost>0?(gain/cost)*100:0
               const pos    = gain>=0
-
               const chartData = (c.txs||[]).filter(t=>t.type==='buy'&&t.pricePerUnit>0).map((t,i)=>({i,price:t.pricePerUnit}))
               if (c.currentPrice!=null) chartData.push({i:chartData.length,price:c.currentPrice})
-
               return (
                 <div key={c.id} className="cr-card">
                   <div className="cr-card-main" onClick={()=>toggle(c.id)}>
@@ -268,38 +260,37 @@ export default function CryptoPage({ cryptos, onAdd, onRemove, onUpdate, onRefre
                     </div>
                     <div className={`cr-card-chevron${expanded[c.id]?' open':''}`}><ChevronDown/></div>
                   </div>
-
                   {expanded[c.id] && (
                     <div className="cr-expand">
                       <div className="cr-expand-inner">
-                        <div className="cr-stats">
+                        <div className="cr-expand-stats">
                           {[
                             {l:'Cost mitjà', v:qty>0&&c.avgCost?fmtEur(c.avgCost)+'/u.':'—'},
                             {l:'Quantitat',  v:fmtQty(qty)},
                             {l:'Invertit',   v:fmtEur(cost)},
                             {l:'P&G',        v:(pos?'+':'')+fmtEur(gain), cls:pos?'pos':'neg'},
                           ].map((s,i)=>(
-                            <div key={i} className="cr-stat">
-                              <p className="cr-stat-l">{s.l}</p>
-                              <p className={`cr-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
+                            <div key={i} className="cr-expand-stat">
+                              <p className="cr-expand-stat-l">{s.l}</p>
+                              <p className={`cr-expand-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
                             </div>
                           ))}
                         </div>
                         <div className="cr-expand-btns">
                           {[
-                            {label:'Comprar',color:COLORS.neonGreen,bg:COLORS.bgGreen,border:COLORS.borderGreen,type:'buy'},
-                            {label:'Vendre', color:COLORS.neonAmber,bg:COLORS.bgAmber,border:COLORS.borderAmber,type:'sell'},
+                            {label:'Comprar',color:COLORS.neonGreen,bg:'var(--c-bg-green)',border:'var(--c-border-green)',type:'buy'},
+                            {label:'Vendre', color:COLORS.neonAmber,bg:'var(--c-bg-amber)',border:'var(--c-border-amber)',type:'sell'},
                           ].map(b=>(
                             <button key={b.type} className="cr-expand-btn" style={{color:b.color}}
                               onClick={()=>setTxModal({cryptoId:c.id,name:c.name,symbol:c.symbol,coinId:c.coinId,type:b.type})}
                               onMouseOver={e=>{e.currentTarget.style.background=b.bg;e.currentTarget.style.borderColor=b.border}}
-                              onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor=COLORS.border}}
+                              onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor='var(--c-border)'}}
                             >{b.label}</button>
                           ))}
-                          <button className="cr-expand-btn" style={{color:COLORS.neonRed,marginLeft:'auto'}}
+                          <button className="cr-expand-btn" style={{color:'var(--c-red)',marginLeft:'auto'}}
                             onClick={()=>askConfirm({name:c.name,onConfirm:()=>onRemove(c.id)})}
-                            onMouseOver={e=>{e.currentTarget.style.background=COLORS.bgRed;e.currentTarget.style.borderColor=COLORS.borderRed}}
-                            onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor=COLORS.border}}
+                            onMouseOver={e=>{e.currentTarget.style.background='var(--c-bg-red)';e.currentTarget.style.borderColor='var(--c-border-red)'}}
+                            onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor='var(--c-border)'}}
                           >Eliminar</button>
                         </div>
                         {c.txs&&c.txs.length>0 && (
@@ -416,7 +407,7 @@ function TxModal({ name, symbol, coinId, defaultType, onAdd, onClose }) {
             <div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                 <label className="cr-lbl" style={{margin:0}}>Preu/u (€)</label>
-                <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{fontSize:10,fontWeight:600,padding:'2px 8px',border:`1px solid ${COLORS.border}`,borderRadius:3,background:COLORS.elevated,color:livePrice?COLORS.neonGreen:COLORS.textMuted,fontFamily:FONTS.mono,cursor:livePrice?'pointer':'default'}}>{fetchingPrice?'...':livePrice?fmtEur(livePrice):'—'}</button>
+                <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{fontSize:10,fontWeight:600,padding:'2px 8px',border:`1px solid var(--c-border)`,borderRadius:4,background:'var(--c-elevated)',color:livePrice?COLORS.neonGreen:'var(--c-text-muted)',fontFamily:FONTS.mono,cursor:livePrice?'pointer':'default'}}>{fetchingPrice?'...':livePrice?fmtEur(livePrice):'—'}</button>
               </div>
               <input type="number" inputMode="decimal" step="any" className="cr-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00"/>
             </div>

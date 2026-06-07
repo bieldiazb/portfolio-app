@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fmtEur } from '../utils/format'
 import { useConfirmDelete, ConfirmDialog } from '../hooks/useConfirmDelete.jsx'
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { SHARED_STYLES, COLORS, FONTS } from './design-tokens'
 
 const POPULAR = [
@@ -24,10 +24,6 @@ function currentValue(c) {
   return c.totalCost||0
 }
 
-const PriceTip = ({ active, payload }) => {
-  if (!active||!payload?.length) return null
-  return <div style={{background:COLORS.elevated,border:`1px solid var(--c-border)`,borderRadius:5,padding:'5px 9px',fontFamily:FONTS.mono,fontSize:11,color:'var(--c-text-primary)'}}>${payload[0]?.value?.toFixed(2)}</div>
-}
 const TrashIcon = ({size=12}) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
@@ -38,107 +34,106 @@ const ChevronDown = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="
 const styles = `
   .cm { font-family:${FONTS.sans}; display:flex; flex-direction:column; gap:0; }
 
-  .cm-hero { background:linear-gradient(135deg,var(--c-bg) 0%,var(--c-overlay) 100%); border:1px solid var(--c-border); border-radius:12px; padding:20px; margin-bottom:12px; position:relative; overflow:hidden; }
-  .cm-hero::before { content:''; position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(200,150,26,0.07) 0%,transparent 70%); pointer-events:none; }
-  .cm-hero-label { font-size:11px; font-weight:500; color:var(--c-text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .cm-hero-total { font-size:36px; font-weight:600; color:var(--c-text-primary); letter-spacing:0.5px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:12px; }
-  .cm-hero-total span { font-size:30px; opacity:0.7; }
-  .cm-hero-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .cm-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; font-family:${FONTS.mono}; padding:4px 10px; border-radius:20px; }
-  .cm-hero-badge.pos { color:${COLORS.neonGreen}; background:var(--c-bg-green); border:1px solid var(--c-border-green); }
-  .cm-hero-badge.neg { color:${COLORS.neonRed}; background:rgba(255,59,59,0.10); border:1px solid rgba(255,59,59,0.20); }
-  .cm-hero-sub { font-size:11px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
+  .cm-hero { text-align:center; padding:28px 20px 20px; }
+  .cm-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+  .cm-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+  .cm-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
+  .cm-hero-row { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .cm-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:13px; font-weight:500; font-family:${FONTS.mono}; }
+  .cm-hero-badge.pos { color:var(--c-green); }
+  .cm-hero-badge.neg { color:var(--c-red); }
 
-  .cm-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-  .cm-metric { background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
-  .cm-metric-label { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.12em; }
-  .cm-metric-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); letter-spacing:-0.3px; font-variant-numeric:tabular-nums; }
-  .cm-metric-val.g { color:${COLORS.neonGreen}; }
-  .cm-metric-val.r { color:${COLORS.neonRed}; }
-  .cm-metric-val.y { color:#c8961a; }
-  .cm-metric-sub { font-size:10px; font-family:${FONTS.mono}; color:var(--c-text-muted); }
+  .cm-divider { height:1px; background:var(--c-border); margin:0 0 20px; }
 
-  .cm-actions { display:flex; gap:6px; align-items:center; margin-bottom:14px; }
-  .cm-btn-ico { width:30px; height:30px; background:transparent; border:1px solid ${COLORS.border}; border-radius:6px; color:${COLORS.textMuted}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
-  .cm-btn-ico:hover { border-color:${COLORS.borderHi}; }
-  .cm-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:#c8961a; color:#000; border:none; border-radius:6px; font-family:${FONTS.sans}; font-size:12px; font-weight:600; cursor:pointer; margin-left:auto; white-space:nowrap; }
+  .cm-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:24px; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; }
+  .cm-stat-cell { padding:14px 12px; text-align:center; border-right:1px solid var(--c-border); }
+  .cm-stat-cell:last-child { border-right:none; }
+  .cm-stat-lbl { font-size:9px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:5px; }
+  .cm-stat-v { font-size:14px; font-weight:600; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.3px; }
+  .cm-stat-v.g { color:var(--c-green); }
+  .cm-stat-v.r { color:var(--c-red); }
+  .cm-stat-v.y { color:#c8961a; }
+
+  .cm-actions { display:flex; gap:6px; align-items:center; margin-bottom:20px; }
+  .cm-btn-ico { width:32px; height:32px; background:transparent; border:1px solid var(--c-border); border-radius:8px; color:var(--c-text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 100ms; }
+  .cm-btn-ico:hover { border-color:var(--c-border-hi); }
+  .cm-btn-add { display:flex; align-items:center; gap:5px; padding:7px 14px; background:#c8961a; color:#000; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; margin-left:auto; white-space:nowrap; }
   .cm-btn-add:hover { opacity:0.85; }
 
-  .cm-section-hdr { display:flex; align-items:center; margin-bottom:8px; }
-  .cm-section-title { font-size:10px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.14em; }
+  .cm-section-hdr { display:flex; align-items:center; margin-bottom:10px; }
+  .cm-section-title { font-size:11px; font-weight:600; color:var(--c-text-secondary); text-transform:uppercase; letter-spacing:0.12em; }
 
-  .cm-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:10px; overflow:hidden; }
+  .cm-cards { display:flex; flex-direction:column; background:var(--c-surface); border:1px solid var(--c-border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
   .cm-card { border-bottom:1px solid var(--c-border); cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .cm-card:last-child { border-bottom:none; }
+  .cm-card-main { display:flex; align-items:center; gap:12px; padding:13px 14px; transition:background 80ms; }
+  .cm-card-main:hover { background:var(--c-elevated); }
 
-  .cm-card-main { display:flex; align-items:center; gap:12px; padding:14px; transition:background 80ms; }
-  .cm-card-main:active { background:var(--c-elevated); }
-  .cm-av { width:36px; height:36px; border-radius:10px; background:${COM_COLOR.bg}; border:1px solid ${COM_COLOR.border}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COM_COLOR.color}; }
+  .cm-av { width:38px; height:38px; border-radius:50%; background:${COM_COLOR.bg}; border:1px solid ${COM_COLOR.border}; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; font-family:${FONTS.mono}; color:${COM_COLOR.color}; }
   .cm-card-info { flex:1; min-width:0; }
-  .cm-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:3px; }
+  .cm-card-name { font-size:14px; font-weight:500; color:var(--c-text-primary); margin-bottom:2px; }
   .cm-card-meta { display:flex; align-items:center; gap:6px; }
   .cm-sym-badge { font-size:9px; font-weight:700; font-family:${FONTS.mono}; padding:1px 6px; border-radius:3px; background:${COM_COLOR.bg}; color:${COM_COLOR.color}; }
   .cm-card-price { font-size:10px; color:var(--c-text-muted); font-family:${FONTS.mono}; }
   .cm-card-right { text-align:right; flex-shrink:0; }
-  .cm-card-val { font-size:15px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:3px; }
+  .cm-card-val { font-size:14px; font-weight:500; font-family:${FONTS.mono}; color:var(--c-text-primary); font-variant-numeric:tabular-nums; margin-bottom:2px; }
   .cm-card-pct { font-size:11px; font-family:${FONTS.mono}; font-weight:600; }
-  .cm-card-pct.pos { color:${COLORS.neonGreen}; }
-  .cm-card-pct.neg { color:${COLORS.neonRed}; }
+  .cm-card-pct.pos { color:var(--c-green); }
+  .cm-card-pct.neg { color:var(--c-red); }
   .cm-card-chevron { color:var(--c-text-disabled); margin-left:6px; flex-shrink:0; transition:transform 200ms; }
   .cm-card-chevron.open { transform:rotate(180deg); }
 
   .cm-expand { border-top:1px solid var(--c-border); background:var(--c-elevated); }
   .cm-expand-inner { padding:16px 14px; }
-  .cm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
-  .cm-stat { position:relative; padding-right:12px; }
-  .cm-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
-  .cm-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
-  .cm-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
-  .cm-stat-v.pos { color:${COLORS.neonGreen}; }
-  .cm-stat-v.neg { color:${COLORS.neonRed}; }
+  .cm-expand-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:12px 0; border-bottom:1px solid var(--c-border); margin-bottom:14px; }
+  .cm-expand-stat { position:relative; padding-right:12px; }
+  .cm-expand-stat:not(:last-child)::after { content:''; position:absolute; right:6px; top:2px; height:calc(100% - 4px); width:1px; background:var(--c-surface); }
+  .cm-expand-stat-l { font-size:9px; font-weight:500; color:var(--c-text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.10em; }
+  .cm-expand-stat-v { font-size:13px; font-family:${FONTS.mono}; color:var(--c-text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
+  .cm-expand-stat-v.pos { color:var(--c-green); }
+  .cm-expand-stat-v.neg { color:var(--c-red); }
 
   .cm-expand-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .cm-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid ${COLORS.border}; border-radius:5px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
+  .cm-expand-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; background:transparent; border:1px solid var(--c-border); border-radius:8px; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; transition:all 100ms; white-space:nowrap; }
 
   .cm-tx { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--c-border); }
   .cm-tx:last-child { border-bottom:none; }
   .cm-tx-del { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:3px; cursor:pointer; color:var(--c-text-disabled); margin-left:8px; transition:all 80ms; }
-  .cm-tx-del:hover { color:${COLORS.neonRed}; background:${COLORS.bgRed}; }
+  .cm-tx-del:hover { color:var(--c-red); background:var(--c-bg-red); }
 
   .cm-empty { padding:48px 0; text-align:center; }
   .cm-empty-main { font-size:14px; color:var(--c-text-muted); font-weight:500; margin-bottom:4px; }
   .cm-empty-sub { font-size:12px; color:var(--c-text-disabled); }
 
-  .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
-  @media (min-width:640px) { .cm-overlay { align-items:center; padding:16px; } }
-  .cm-modal { background:${COLORS.surface}; border:1px solid ${COLORS.border}; border-radius:12px 12px 0 0; width:100%; padding:20px 16px 100px; font-family:${FONTS.sans}; max-height:92dvh; overflow-y:auto; }
-  @media (min-width:640px) { .cm-modal { border-radius:10px; max-width:420px; padding:24px 20px; } }
-  .cm-modal-drag { width:36px; height:4px; border-radius:2px; background:${COLORS.border}; margin:0 auto 18px; display:block; }
-  @media (min-width:640px) { .cm-modal-drag { display:none; } }
+  .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; backdrop-filter:blur(8px); animation:cmFadeIn 150ms ease; }
+  @keyframes cmFadeIn { from{opacity:0} to{opacity:1} }
+  .cm-modal { background:var(--c-bg); border:1px solid var(--c-border); border-radius:14px; width:100%; max-width:420px; padding:24px 20px; font-family:${FONTS.sans}; max-height:90dvh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.35); animation:cmScaleIn 200ms cubic-bezier(0.32,1.1,0.60,1); }
+  @keyframes cmScaleIn { from{transform:scale(0.95) translateY(6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+  .cm-modal-drag { display:none; }
   .cm-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .cm-modal-title { font-size:15px; font-weight:600; color:${COLORS.textPrimary}; }
-  .cm-modal-x { width:26px; height:26px; border-radius:4px; background:${COLORS.elevated}; border:1px solid ${COLORS.border}; color:${COLORS.textSecondary}; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .cm-lbl { display:block; font-size:10px; color:${COLORS.textMuted}; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
-  .cm-inp { width:100%; background:${COLORS.bg}; border:1px solid ${COLORS.border}; border-radius:5px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:${COLORS.textPrimary}; outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
+  .cm-modal-title { font-size:15px; font-weight:600; color:var(--c-text-primary); }
+  .cm-modal-x { width:26px; height:26px; border-radius:6px; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cm-lbl { display:block; font-size:10px; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:6px; font-weight:500; }
+  .cm-inp { width:100%; background:var(--c-elevated); border:1px solid var(--c-border); border-radius:8px; padding:10px 12px; font-family:${FONTS.sans}; font-size:16px; color:var(--c-text-primary); outline:none; box-sizing:border-box; transition:border-color 120ms; -webkit-appearance:none; }
   .cm-inp:focus { border-color:#c8961a; }
-  .cm-inp::placeholder { color:${COLORS.textMuted}; }
+  .cm-inp::placeholder { color:var(--c-text-disabled); }
   .cm-inp.mono { font-family:${FONTS.mono}; text-align:right; }
   .cm-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
   .cm-fgroup { display:flex; flex-direction:column; gap:14px; }
   .cm-mfooter { display:flex; gap:8px; margin-top:20px; }
-  .cm-btn-cancel { flex:1; padding:11px; border:1px solid ${COLORS.border}; background:transparent; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; color:${COLORS.textSecondary}; cursor:pointer; }
-  .cm-btn-ok { flex:1; padding:11px; border:none; border-radius:5px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
-  .cm-btn-ok.def { background:#fff; color:#000; }
-  .cm-btn-ok.grn { background:${COLORS.neonGreen}; color:#000; }
+  .cm-btn-cancel { flex:1; padding:11px; border:1px solid var(--c-border); background:transparent; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; color:var(--c-text-secondary); cursor:pointer; }
+  .cm-btn-ok { flex:1; padding:11px; border:none; border-radius:8px; font-family:${FONTS.sans}; font-size:13px; font-weight:600; cursor:pointer; }
+  .cm-btn-ok.def { background:var(--c-text-primary); color:var(--c-bg); }
+  .cm-btn-ok.grn { background:var(--c-green); color:#000; }
   .cm-btn-ok.org { background:${COLORS.neonAmber}; color:#000; }
-  .cm-error { font-size:12px; color:${COLORS.neonRed}; background:${COLORS.bgRed}; border:1px solid ${COLORS.borderRed}; border-radius:5px; padding:9px 12px; }
-  .cm-type-row { display:flex; gap:1px; background:${COLORS.border}; border-radius:6px; overflow:hidden; margin-bottom:16px; }
-  .cm-type-tab { flex:1; padding:9px; border:none; background:${COLORS.surface}; font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:${COLORS.textMuted}; }
-  .cm-type-tab.grn { background:${COLORS.bgGreen}; color:${COLORS.neonGreen}; }
-  .cm-type-tab.org { background:${COLORS.bgAmber}; color:${COLORS.neonAmber}; }
+  .cm-error { font-size:12px; color:var(--c-red); background:var(--c-bg-red); border:1px solid var(--c-border-red); border-radius:8px; padding:9px 12px; }
+  .cm-type-row { display:flex; gap:1px; background:var(--c-border); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+  .cm-type-tab { flex:1; padding:9px; border:none; background:var(--c-surface); font-family:${FONTS.sans}; font-size:12px; font-weight:500; cursor:pointer; color:var(--c-text-muted); transition:all 100ms; }
+  .cm-type-tab.grn { background:var(--c-bg-green); color:var(--c-green); }
+  .cm-type-tab.org { background:var(--c-bg-amber); color:${COLORS.neonAmber}; }
   .cm-popular-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:14px; }
-  .cm-pop-btn { padding:8px 4px; border-radius:6px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:10px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
-  .cm-pop-btn:hover { color:rgba(255,255,255,0.70); }
+  .cm-pop-btn { padding:8px 4px; border-radius:8px; cursor:pointer; text-align:center; font-family:${FONTS.mono}; font-size:10px; font-weight:700; transition:all 100ms; background:var(--c-elevated); border:1px solid var(--c-border); color:var(--c-text-secondary); }
+  .cm-pop-btn:hover { border-color:var(--c-border-hi); }
   .cm-pop-btn.sel { background:${COM_COLOR.bg}; border-color:${COM_COLOR.border}; color:${COM_COLOR.color}; }
 `
 
@@ -163,42 +158,38 @@ export default function CommoditiesPage({ commodities, onAdd, onRemove, onRefres
       <style>{`${SHARED_STYLES}${styles}`}</style>
       <ConfirmDialog state={confirmState} onClose={closeConfirm}/>
 
-      {/* Hero */}
       <div className="cm-hero">
         <p className="cm-hero-label">Matèries primeres</p>
         <p className="cm-hero-total">{fmtEur(totalValue).replace('€','')}<span>€</span></p>
         <div className="cm-hero-row">
           {totalCost>0 && (
-            <span className={`cm-hero-badge ${isPos?'pos':'neg'}`}>
-              {isPos?'▲':'▼'} {isPos?'+':''}{fmtEur(totalGain)} ({Math.abs(gainPct).toFixed(2)}%)
-            </span>
+            <p className={`cm-hero-badge ${isPos?'pos':'neg'}`}>
+              {isPos?'▲':'▼'} {isPos?'+':''}{fmtEur(totalGain)}
+              <span style={{opacity:0.6,fontWeight:400}}>&nbsp;({isPos?'+':''}{Math.abs(gainPct).toFixed(2)}%)</span>
+            </p>
           )}
-          <span className="cm-hero-sub">{commodities.length} posició{commodities.length!==1?'ns':''}</span>
         </div>
       </div>
 
-      {/* Mètriques */}
+      <div className="cm-divider"/>
+
       {commodities.length>0 && (
-        <div className="cm-metrics">
-          <div className="cm-metric">
-            <p className="cm-metric-label">Invertit</p>
-            <p className="cm-metric-val">{fmtEur(totalCost)}</p>
-            <p className="cm-metric-sub">cost total</p>
+        <div className="cm-stats">
+          <div className="cm-stat-cell">
+            <p className="cm-stat-lbl">Invertit</p>
+            <p className="cm-stat-v">{fmtEur(totalCost)}</p>
           </div>
-          <div className="cm-metric">
-            <p className="cm-metric-label">P&amp;G</p>
-            <p className={`cm-metric-val ${isPos?'g':'r'}`}>{isPos?'+':''}{fmtEur(totalGain)}</p>
-            <p className="cm-metric-sub">{Math.abs(gainPct).toFixed(2)}%</p>
+          <div className="cm-stat-cell">
+            <p className="cm-stat-lbl">P&G</p>
+            <p className={`cm-stat-v ${isPos?'g':'r'}`}>{isPos?'+':''}{fmtEur(totalGain)}</p>
           </div>
-          <div className="cm-metric">
-            <p className="cm-metric-label">Posicions</p>
-            <p className="cm-metric-val y">{commodities.length}</p>
-            <p className="cm-metric-sub">{posCount} positives</p>
+          <div className="cm-stat-cell">
+            <p className="cm-stat-lbl">Posicions</p>
+            <p className="cm-stat-v y">{commodities.length}</p>
           </div>
         </div>
       )}
 
-      {/* Accions */}
       <div className="cm-actions">
         {onRefresh && (
           <button className="cm-btn-ico" onClick={onRefresh} title="Actualitzar preus">
@@ -232,10 +223,8 @@ export default function CommoditiesPage({ commodities, onAdd, onRemove, onRefres
               const gain   = curVal-cost
               const gPct   = cost>0?(gain/cost)*100:0
               const pos    = gain>=0
-
               const chartData = (c.txs||[]).filter(t=>t.type==='buy'&&t.pricePerUnit>0).map((t,i)=>({i,price:t.pricePerUnit}))
               if (c.currentPrice!=null) chartData.push({i:chartData.length,price:c.currentPrice})
-
               return (
                 <div key={c.id} className="cm-card">
                   <div className="cm-card-main" onClick={()=>toggle(c.id)}>
@@ -269,38 +258,37 @@ export default function CommoditiesPage({ commodities, onAdd, onRemove, onRefres
                     </div>
                     <div className={`cm-card-chevron${expanded[c.id]?' open':''}`}><ChevronDown/></div>
                   </div>
-
                   {expanded[c.id] && (
                     <div className="cm-expand">
                       <div className="cm-expand-inner">
-                        <div className="cm-stats">
+                        <div className="cm-expand-stats">
                           {[
                             {l:'Preu mig', v:qty>0&&c.avgCost?`$${c.avgCost.toFixed(2)}/${c.unit}`:'—'},
                             {l:'Quantitat', v:fmtQty(qty,c.unit)},
                             {l:'Invertit',  v:fmtEur(cost)},
                             {l:'P&G',       v:(pos?'+':'')+fmtEur(gain), cls:pos?'pos':'neg'},
                           ].map((s,i)=>(
-                            <div key={i} className="cm-stat">
-                              <p className="cm-stat-l">{s.l}</p>
-                              <p className={`cm-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
+                            <div key={i} className="cm-expand-stat">
+                              <p className="cm-expand-stat-l">{s.l}</p>
+                              <p className={`cm-expand-stat-v${s.cls?' '+s.cls:''}`}>{s.v}</p>
                             </div>
                           ))}
                         </div>
                         <div className="cm-expand-btns">
                           {[
-                            {label:'Comprar',color:COLORS.neonGreen,bg:COLORS.bgGreen,border:COLORS.borderGreen,type:'buy'},
-                            {label:'Vendre', color:COLORS.neonAmber,bg:COLORS.bgAmber,border:COLORS.borderAmber,type:'sell'},
+                            {label:'Comprar',color:COLORS.neonGreen,bg:'var(--c-bg-green)',border:'var(--c-border-green)',type:'buy'},
+                            {label:'Vendre', color:COLORS.neonAmber,bg:'var(--c-bg-amber)',border:'var(--c-border-amber)',type:'sell'},
                           ].map(b=>(
                             <button key={b.type} className="cm-expand-btn" style={{color:b.color}}
                               onClick={()=>setTxModal({id:c.id,name:c.name,symbol:c.symbol,unit:c.unit,ticker:c.ticker,type:b.type})}
                               onMouseOver={e=>{e.currentTarget.style.background=b.bg;e.currentTarget.style.borderColor=b.border}}
-                              onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor=COLORS.border}}
+                              onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor='var(--c-border)'}}
                             >{b.label}</button>
                           ))}
-                          <button className="cm-expand-btn" style={{color:COLORS.neonRed,marginLeft:'auto'}}
+                          <button className="cm-expand-btn" style={{color:'var(--c-red)',marginLeft:'auto'}}
                             onClick={()=>askConfirm({name:c.name,onConfirm:()=>onRemove(c.id)})}
-                            onMouseOver={e=>{e.currentTarget.style.background=COLORS.bgRed;e.currentTarget.style.borderColor=COLORS.borderRed}}
-                            onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor=COLORS.border}}
+                            onMouseOver={e=>{e.currentTarget.style.background='var(--c-bg-red)';e.currentTarget.style.borderColor='var(--c-border-red)'}}
+                            onMouseOut={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor='var(--c-border)'}}
                           >Eliminar</button>
                         </div>
                         {c.txs&&c.txs.length>0 && (
@@ -411,17 +399,14 @@ function TxModal({ item, onAdd, onClose }) {
   const handleQty=v=>{setQty(v);if(v&&price)recalc(v,price)}
   const handlePrice=v=>{setPrice(v);if(v&&qty)recalc(qty,v)}
   const fillLive=()=>{if(!livePrice)return;setPrice(livePrice.toString());if(qty)recalc(qty,livePrice)}
-
   const totalUsd=parseFloat(total)||0, totalEur=fxRate?+(totalUsd*fxRate).toFixed(2):totalUsd
   const priceUsd=parseFloat(price)||0, priceEur=fxRate?+(priceUsd*fxRate).toFixed(4):priceUsd
-
   const submit=()=>{
     const q=parseFloat(qty),t=parseFloat(total)
     if(!q||q<=0)return setError('La quantitat és obligatòria')
     if(!t||t<=0)return setError("L'import és obligatori")
     setError(''); onAdd({qty:q,pricePerUnit:priceUsd,pricePerUnitEur:priceEur,totalCost:totalUsd,totalCostEur:totalEur,type,note,date})
   }
-
   return (
     <div className="cm-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="cm-modal">
@@ -440,7 +425,7 @@ function TxModal({ item, onAdd, onClose }) {
             <div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                 <label className="cm-lbl" style={{margin:0}}>Preu/u (USD)</label>
-                <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{fontSize:10,fontWeight:600,padding:'2px 8px',border:`1px solid ${COLORS.border}`,borderRadius:3,background:COLORS.elevated,color:livePrice?COLORS.neonGreen:COLORS.textMuted,fontFamily:FONTS.mono,cursor:livePrice?'pointer':'default'}}>{fetchingPrice?'...':livePrice?`$${livePrice}`:'—'}</button>
+                <button onClick={fillLive} disabled={fetchingPrice||!livePrice} style={{fontSize:10,fontWeight:600,padding:'2px 8px',border:`1px solid var(--c-border)`,borderRadius:4,background:'var(--c-elevated)',color:livePrice?COLORS.neonGreen:'var(--c-text-muted)',fontFamily:FONTS.mono,cursor:livePrice?'pointer':'default'}}>{fetchingPrice?'...':livePrice?`$${livePrice}`:'—'}</button>
               </div>
               <input type="number" inputMode="decimal" step="any" className="cm-inp mono" value={price} onChange={e=>handlePrice(e.target.value)} placeholder="0.00"/>
             </div>
@@ -448,7 +433,7 @@ function TxModal({ item, onAdd, onClose }) {
           <div>
             <label className="cm-lbl">Total (USD)</label>
             <input type="number" inputMode="decimal" step="any" className="cm-inp mono" value={total} onChange={e=>setTotal(e.target.value)} placeholder="0.00"/>
-            {totalUsd>0&&fxRate&&<p style={{fontSize:10,color:COLORS.textMuted,fontFamily:FONTS.mono,marginTop:4,textAlign:'right'}}>≈ <span style={{color:COLORS.textSecondary}}>{fmtEur(totalEur)}</span> <span style={{opacity:0.5}}>· 1 USD = {fxRate.toFixed(4)} €</span></p>}
+            {totalUsd>0&&fxRate&&<p style={{fontSize:10,color:'var(--c-text-muted)',fontFamily:FONTS.mono,marginTop:4,textAlign:'right'}}>≈ <span style={{color:'var(--c-text-secondary)'}}>{fmtEur(totalEur)}</span> <span style={{opacity:0.5}}>· 1 USD = {fxRate.toFixed(4)} €</span></p>}
           </div>
           <div className="cm-grid2">
             <div><label className="cm-lbl">Data</label><input type="date" className="cm-inp" value={date} onChange={e=>setDate(e.target.value)}/></div>
