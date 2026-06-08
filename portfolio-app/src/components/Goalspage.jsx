@@ -43,7 +43,7 @@ const styles = `
   /* ── Hero centrat ── */
   .gl-hero { text-align:center; padding:28px 20px 20px; }
   .gl-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .gl-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:6px; }
+  .gl-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0px; margin-bottom:6px; }
   .gl-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:12px; }
   .gl-hero-top { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
   .gl-btn-add { display:inline-flex; align-items:center; gap:5px; padding:8px 16px; background:var(--c-green); color:#000; border:none; border-radius:20px; font-family:${FONTS.sans}; font-size:12px; font-weight:700; cursor:pointer; transition:opacity 100ms; }

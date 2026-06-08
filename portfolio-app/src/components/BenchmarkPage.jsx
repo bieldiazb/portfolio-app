@@ -43,7 +43,7 @@ const styles = `
   /* Hero centrat */
   .bm-hero { text-align:center; padding:28px 20px 20px; }
   .bm-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .bm-hero-ret { font-size:44px; font-weight:600; letter-spacing:-2px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:10px; }
+  .bm-hero-ret { font-size:44px; font-weight:600; letter-spacing:0px; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:10px; }
   .bm-hero-ret.pos { color:var(--c-green); }
   .bm-hero-ret.neg { color:var(--c-red); }
   .bm-hero-ret.neu { color:var(--c-text-secondary); }

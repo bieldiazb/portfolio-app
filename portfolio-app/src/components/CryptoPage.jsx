@@ -35,7 +35,7 @@ const styles = `
   /* Hero centrat */
   .cr-hero { text-align:center; padding:28px 20px 20px; }
   .cr-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .cr-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+  .cr-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0px; margin-bottom:10px; }
   .cr-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
   .cr-hero-row { display:flex; align-items:center; justify-content:center; gap:8px; }
   .cr-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:13px; font-weight:500; font-family:${FONTS.mono}; }

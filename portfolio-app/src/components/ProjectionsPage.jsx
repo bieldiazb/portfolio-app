@@ -68,7 +68,7 @@ const styles = `
   /* ── Hero centrat ── */
   .pr-hero { text-align:center; padding:28px 20px 20px; }
   .pr-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .pr-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+  .pr-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0px; margin-bottom:10px; }
   .pr-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
   .pr-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:0; }
   .pr-hero-sub strong { color:var(--c-green); font-weight:500; }

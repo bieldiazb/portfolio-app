@@ -19,9 +19,9 @@ const styles = `
   .dash-hero-num {
     font-size:48px; font-weight:600; color:var(--c-text-primary);
     font-family:${FONTS.num}; font-variant-numeric:tabular-nums;
-    line-height:1; letter-spacing:-2px; margin-bottom:10px;
+    line-height:1; letter-spacing:0; margin-bottom:10px;
   }
-  .dash-hero-num span { font-size:28px; opacity:0.4; font-weight:300; }
+  .dash-hero-num span { font-size:28px; opacity:0.4; font-weight:600; }
   .dash-hero-pg {
     display:inline-flex; align-items:center; gap:6px;
     font-size:14px; font-weight:500; font-family:${FONTS.mono};

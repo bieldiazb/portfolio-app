@@ -35,10 +35,9 @@ export function ThemeToggleIcon({ style = {} }) {
       onClick={toggleTheme}
       title={isDark ? 'Canviar a mode clar' : 'Canviar a mode fosc'}
       style={{
-        width: 30, height: 30,
+        width: 35, height: 35,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'transparent',
-        border: '1px solid var(--c-border)',
+        // background: 'transparent',
         borderRadius: 6,
         color: 'var(--c-text-secondary)',
         cursor: 'pointer',
@@ -49,7 +48,7 @@ export function ThemeToggleIcon({ style = {} }) {
       onMouseOver={e => {
         e.currentTarget.style.borderColor = 'var(--c-border-hi)'
         e.currentTarget.style.color       = 'var(--c-text-primary)'
-        e.currentTarget.style.background  = 'var(--c-elevated)'
+        e.currentTarget.style.background  = 'transparent'
       }}
       onMouseOut={e => {
         e.currentTarget.style.borderColor = 'var(--c-border)'
@@ -78,7 +77,6 @@ export function ThemeTogglePill({ collapsed = false }) {
         padding: collapsed ? '8px 0' : '8px 10px',
         justifyContent: collapsed ? 'center' : 'flex-start',
         background: 'transparent',
-        border: '1px solid var(--c-border)',
         borderRadius: 8,
         color: 'var(--c-text-muted)',
         fontFamily: FONTS.sans,

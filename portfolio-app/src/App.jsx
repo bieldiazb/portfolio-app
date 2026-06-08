@@ -59,7 +59,6 @@ const appStyles = `
   .mob-hdr {
     display:flex; align-items:center; justify-content:space-between;
     padding:12px 16px;
-    border-bottom:1px solid var(--c-border);
     background:var(--c-bg);
     position:sticky; top:0; z-index:10; flex-shrink:0;
     transition:background-color 220ms ease, border-color 220ms ease;

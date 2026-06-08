@@ -17,7 +17,7 @@ const styles = `
   .mr-stat-v.g { color:var(--c-green); }
   .mr-stat-v.r { color:var(--c-red); }
   .mr-stat-v.p { color:${COLORS.neonPurple}; }
-  .mr-hero-title { font-size:44px; font-weight:600; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; letter-spacing:-2px; line-height:1; color:var(--c-text-primary); margin-bottom:10px; }
+  .mr-hero-title { font-size:44px; font-weight:600; font-family:${FONTS.num}; font-variant-numeric:tabular-nums; letter-spacing:0px; line-height:1; color:var(--c-text-primary); margin-bottom:10px; }
   .mr-hero-sub { font-size:12px; color:var(--c-text-muted); }
   .mr-hero-metrics { display:none; }
   .mr-hero-m-l { font-size:9px; color:var(--c-text-muted); }

@@ -160,7 +160,7 @@ const styles = `
   /* ── Hero centrat ── */
   .als-hero { text-align:center; padding:28px 20px 20px; }
   .als-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .als-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:6px; }
+  .als-hero-count { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:1px; margin-bottom:6px; }
   .als-hero-sub { font-size:12px; color:var(--c-text-muted); margin-bottom:12px; }
   .als-hero-top { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
   .als-hero-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }

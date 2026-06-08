@@ -20,7 +20,7 @@ const styles = `
   /* ── Hero centrat ── */
   .al-hero { text-align:center; padding:28px 20px 20px; }
   .al-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .al-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:14px; }
+  .al-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0px; margin-bottom:14px; }
   .al-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
 
   /* Barra distribució horitzontal */

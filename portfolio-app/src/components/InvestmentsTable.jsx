@@ -15,7 +15,7 @@ const styles = `
   /* ── Hero centrat estil Robinhood ── */
   .inv-hero { text-align:center; padding:28px 20px 20px; }
   .inv-hero-label { font-size:11px; font-weight:400; color:var(--c-text-muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-  .inv-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+  .inv-hero-total { font-size:44px; font-weight:600; color:var(--c-text-primary); font-family:${FONTS.num}; font-variant-numeric:tabular-nums; line-height:1; letter-spacing:0px; margin-bottom:10px; }
   .inv-hero-total span { font-size:26px; opacity:0.4; font-weight:300; }
   .inv-hero-row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
   .inv-hero-badge { display:inline-flex; align-items:center; gap:4px; font-size:13px; font-weight:500; font-family:${FONTS.mono}; }
@@ -304,7 +304,7 @@ const styles = `
   .cdm-close:hover { background:var(--c-border-hi); color:var(--c-text-primary); }
   .cdm-pnl-section { padding:20px 20px 16px; }
   .cdm-pnl-lbl { font-size:10px; font-weight:500; color:var(--c-text-muted); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:8px; }
-  .cdm-pnl-big { font-size:36px; font-weight:300; letter-spacing:-2px; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px; font-family:${FONTS.num}; }
+  .cdm-pnl-big { font-size:36px; font-weight:300; letter-spacing:0px; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px; font-family:${FONTS.num}; }
   .cdm-pnl-big.pos { color:var(--c-green); }
   .cdm-pnl-big.neg { color:var(--c-red); }
   .cdm-pnl-pct { font-size:14px; font-weight:500; margin-bottom:16px; font-family:${FONTS.mono}; }
